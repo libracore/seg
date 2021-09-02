@@ -1,0 +1,144 @@
+{
+ "creation": "2018-02-13 15:21:39.380249",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "description",
+  "qty_7days",
+  "column_7days",
+  "revenue_7days",
+  "db_7days",
+  "section_fy",
+  "qty_ytd",
+  "revenue_ytd",
+  "db_ytd",
+  "column_py",
+  "qty_py",
+  "revenue_py",
+  "db_py",
+  "section_planning",
+  "demand_qty_ytd",
+  "demand_revenue_ytd",
+  "column_planning",
+  "demand_qty_py",
+  "demand_revenue_py"
+ ],
+ "fields": [
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "qty_7days",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "kg sold last week"
+  },
+  {
+   "fieldname": "column_7days",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "revenue_7days",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Revenue last week"
+  },
+  {
+   "fieldname": "db_7days",
+   "fieldtype": "Currency",
+   "label": "DB last week"
+  },
+  {
+   "fieldname": "section_fy",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "qty_ytd",
+   "fieldtype": "Int",
+   "label": "kg sold YTD"
+  },
+  {
+   "fieldname": "revenue_ytd",
+   "fieldtype": "Currency",
+   "label": "Revenue YTD"
+  },
+  {
+   "fieldname": "db_ytd",
+   "fieldtype": "Currency",
+   "label": "DB YTD"
+  },
+  {
+   "fieldname": "column_py",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "qty_py",
+   "fieldtype": "Int",
+   "label": "kg sold PY"
+  },
+  {
+   "fieldname": "revenue_py",
+   "fieldtype": "Currency",
+   "label": "Revenue PY"
+  },
+  {
+   "fieldname": "db_py",
+   "fieldtype": "Currency",
+   "label": "DB PY"
+  },
+  {
+   "fieldname": "section_planning",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "demand_qty_ytd",
+   "fieldtype": "Int",
+   "label": "Demand YTD Qty"
+  },
+  {
+   "fieldname": "demand_revenue_ytd",
+   "fieldtype": "Currency",
+   "label": "Demand YTD revenue"
+  },
+  {
+   "fieldname": "column_planning",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "demand_qty_py",
+   "fieldtype": "Int",
+   "label": "Demand PY Qty"
+  },
+  {
+   "fieldname": "demand_revenue_py",
+   "fieldtype": "Currency",
+   "label": "Demand PY revenue"
+  }
+ ],
+ "modified": "2021-09-02 23:30:22.376366",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Sales Report Item",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

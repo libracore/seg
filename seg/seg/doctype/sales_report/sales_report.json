@@ -1,0 +1,213 @@
+{
+ "autoname": "field:title",
+ "creation": "2018-02-13 15:16:34.571379",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "week",
+  "this_year",
+  "title",
+  "column_top",
+  "last_year",
+  "sales_person",
+  "section_items",
+  "items",
+  "section_totals",
+  "total_qty_7days",
+  "total_qty_ytd",
+  "total_demand_qty_ytd",
+  "total_demand_qty_py",
+  "total_qty_py",
+  "column_totals",
+  "total_revenue_7days",
+  "total_revenue_ytd",
+  "total_demand_revenue_ytd",
+  "total_demand_revenue_py",
+  "total_revenue_py",
+  "section_db",
+  "total_db_7days",
+  "total_db_ytd",
+  "column_db",
+  "total_db_py",
+  "section_remarks",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "week",
+   "fieldtype": "Data",
+   "label": "Week"
+  },
+  {
+   "fieldname": "this_year",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "This year"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "unique": 1
+  },
+  {
+   "fieldname": "column_top",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "last_year",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Last year"
+  },
+  {
+   "fieldname": "sales_person",
+   "fieldtype": "Data",
+   "label": "Sales person"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Sales Report Item"
+  },
+  {
+   "fieldname": "section_totals",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_qty_7days",
+   "fieldtype": "Int",
+   "label": "Total Qty last week"
+  },
+  {
+   "fieldname": "total_qty_ytd",
+   "fieldtype": "Int",
+   "label": "Total Qty YTD"
+  },
+  {
+   "fieldname": "total_demand_qty_ytd",
+   "fieldtype": "Int",
+   "label": "Total rolling demand Qty YTD"
+  },
+  {
+   "fieldname": "total_demand_qty_py",
+   "fieldtype": "Int",
+   "label": "Total rolling demand Qty PY"
+  },
+  {
+   "fieldname": "total_qty_py",
+   "fieldtype": "Int",
+   "label": "Total Qty PY"
+  },
+  {
+   "fieldname": "column_totals",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_revenue_7days",
+   "fieldtype": "Currency",
+   "label": "Total revenue last week"
+  },
+  {
+   "fieldname": "total_revenue_ytd",
+   "fieldtype": "Currency",
+   "label": "Total revenue YTD"
+  },
+  {
+   "fieldname": "total_demand_revenue_ytd",
+   "fieldtype": "Currency",
+   "label": "Total rolling demand revenue YTD"
+  },
+  {
+   "fieldname": "total_demand_revenue_py",
+   "fieldtype": "Currency",
+   "label": "Total rolling demand revenue PY"
+  },
+  {
+   "fieldname": "total_revenue_py",
+   "fieldtype": "Currency",
+   "label": "Total revenue PY"
+  },
+  {
+   "fieldname": "section_db",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "total_db_7days",
+   "fieldtype": "Currency",
+   "label": "Total DB1 last week"
+  },
+  {
+   "fieldname": "total_db_ytd",
+   "fieldtype": "Currency",
+   "label": "Total DB1 YTD"
+  },
+  {
+   "fieldname": "column_db",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_db_py",
+   "fieldtype": "Currency",
+   "label": "Total DB1 PY"
+  },
+  {
+   "fieldname": "section_remarks",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Long Text",
+   "label": "Remarks"
+  }
+ ],
+ "modified": "2021-09-02 23:30:12.685015",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Sales Report",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "title",
+ "track_changes": 1
+}
