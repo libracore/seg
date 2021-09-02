@@ -15,6 +15,12 @@ def get_data():
                    },
                    {
                        "type": "doctype",
+                       "name": "Quotation",
+                       "label": _("Quotation"),
+                       "description": _("Quotation")
+                   },
+                   {
+                       "type": "doctype",
                        "name": "Sales Order",
                        "label": _("Sales Order"),
                        "description": _("Sales Order")
@@ -30,11 +36,29 @@ def get_data():
                        "name": "Sales Invoice",
                        "label": _("Sales Invoice"),
                        "description": _("Sales Invoice")
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Payment Entry",
+                       "label": _("Payment Entry"),
+                       "description": _("Payment Entry")
                    }
             ]
         },
         {
-            "label": _("Auftragsbearbeitung"),
+            "label": _("Projects"),
+            "icon": "fa fa-users",
+            "items": [
+                   {
+                       "type": "doctype",
+                       "name": "Project",
+                       "label": _("Project"),
+                       "description": _("Project")
+                   }
+            ]
+        },
+        {
+            "label": _("Stock"),
             "icon": "fa fa-users",
             "items": [
                    {
@@ -88,6 +112,12 @@ def get_data():
             "label": _("Reports"),
             "icon": "fa fa-bank",
             "items": [
+                    {
+                       "type": "doctype",
+                       "name": "Sales Report",
+                       "label": _("Sales Report"),
+                       "description": _("Sales Report")
+                    },
                     {
                         "type": "report",
                         "name": "Preisliste",
