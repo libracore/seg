@@ -106,15 +106,15 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
             'priority': target_prio
          })
         if item_group:
-            pricing_rule.title = "{c} {g} ({d})".format(c=customer, g=item_group, d=discount_percentage)
+            pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=item_group, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
             pricing_rule.item_group = item_group
         elif item_code:
-            pricing_rule.title = "{c} {i} ({d})".format(c=customer, i=item_code, d=discount_percentage)
+            pricing_rule.title = ("{c} {i} ({d})".format(c=customer, i=item_code, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Code"
             pricing_rule.item_code = item_code
         else:
-            pricing_rule.title = "{c} Basis ({d})".format(c=customer, d=discount_percentage)
+            pricing_rule.title = ("{c} Basis ({d})".format(c=customer, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
             pricing_rule.item_group = "Alle Artikelgruppen"
         pr = pricing_rule.insert()
