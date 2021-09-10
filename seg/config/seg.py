@@ -126,7 +126,7 @@ def get_data():
                     },
                     {
                         "type": "report",
-                        "name": "Preisliste",
+                        "name": "SEG Preisliste",
                         "label": _("Preisliste"),
                         "doctype": "Item Price",
                         "is_query_report": True

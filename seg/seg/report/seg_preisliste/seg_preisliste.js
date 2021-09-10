@@ -1,8 +1,8 @@
-/ Copyright (c) 2016-2021, libracore AG and contributors
+// Copyright (c) 2016, libracore AG and contributors
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Preisliste"] = {
+frappe.query_reports["SEG Preisliste"] = {
     "filters": [
         {
             "fieldname":"customer",
@@ -23,7 +23,7 @@ frappe.query_reports["Preisliste"] = {
            add_pricing_rule();
         })
     }
-}
+};
 
 function add_pricing_rule() {
     var d = new frappe.ui.Dialog({
@@ -39,7 +39,7 @@ function add_pricing_rule() {
           d.hide();
           var values = d.get_values();
           frappe.call({
-              'method': "erpnext.selling.report.preisliste.preisliste.create_pricing_rule",
+              'method': "seg.seg.report.seg_preisliste.seg_preisliste.create_pricing_rule",
               'args':{
                   'customer': values.customer,
                   'discount_percentage': values.discount_percent,
