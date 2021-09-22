@@ -61,12 +61,14 @@ SELECT
      AND `tabItem Price`.`price_list` = "Standard-Vertrieb") AS `price_list_rate`,
   (SELECT `tabPricing Rule`.`name`
    FROM `tabPricing Rule`
+   LEFT JOIN `tabPricing Rule Item Code` ON `tabPricing Rule Item Code`.`parent` = `tabPricing Rule`.`name`
+   LEFT JOIN `tabPricing Rule Item Group` ON `tabPricing Rule Item Group`.`parent` = `tabPricing Rule`.`name`
    WHERE `tabPricing Rule`.`selling` = 1
      AND `tabPricing Rule`.`customer` = "{customer}"
      AND `tabPricing Rule`.`disable` = 0
-     AND (`tabPricing Rule`.`item_code` = `tabItem`.`item_code`
-          OR `tabPricing Rule`.`item_group` = `tabItem`.`item_group`
-          OR `tabPricing Rule`.`item_group` = "Alle Artikelgruppen")
+     AND (`tabPricing Rule Item Code`.`item_code` = `tabItem`.`item_code`
+          OR `tabPricing Rule Item Group`.`item_group` = `tabItem`.`item_group`
+          OR `tabPricing Rule Item Group`.`item_group` = "Alle Artikelgruppen")
    ORDER BY `tabPricing Rule`.`priority` DESC
    LIMIT 1) AS `pricing_rule`
 FROM `tabItem`
