@@ -25,3 +25,7 @@ def get_total_weight(items, qtys, kgperL=1.5):
 					total_weight += qtys[i] * doc.density * doc.weight_per_unit
 		i += 1
 	return { 'total_weight': total_weight }
+
+@frappe.whitelist()
+def get_user_image(user):
+    return frappe.get_value("User", user, "user_image")
