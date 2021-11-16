@@ -35,14 +35,14 @@ def get_user_image(user):
 def get_matching_variant(item_code, old_selection, new_selection):
     attributes = json.loads(new_selection)
     for a in json.loads(old_selection):
+        # refine search, add attribute
+        for k,v in a.items():
+            if k not in attributes:
+                attributes[k] = v
         # check if there are multiple variants matching
         matches = get_next_attribute_and_values(item_code, attributes)
         if len(matches['filtered_items']) == 1:
             # leave with this variant code
             return list(matches['filtered_items'])[0]
-        # refine search, add attribute
-        for k,v in a.items():
-            if k not in attributes:
-                attributes[k] = v
     # nothing found
     return None
