@@ -104,4 +104,5 @@ def login(usr, pwd):
     from frappe.auth import LoginManager
     lm = LoginManager()
     lm.authenticate(usr, pwd)
+    lm.login()
     return frappe.local.session
