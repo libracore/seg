@@ -98,3 +98,10 @@ def get_prices(item_code, user):
     """.format(customer=customer, item_code=item_code)
     data = frappe.db.sql(sql_query, as_dict=True)
     return data
+
+@frappe.whitelist(allow_guest=True)
+def login(usr, pwd):
+    from frappe.auth import LoginManager
+    lm = LoginManager()
+    lm.authenticate(usr, pwd)
+    return frappe.local.session
