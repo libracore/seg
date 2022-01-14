@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2021, libracore AG and Contributors
+# Copyright (c) 2017-2022, libracore AG and Contributors
 # License: GNU General Public License v3. See license.txt
 
 # customisation for total weight calculation
@@ -106,3 +106,27 @@ def login(usr, pwd):
     lm.authenticate(usr, pwd)
     lm.login()
     return frappe.local.session
+
+@frappe.whitelist()
+def convert_material(source_item, target_item, warehouse, qty):
+    issue = create_stock_entry("Material Issue", [{'item_code': source_item}], warehouse, qty)
+    base_rate = issue.items[0].basic_rate
+    create_stock_entry("Material Receipt", [{'item_code': target_item}], warehouse, qty, base_rate)
+    return
+    
+def create_stock_entry(stock_entry_type, items, warehouse, qty, base_rate=None):
+    doc = frappe.get_doc({
+        'doctype': "Stock Entry",
+        'stock_entry_type': stock_entry_type,
+        'to_warehouse': warehouse,
+        'from_warehouse': warehouse
+    })
+    for i in items:
+        doc.append('items', {
+            'item_code': i['item_code'],
+            'qty': qty,
+            'basic_rate': base_rate
+        })
+    doc = doc.insert()
+    doc.submit()
+    return doc
