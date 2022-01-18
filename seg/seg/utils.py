@@ -50,11 +50,14 @@ def get_matching_variant(item_code, old_selection, new_selection):
 @frappe.whitelist()
 def get_prices(item_code, user):
     from erpnext.controllers.website_list_for_contact import get_customers_suppliers
-    customers, suppliers = get_customers_suppliers("Sales Invoice", user)
-    if len(customers) > 0:
-        customer = customers[0]
+    if user:
+        customers, suppliers = get_customers_suppliers("Sales Invoice", user)
+        if len(customers) > 0:
+            customer = customers[0]
+        else:
+            customer  = "None"
     else:
-        customer  = "None"
+        customer = "None"
     sql_query = """SELECT 
             `raw`.`item_code`,
             `raw`.`item_name`,
@@ -93,12 +96,16 @@ def get_prices(item_code, user):
               OR `tabItem`.`variant_of` = "{item_code}"
             ) AS `raw`
         LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
-        JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
+        LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
         GROUP BY `raw`.`item_code`
     """.format(customer=customer, item_code=item_code)
     data = frappe.db.sql(sql_query, as_dict=True)
     return data
 
+@frappe.whitelist(allow_guest=True)
+def get_public_prices(item_code):
+    return get_prices(item_code, None)
+    
 @frappe.whitelist(allow_guest=True)
 def login(usr, pwd):
     from frappe.auth import LoginManager
