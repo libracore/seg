@@ -7,9 +7,9 @@ import frappe
 # searches for supplier
 def get_alternative_items(doctype, txt, searchfield, start, page_len, filters):
     return frappe.db.sql(
-        """SELECT `tabItem Alternative`.`alternative_item_code`, `tabItem Alternative`.`alternative_item_name`
+        """SELECT `tabItem Alternative`.`item_code`, `tabItem Alternative`.`item_name`
            FROM `tabItem Alternative`
-           WHERE `tabItem Alternative`.`item_code` = "{i}" AND 
-             (`tabItem Alternative`.`alternative_item_name` LIKE "%{s}%"
-              OR `tabItem Alternative`.`alternative_item_code` LIKE "%{s}%");
+           WHERE `tabItem Alternative`.`alternative_item_code` = "{i}" AND 
+             (`tabItem Alternative`.`item_name` LIKE "%{s}%"
+              OR `tabItem Alternative`.`item_code` LIKE "%{s}%");
         """.format(i=filters['item_code'], s=txt))
