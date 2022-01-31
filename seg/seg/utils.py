@@ -6,6 +6,7 @@ import frappe
 import json
 import six
 from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
+from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 
 @frappe.whitelist()
 def get_total_weight(items, qtys, kgperL=1.5):
@@ -136,4 +137,6 @@ def create_stock_entry(stock_entry_type, items, warehouse, qty, base_rate=None):
         })
     doc = doc.insert()
     doc.submit()
+    if stock_entry_type == "Material Receipt":
+        update_last_purchase_rates(doc.name)
     return doc
