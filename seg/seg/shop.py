@@ -162,3 +162,72 @@ def search_products(keyword, offset=0):
         LIMIT 20
         OFFSET {offset};""".format(keyword=keyword, offset=offset), as_dict=True)
     return products
+
+@frappe.whitelist(allow_guest=True)
+def get_item_details(item_code):
+    item_details = frappe.db.sql("""
+        SELECT
+            `tabItem`.`item_code` AS `item_code`,
+            `tabItem`.`item_name` AS `item_name`,
+            `tabItem`.`description` AS `description`,
+            `tabItem`.`web_long_description` AS `web_long_description`,
+            `tabItem`.`website_content` AS `website_content`,
+            `tabItem`.`has_variants` AS `has_variants`,
+            `tabItem`.`image` AS `image`,
+            `tabItem`.`website_image` AS `website_image`,
+            `tabItem`.`verpackungseinheit` AS `packaging_unit`,
+            `tabItem`.`voc` AS `voc`,
+            `tabItem`.`stock_uom` AS `stock_uom`,
+            `tabItem`.`density` AS `density`,
+            `tabItem`.`weight_per_unit` AS `weight_per_unit`,
+            `tabItem`.`weight_uom` AS `weight_uom`
+        FROM `tabItem`
+        WHERE `tabItem`.`item_code` = "{item_code}"
+          AND `tabItem`.`show_in_website` = 1;
+    """.format(item_code=item_code), as_dict=True)
+    if len(item_details) > 0:
+        more_images = frappe.db.sql("""
+            SELECT
+                `description`,
+                `image`
+            FROM `tabItem Image`
+            WHERE `parent` = "{item_code}";
+        """.format(item_code=item_code), as_dict=True)
+        item_details[0]['more_images'] = more_images
+        
+        related_items = frappe.db.sql("""
+            SELECT 
+                `tabItem`.`item_code`, 
+                `tabItem`.`item_name`, 
+                `tabItem`.`image`
+            FROM `tabRelated Item`
+            LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabRelated Item`.`item_code`
+            WHERE `tabRelated Item`.`parent` = "{item_code}";
+        """.format(item_code=item_code), as_dict=True)
+        item_details[0]['related_items'] = related_items
+        
+        variants = frappe.db.sql("""
+            SELECT 
+                `tabItem`.`item_code`
+            FROM `tabItem`
+            WHERE `tabItem`.`variant_of` = "{item_code}";
+        """.format(item_code=item_code), as_dict=True)
+        for v in variants:
+            variant_attributes = frappe.db.sql("""
+                SELECT 
+                    `tabItem Variant Attribute`.`attribute`,
+                    `tabItem Variant Attribute`.`attribute_value`
+                FROM `tabItem Variant Attribute`
+                WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
+            """.format(item_code=v['item_code']), as_dict=True)
+            v['attributes'] = variant_attributes
+        item_details[0]['variants'] = variants
+        
+        variant_attributes = frappe.db.sql("""
+            SELECT 
+                `tabItem Variant Attribute`.`attribute`
+            FROM `tabItem Variant Attribute`
+            WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
+        """.format(item_code=item_code), as_dict=True)
+        item_details[0]['variant_attributes'] = variant_attributes
+    return item_details
