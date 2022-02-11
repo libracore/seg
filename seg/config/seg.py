@@ -175,5 +175,29 @@ def get_data():
                         "is_query_report": True
                     }
             ]
+        },
+        {
+            "label": _("Webshop"),
+            "icon": "fa fa-users",
+            "items": [
+                   {
+                       "type": "doctype",
+                       "name": "Coupon",
+                       "label": _("Coupon"),
+                       "description": _("Coupon")
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Visualisation",
+                       "label": _("Visualisation"),
+                       "description": _("Visualisation")
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Webshop Settings",
+                       "label": _("Webshop Settings"),
+                       "description": _("Webshop Settings")
+                   }
+            ]
         }
 ]

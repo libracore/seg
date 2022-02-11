@@ -1,0 +1,93 @@
+{
+ "autoname": "VISU-.#####",
+ "creation": "2022-02-11 21:36:33.113963",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "project_name",
+  "customer",
+  "column_main",
+  "date",
+  "secion_images",
+  "before_image",
+  "after_image"
+ ],
+ "fields": [
+  {
+   "fieldname": "project_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Project name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "secion_images",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "before_image",
+   "fieldtype": "Attach Image",
+   "label": "Before image"
+  },
+  {
+   "fieldname": "after_image",
+   "fieldtype": "Attach Image",
+   "label": "After image"
+  }
+ ],
+ "modified": "2022-02-11 21:36:42.092012",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Visualisation",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "project_name",
+ "track_changes": 1
+}
