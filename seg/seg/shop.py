@@ -128,6 +128,22 @@ def get_top_products():
         ORDER BY `weightage` DESC
         LIMIT 20;""", as_dict=True)
     return top_products
+
+@frappe.whitelist(allow_guest=True)
+def get_products_by_item_group(item_group, show_variants=False):
+    if show_variants:
+        condition = ""
+    else:
+        condition = "AND `variant_of` IS NULL"
+    products = frappe.db.sql("""
+        SELECT `item_code`, `item_name`, `image`
+        FROM `tabItem`
+        WHERE `show_in_website` = 1
+          AND `item_group` = "{item_group}"
+          {condition}
+        ORDER BY `weightage` DESC
+        LIMIT 20;""".format(item_group=item_group, condition=condition), as_dict=True)
+    return products
     
 @frappe.whitelist(allow_guest=True)
 def register_newsletter(name, email):
