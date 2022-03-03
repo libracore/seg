@@ -328,6 +328,29 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
     return {'error': error, 'name': address.name or None}
 
 @frappe.whitelist()
+def delete_address(name):
+    error = None
+    # fetch customers for this user
+    customers = get_session_customers()
+    address = frappe.get_doc("Address", name)
+    permitted = False
+    for l in address.links:
+        for c in customers:
+            if l.link_name == c['customer']:
+                permitted = True
+    if permitted:
+        # delete address: drop links
+        address.links = []
+        try:
+            address.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as err:
+            error = err
+    else:
+        error = "Permission error"
+    return {'error': error}
+    
+@frappe.whitelist()
 def get_delivery_notes(commission=None):
     conditions = ""
     if commission:
