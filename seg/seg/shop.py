@@ -226,9 +226,11 @@ def get_item_details(item_code):
         
         variants = frappe.db.sql("""
             SELECT 
-                `tabItem`.`item_code`
+                `tabItem`.`item_code`,
+                `tabItem`.`image`
             FROM `tabItem`
-            WHERE `tabItem`.`variant_of` = "{item_code}";
+            WHERE `tabItem`.`variant_of` = "{item_code}"
+              AND `tabItem`.`show_in_website` = 1;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
