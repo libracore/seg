@@ -463,7 +463,8 @@ def get_visualisations():
     return visualisations
 
 @frappe.whitelist()
-def place_order(shipping_address, items, commission=None, discount=0, paid=False):
+def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None):
     error = None
     so_ref = None
     # fetch customers for this user
@@ -477,7 +478,11 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             'shipping_address_name': shipping_address,
             'apply_discount_on': 'Net Total',
             'additional_discount_percentage': float(discount),
-            'delivery_date': date.today()
+            'delivery_date': date.today(),
+            'avis_person': avis_person,
+            'avid_phone': avis_phone,
+            'order_person': order_person,
+            'desired_date': desired_date
         })
         # create item records
         items = json.loads(items)
