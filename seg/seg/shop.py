@@ -117,7 +117,13 @@ def get_child_group(item_group):
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
         fields=['name'])
     for n in nodes:
-        groups.append(n['name'])
+        # first item per group
+        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, fields=['name'], limit=1)
+        record = n['name']
+        if item and len(item) > 0:
+            record = {}
+            record[n['name']] = item[0]
+        groups.append(record)
     return groups
 
 @frappe.whitelist(allow_guest=True)
