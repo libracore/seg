@@ -6,6 +6,7 @@
 import frappe
 import json
 from datetime import date
+from frappe.utils import cint 
 
 @frappe.whitelist()
 def get_user_image(user):
@@ -230,7 +231,7 @@ def get_item_details(item_code):
                 `tabItem`.`image`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
-              AND `tabItem`.`show_in_website` = 1;
+              AND `tabItem`.`show_variant_in_website` = 1;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
@@ -515,14 +516,14 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
                 'description': t['description']
             })
         # payment
-        if paid == "1":
+        if cint(paid) == 1:
             sales_order.po_no = "Bezahlt mit Stripe ({0})".format(date.today())
         # insert and submit
         sales_order.insert(ignore_permissions=True)
         sales_order.submit()
         frappe.db.commit()
         so_ref = sales_order.name
-        # create payment
+        # create payment (NOTE: FOR SOME REASON, IGNORE_PERMISSIONS DOES NOT WORK ON PAYMENT ENTRY
         #if paid == "1":
         #    payment = frappe.get_doc({
         #        'doctype': 'Payment Entry',
@@ -531,6 +532,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         #        'party_type': 'Customer',
         #        'party': customers[0]['customer'],
         #        'paid_to': frappe.get_value("Webshop Settings", "Webshop Settings", 'stripe_account'),
+        #        #'paid_from': frappe.get_value("Company", frappe.db.get_default("company"), 'default_receivable_account'),
         #        'paid_amount': sales_order.grand_total,
         #        'reference_no': sales_order.name,
         #        'reference_date': date.today(),
