@@ -4,7 +4,9 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "stripe_account"
+  "stripe_account",
+  "column_main",
+  "api_key"
  ],
  "fields": [
   {
@@ -12,10 +14,19 @@
    "fieldtype": "Link",
    "label": "Stripe account",
    "options": "Account"
+  },
+  {
+   "fieldname": "column_main",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "label": "API Key"
   }
  ],
  "issingle": 1,
- "modified": "2022-02-11 21:59:56.350917",
+ "modified": "2022-03-18 15:29:44.851106",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Webshop Settings",

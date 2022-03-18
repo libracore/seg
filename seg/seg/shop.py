@@ -557,4 +557,71 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
     return {'error': error, 'sales_order': so_ref}
     
     
-    
+@frappe.whitelist(allow_guest=True)
+def create_user(api_key, email, password, company_name, first_name, 
+    last_name, street, pincode, city, phone, salutation=None, remarks=""):
+    if check_key(api_key):
+        # create user
+        new_user = frappe.get_doc({
+            'doctype': 'User',
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name,
+            'send_welcome_mail': 0,
+            'language': 'de',
+            'phone': phone,
+            'new_password': password
+        })
+        try:
+            new_user.insert(ignore_permissions=True)
+        except Exception as err:
+            return {'status': err}
+        # create customer (included)
+        new_customer = frappe.get_doc({
+            'doctype': 'Customer',
+            'customer_name': company_name,
+            'name': company_name,
+            'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
+            'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory")
+        })
+        try:
+            new_customer.insert(ignore_permissions=True)
+        except Exception as err:
+            return {'status': err}
+        # create address (included)
+        new_address = frappe.get_doc({
+            'doctype': 'Address',
+            'address_line1': street,
+            'pincode': pincode,
+            'city': city,
+            'is_primary_address': 1,
+            'links': [{
+                'link_doctype': 'Customer',
+                'link_name': new_customer.name
+            }]
+        })
+        try:
+            new_address.insert(ignore_permissions=True)
+        except Exception as err:
+            return {'status': err}
+        frappe.db.commit()
+        # link contact
+        contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
+        if contacts and len(contacts) > 0:
+            contact = frappe.get_doc("Contact", contacts[0]['name'])
+            contact.append("links", {
+                'link_doctype': 'Customer',
+                'link_name': new_customer.name
+            })
+            contact.save(ignore_permissions=True)
+        frappe.db.commit()
+        return {'status': 'success'}
+    else:
+        return {'status': 'Authentication failed'}
+
+def check_key(key):
+    server_key = frappe.get_value("Webshop Settings", "Webshop Settings", "api_key")
+    if server_key == key:
+        return True
+    else:
+        return False
