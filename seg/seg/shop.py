@@ -326,7 +326,7 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
     return {'error': error, 'name': new_address.name or None}
 
 @frappe.whitelist()
-def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz"):
+def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz", is_primary=0):
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -343,6 +343,10 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
         address.pincode = pincode
         address.city = city
         address.country = country
+        if is_primary:
+            address.is_primary_address = 1
+        else:
+            address.is_primary_address = 0
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()
