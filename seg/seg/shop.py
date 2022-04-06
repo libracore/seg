@@ -629,3 +629,29 @@ def check_key(key):
         return True
     else:
         return False
+
+@frappe.whitelist()
+def get_item_order_count(item, user):
+    from erpnext.controllers.website_list_for_contact import get_customers_suppliers
+    if user:
+        customers, suppliers = get_customers_suppliers("Sales Invoice", user)
+        if len(customers) > 0:
+            customer = customers[0]
+        else:
+            customer  = "None"
+    else:
+        customer = "None"
+    sql_query = """SELECT 
+            SUM(`tabSales Order Item`.`qty`) AS `count`,
+            `tabSales Order Item`.`item_code` AS `item_code`
+        FROM `tabSales Order Item`
+        LEFT JOIN `tabSales Order` ON `tabSales Order`.`name` = `tabSales Order Item`.`parent`
+        WHERE `tabSales Order Item`.`item_code` = "{item_code}"
+          AND `tabSales Order`.`customer` = "{customer}"
+          AND `tabSales Order`.`docstatus` = 1;
+    """.format(customer=customer, item_code=item)
+    data = frappe.db.sql(sql_query, as_dict=True)
+    if len(data) > 0 and data[0]['item_code'] is not None:
+        return data[0]
+    else:
+        return {'item_code': item, 'count': 0}
