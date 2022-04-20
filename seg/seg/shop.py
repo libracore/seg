@@ -7,7 +7,7 @@ import frappe
 import json
 from datetime import date
 from frappe.utils import cint 
-
+from frappe.core.doctype.user.user import reset_password
 @frappe.whitelist()
 def get_user_image(user):
     return frappe.get_value("User", user, "user_image")
@@ -95,6 +95,11 @@ def login(usr, pwd):
     lm.authenticate(usr, pwd)
     lm.login()
     return frappe.local.session
+   
+# this will send a reset password email
+@frappe.whitelist(allow_guest=True)
+def send_reset_password(user):
+    return reset_password(user)
     
 @frappe.whitelist(allow_guest=True)
 def get_item_groups():
