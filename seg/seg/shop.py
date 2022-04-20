@@ -678,10 +678,13 @@ def get_item_order_count(item, user):
         return {'item_code': item, 'count': 0}
 
 @frappe.whitelist()
-def change_password(user, new_pass):
-    from frappe.utils.password import update_password
+def change_password(user, new_pass, old_pass):
+    from frappe.utils.password import update_password, check_password
     if user == frappe.session.user:
-        update_password(user, new_pass)
-        return {'success': 1}
+        if user == check_password(user, old_pass):
+            update_password(user, new_pass)
+            return {'success': 1}
+        else:
+            return {'success': 0, 'error': 'wrong password'}
     else:
         return {'success': 0, 'error': 'wrong user'}
