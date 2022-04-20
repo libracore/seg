@@ -414,7 +414,7 @@ def get_sales_invoices(commission=None):
             `tabSales Invoice`.`due_date` AS `due_date`,
             `tabSales Invoice`.`commission` AS `commission`,
             `tabSales Invoice`.`grand_total` AS `grand_total`,
-            `tabSales Invoice`.`outstanding_amount` AS `grand_total`,
+            `tabSales Invoice`.`outstanding_amount` AS `outstanding_amount`,
             `tabSales Invoice`.`status` AS `status`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
