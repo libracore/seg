@@ -459,8 +459,20 @@ def get_visualisations():
     visualisations = frappe.db.sql("""
         SELECT 
             `tabVisualisation`.`project_name` AS `project_name`,
-            `tabVisualisation`.`before_image` AS `before_image`,
-            `tabVisualisation`.`after_image` AS `after_image`,
+            (SELECT 
+                GROUP_CONCAT(`before`.`image` SEPARATOR "::")
+            FROM
+                `tabVisualisation Image` AS `before` 
+            WHERE 
+                `before`.`parent` = `tabVisualisation`.`name` 
+                AND `before`.`parentfield` = "before_images") AS `before_images`,
+            (SELECT 
+                GROUP_CONCAT(`after`.`image` SEPARATOR "::")
+            FROM
+                `tabVisualisation Image` AS `after` 
+            WHERE 
+                `after`.`parent` = `tabVisualisation`.`name` 
+                AND `after`.`parentfield` = "after_images") AS `after_images`,
             `tabVisualisation`.`name` AS `visualisation`,
             `tabVisualisation`.`date` AS `date`
         FROM `tabContact`
@@ -469,8 +481,12 @@ def get_visualisations():
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabVisualisation` ON `tabVisualisation`.`customer` = `tC1`.`link_name`
         WHERE `tabContact`.`user` = "{user}"
+        GROUP BY `tabVisualisation`.`name`
         ORDER BY `tabVisualisation`.`date` DESC;
     """.format(user=frappe.session.user), as_dict=True)
+    for v in visualisations:
+        v['before_images'] = (v['before_images'] or "").split("::")
+        v['after_images'] = (v['after_images'] or "").split("::")
     return visualisations
 
 @frappe.whitelist()
