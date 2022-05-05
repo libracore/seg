@@ -253,6 +253,15 @@ def get_item_details(item_code):
                 WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
             v['attributes'] = variant_attributes
+            # add more images per variant
+            more_images = frappe.db.sql("""
+                SELECT
+                    `description`,
+                    `image`
+                FROM `tabItem Image`
+                WHERE `parent` = "{item_code}";
+            """.format(item_code=v['item_code']), as_dict=True)
+            v['more_images'] = more_images    
         item_details[0]['variants'] = variants
         
         variant_attributes = frappe.db.sql("""
@@ -277,6 +286,7 @@ def get_addresses():
             `tabAddress`.`country`,
             `tabAddress`.`is_primary_address`,
             `tabAddress`.`is_shipping_address`
+            `tC1`.`link_name` AS `customer_name`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
