@@ -404,12 +404,14 @@ def get_delivery_notes(commission=None):
             `tabDelivery Note`.`name` AS `delivery_note`,
             `tabDelivery Note`.`posting_date` AS `date`,
             `tabDelivery Note`.`commission` AS `commission`,
-            `tabDelivery Note`.`grand_total` AS `grand_total`
+            `tabDelivery Note`.`grand_total` AS `grand_total`,
+            `tabFile`.`file_url` AS `pdf`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabDelivery Note` ON `tabDelivery Note`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabFile` ON `tabFile`.`attached_to_name` = `tabDelivery Note`.`name`
         WHERE `tabContact`.`user` = "{user}"
           AND `tabDelivery Note`.`docstatus` = 1
           {conditions}
@@ -430,12 +432,14 @@ def get_sales_invoices(commission=None):
             `tabSales Invoice`.`commission` AS `commission`,
             `tabSales Invoice`.`grand_total` AS `grand_total`,
             `tabSales Invoice`.`outstanding_amount` AS `outstanding_amount`,
-            `tabSales Invoice`.`status` AS `status`
+            `tabSales Invoice`.`status` AS `status`,
+            `tabFile`.`file_url` AS `pdf`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabSales Invoice` ON `tabSales Invoice`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabFile` ON `tabFile`.`attached_to_name` = `tabSales Invoice`.`name`
         WHERE `tabContact`.`user` = "{user}"
           AND `tabSales Invoice`.`docstatus` = 1
           {conditions}
