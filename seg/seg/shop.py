@@ -225,6 +225,15 @@ def get_item_details(item_code):
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['more_images'] = more_images
         
+        web_specs = frappe.db.sql("""
+            SELECT
+                `label`,
+                `description`
+            FROM `tabItem Website Specification`
+            WHERE `parent` = "{item_code}";
+        """.format(item_code=item_code), as_dict=True)
+        item_details[0]['website_specification'] = web_specs
+        
         related_items = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`, 
@@ -261,7 +270,16 @@ def get_item_details(item_code):
                 FROM `tabItem Image`
                 WHERE `parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
-            v['more_images'] = more_images    
+            v['more_images'] = more_images  
+            
+            web_specs = frappe.db.sql("""
+                SELECT
+                    `label`,
+                    `description`
+                FROM `tabItem Website Specification`
+                WHERE `parent` = "{item_code}";
+            """.format(item_code=item_code), as_dict=True)
+            v['website_specification'] = web_specs  
         item_details[0]['variants'] = variants
         
         variant_attributes = frappe.db.sql("""
