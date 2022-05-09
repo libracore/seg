@@ -285,7 +285,7 @@ def get_addresses():
             `tabAddress`.`city`,
             `tabAddress`.`country`,
             `tabAddress`.`is_primary_address`,
-            `tabAddress`.`is_shipping_address`
+            `tabAddress`.`is_shipping_address`,
             `tC1`.`link_name` AS `customer_name`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
