@@ -10,7 +10,7 @@ from frappe.utils import cint
 from frappe.core.doctype.user.user import reset_password
 @frappe.whitelist()
 def get_user_image(user):
-    return frappe.get_value("User", user, "user_image")
+    return "this function has been deprecated. please use get_profile instead"
 
 @frappe.whitelist()
 def get_matching_variant(item_code, old_selection, new_selection):
