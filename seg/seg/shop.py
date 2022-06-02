@@ -8,6 +8,8 @@ import json
 from datetime import date
 from frappe.utils import cint 
 from frappe.core.doctype.user.user import reset_password
+from frappe import _
+
 @frappe.whitelist()
 def get_user_image(user):
     return "this function has been deprecated. please use get_profile instead"
@@ -423,6 +425,7 @@ def get_delivery_notes(commission=None):
             `tabDelivery Note`.`posting_date` AS `date`,
             `tabDelivery Note`.`commission` AS `commission`,
             `tabDelivery Note`.`grand_total` AS `grand_total`,
+            `tabDelivery Note`.`status` AS `status`,
             `tabFile`.`file_url` AS `pdf`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
@@ -435,6 +438,9 @@ def get_delivery_notes(commission=None):
           {conditions}
         ORDER BY `tabDelivery Note`.`posting_date` DESC;
     """.format(user=frappe.session.user, conditions=conditions), as_dict=True)
+    # translate status
+    for d in delivery_notes:
+        d['status'] = _(d['status'])
     return delivery_notes
 
 @frappe.whitelist()
@@ -463,6 +469,9 @@ def get_sales_invoices(commission=None):
           {conditions}
         ORDER BY `tabSales Invoice`.`posting_date` DESC;
     """.format(user=frappe.session.user, conditions=conditions), as_dict=True)
+    # translate status
+    for s in sales_invoices:
+        s['status'] = _(s['status'])
     return sales_invoices
 
 @frappe.whitelist()
