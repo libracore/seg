@@ -232,7 +232,8 @@ def get_item_details(item_code):
                 `label`,
                 `description`
             FROM `tabItem Website Specification`
-            WHERE `parent` = "{item_code}";
+            WHERE `parent` = "{item_code}"
+            ORDER BY `idx` ASC;
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['website_specification'] = web_specs
         
