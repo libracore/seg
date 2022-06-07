@@ -115,6 +115,7 @@ def get_child_group(item_group):
     groups = []
     sub_groups = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for s in sub_groups:
         sg = {}
@@ -122,10 +123,14 @@ def get_child_group(item_group):
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for n in nodes:
         # first item per group
-        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, fields=['name'], limit=1)
+        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
+            fields=['name'], 
+            order_by='weightage desc',
+            limit=1)
         record = n['name']
         if item and len(item) > 0:
             record = {}
