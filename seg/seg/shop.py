@@ -481,6 +481,26 @@ def get_sales_invoices(commission=None):
     return sales_invoices
 
 @frappe.whitelist()
+def reorder_delivery_note(delivery_note):
+    delivery_note_items = frappe.db.sql("""
+        SELECT 
+            `tabDelivery Note Item`.`item_code` AS `item_code`,
+            `tabDelivery Note Item`.`qty` AS `qty`
+        FROM `tabContact`
+        JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
+                                       AND `tC1`.`link_doctype` = "Customer" 
+                                       AND `tC1`.`parent` = `tabContact`.`name`
+        JOIN `tabDelivery Note` ON `tabDelivery Note`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabDelivery Note Item` ON `tabDelivery Note Item`.`parent` = `tabDelivery Note`.`name`
+        LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
+        WHERE `tabContact`.`user` = "{user}"
+          AND `tabDelivery Note`.`docstatus` = 1
+          AND `tabDelivery Note`.`name` = "{delivery_note}"
+          AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website` = 1);
+    """.format(user=frappe.session.user, delivery_note=delivery_note), as_dict=True)
+    return delivery_note_items
+
+@frappe.whitelist()
 def get_profile():
     profile = frappe.db.sql("""
         SELECT 
