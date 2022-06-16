@@ -9,6 +9,7 @@ from datetime import date
 from frappe.utils import cint 
 from frappe.core.doctype.user.user import reset_password
 from frappe import _
+from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 
 @frappe.whitelist()
 def get_user_image(user):
@@ -729,3 +730,7 @@ def change_password(user, new_pass, old_pass):
             return {'success': 0, 'error': 'wrong password'}
     else:
         return {'success': 0, 'error': 'wrong user'}
+
+@frappe.whitelist()
+def get_datatrans_payment_link(currency, refno, amount, verify=True):
+    return get_payment_link(currency, refno, amount, verify)
