@@ -116,6 +116,7 @@ def get_child_group(item_group):
     groups = []
     sub_groups = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for s in sub_groups:
         sg = {}
@@ -123,10 +124,14 @@ def get_child_group(item_group):
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for n in nodes:
         # first item per group
-        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, fields=['name'], limit=1)
+        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
+            fields=['name'], 
+            order_by='weightage desc',
+            limit=1)
         record = n['name']
         if item and len(item) > 0:
             record = {}
@@ -233,7 +238,8 @@ def get_item_details(item_code):
                 `label`,
                 `description`
             FROM `tabItem Website Specification`
-            WHERE `parent` = "{item_code}";
+            WHERE `parent` = "{item_code}"
+            ORDER BY `idx` ASC;
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['website_specification'] = web_specs
         
@@ -474,6 +480,26 @@ def get_sales_invoices(commission=None):
     for s in sales_invoices:
         s['status'] = _(s['status'])
     return sales_invoices
+
+@frappe.whitelist()
+def reorder_delivery_note(delivery_note):
+    delivery_note_items = frappe.db.sql("""
+        SELECT 
+            `tabDelivery Note Item`.`item_code` AS `item_code`,
+            `tabDelivery Note Item`.`qty` AS `qty`
+        FROM `tabContact`
+        JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
+                                       AND `tC1`.`link_doctype` = "Customer" 
+                                       AND `tC1`.`parent` = `tabContact`.`name`
+        JOIN `tabDelivery Note` ON `tabDelivery Note`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabDelivery Note Item` ON `tabDelivery Note Item`.`parent` = `tabDelivery Note`.`name`
+        LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
+        WHERE `tabContact`.`user` = "{user}"
+          AND `tabDelivery Note`.`docstatus` = 1
+          AND `tabDelivery Note`.`name` = "{delivery_note}"
+          AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website` = 1);
+    """.format(user=frappe.session.user, delivery_note=delivery_note), as_dict=True)
+    return delivery_note_items
 
 @frappe.whitelist()
 def get_profile():
