@@ -10,6 +10,7 @@ from frappe.utils import cint
 from frappe.core.doctype.user.user import reset_password
 from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
+from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 
 @frappe.whitelist()
 def get_user_image(user):
@@ -266,8 +267,12 @@ def get_item_details(item_code):
             variant_attributes = frappe.db.sql("""
                 SELECT 
                     `tabItem Variant Attribute`.`attribute`,
-                    `tabItem Variant Attribute`.`attribute_value`
+                    `tabItem Variant Attribute`.`attribute_value`,
+                    `tSort`.`idx`
                 FROM `tabItem Variant Attribute`
+                LEFT JOIN `tabItem Attribute Value` AS `tSort` ON 
+                    `tabItem Variant Attribute`.`attribute` = `tSort`.`parent`
+                    AND `tabItem Variant Attribute`.`attribute_value` = `tSort`.`attribute_value`
                 WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
             v['attributes'] = variant_attributes
@@ -679,6 +684,9 @@ def create_user(api_key, email, password, company_name, first_name,
         })
         try:
             new_customer.insert(ignore_permissions=True)
+            # create new customer discount
+            create_pricing_rule(customer=new_customer.name, discount_percentage=30)
+                
         except Exception as err:
             return {'status': err}
         # create address (included)
