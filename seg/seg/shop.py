@@ -672,6 +672,8 @@ def create_user(api_key, email, password, company_name, first_name,
         })
         try:
             new_user.insert(ignore_permissions=True)
+            new_user.add_roles("Customer")
+            new_user.save(ignore_permissions=True)
         except Exception as err:
             return {'status': err}
         # create customer (included)
