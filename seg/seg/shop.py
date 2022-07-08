@@ -685,9 +685,10 @@ def create_user(api_key, email, password, company_name, first_name,
         try:
             new_customer.insert(ignore_permissions=True)
             # create new customer discount
-            create_pricing_rule(customer=new_customer.name, discount_percentage=30)
+            create_pricing_rule(customer=new_customer.name, discount_percentage=30, ignore_permissions=True)
                 
         except Exception as err:
+            frappe.log_error("Error on creating customer", "Shop API Error")
             return {'status': err}
         # create address (included)
         new_address = frappe.get_doc({
