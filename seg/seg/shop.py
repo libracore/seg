@@ -12,6 +12,8 @@ from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 
+PREPAID = "Vorkasse"
+
 @frappe.whitelist()
 def get_user_image(user):
     return "this function has been deprecated. please use get_profile instead"
@@ -512,6 +514,7 @@ def get_profile():
         SELECT 
             `tabCustomer`.`image` AS `image`,
             `tabCustomer`.`name` AS `customer_name`,
+            `tabCustomer`.`payment_terms` AS `payment_terms`,
             `tabContact`.`first_name` AS `first_name`,
             `tabContact`.`last_name` AS `last_name`
         FROM `tabContact`
@@ -677,12 +680,23 @@ def create_user(api_key, email, password, company_name, first_name,
         except Exception as err:
             return {'status': err}
         # create customer (included)
+        if not frappe.db.exists("Payment Terms Template", PREPAID):
+            prepaid_terms = frappe.get_doc({
+                'doctype': 'Payment Terms Template',
+                'template_name': PREPAID,
+                'terms': [{
+                    'invoice_portion': 100,
+                    'credit_days': 0
+                }]
+            })
+            prepaid_terms.insert(ignore_permissions=True)
         new_customer = frappe.get_doc({
             'doctype': 'Customer',
             'customer_name': company_name,
             'name': company_name,
             'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
-            'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory")
+            'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
+            'payment_terms': PREPAID
         })
         try:
             new_customer.insert(ignore_permissions=True)
