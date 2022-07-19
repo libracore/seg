@@ -1,0 +1,29 @@
+{
+ "creation": "2022-04-20 11:47:01.580402",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "image"
+ ],
+ "fields": [
+  {
+   "fieldname": "image",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Image",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2022-04-20 11:58:19.386394",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Visualisation Image",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

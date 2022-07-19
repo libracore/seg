@@ -6,10 +6,17 @@
 import frappe
 import json
 from datetime import date
+from frappe.utils import cint 
+from frappe.core.doctype.user.user import reset_password
+from frappe import _
+from erpnextswiss.erpnextswiss.datatrans import get_payment_link
+from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
+
+PREPAID = "Vorkasse"
 
 @frappe.whitelist()
 def get_user_image(user):
-    return frappe.get_value("User", user, "user_image")
+    return "this function has been deprecated. please use get_profile instead"
 
 @frappe.whitelist()
 def get_matching_variant(item_code, old_selection, new_selection):
@@ -94,6 +101,11 @@ def login(usr, pwd):
     lm.authenticate(usr, pwd)
     lm.login()
     return frappe.local.session
+   
+# this will send a reset password email
+@frappe.whitelist(allow_guest=True)
+def send_reset_password(user):
+    return reset_password(user)
     
 @frappe.whitelist(allow_guest=True)
 def get_item_groups():
@@ -107,6 +119,7 @@ def get_child_group(item_group):
     groups = []
     sub_groups = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for s in sub_groups:
         sg = {}
@@ -114,9 +127,19 @@ def get_child_group(item_group):
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
+        order_by='weightage desc',
         fields=['name'])
     for n in nodes:
-        groups.append(n['name'])
+        # first item per group
+        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
+            fields=['name'], 
+            order_by='weightage desc',
+            limit=1)
+        record = n['name']
+        if item and len(item) > 0:
+            record = {}
+            record[n['name']] = item[0]
+        groups.append(record)
     return groups
 
 @frappe.whitelist(allow_guest=True)
@@ -213,6 +236,16 @@ def get_item_details(item_code):
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['more_images'] = more_images
         
+        web_specs = frappe.db.sql("""
+            SELECT
+                `label`,
+                `description`
+            FROM `tabItem Website Specification`
+            WHERE `parent` = "{item_code}"
+            ORDER BY `idx` ASC;
+        """.format(item_code=item_code), as_dict=True)
+        item_details[0]['website_specification'] = web_specs
+        
         related_items = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`, 
@@ -226,19 +259,43 @@ def get_item_details(item_code):
         
         variants = frappe.db.sql("""
             SELECT 
-                `tabItem`.`item_code`
+                `tabItem`.`item_code`,
+                `tabItem`.`image`
             FROM `tabItem`
-            WHERE `tabItem`.`variant_of` = "{item_code}";
+            WHERE `tabItem`.`variant_of` = "{item_code}"
+              AND `tabItem`.`show_variant_in_website` = 1;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
                 SELECT 
                     `tabItem Variant Attribute`.`attribute`,
-                    `tabItem Variant Attribute`.`attribute_value`
+                    `tabItem Variant Attribute`.`attribute_value`,
+                    `tSort`.`idx`
                 FROM `tabItem Variant Attribute`
+                LEFT JOIN `tabItem Attribute Value` AS `tSort` ON 
+                    `tabItem Variant Attribute`.`attribute` = `tSort`.`parent`
+                    AND `tabItem Variant Attribute`.`attribute_value` = `tSort`.`attribute_value`
                 WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
             v['attributes'] = variant_attributes
+            # add more images per variant
+            more_images = frappe.db.sql("""
+                SELECT
+                    `description`,
+                    `image`
+                FROM `tabItem Image`
+                WHERE `parent` = "{item_code}";
+            """.format(item_code=v['item_code']), as_dict=True)
+            v['more_images'] = more_images  
+            
+            web_specs = frappe.db.sql("""
+                SELECT
+                    `label`,
+                    `description`
+                FROM `tabItem Website Specification`
+                WHERE `parent` = "{item_code}";
+            """.format(item_code=item_code), as_dict=True)
+            v['website_specification'] = web_specs  
         item_details[0]['variants'] = variants
         
         variant_attributes = frappe.db.sql("""
@@ -262,7 +319,8 @@ def get_addresses():
             `tabAddress`.`city`,
             `tabAddress`.`country`,
             `tabAddress`.`is_primary_address`,
-            `tabAddress`.`is_shipping_address`
+            `tabAddress`.`is_shipping_address`,
+            `tC1`.`link_name` AS `customer_name`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
@@ -317,7 +375,7 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
     return {'error': error, 'name': new_address.name or None}
 
 @frappe.whitelist()
-def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz"):
+def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz", is_primary=0):
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -334,6 +392,10 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
         address.pincode = pincode
         address.city = city
         address.country = country
+        if is_primary:
+            address.is_primary_address = 1
+        else:
+            address.is_primary_address = 0
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()
@@ -344,6 +406,29 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
     return {'error': error, 'name': address.name or None}
 
 @frappe.whitelist()
+def delete_address(name):
+    error = None
+    # fetch customers for this user
+    customers = get_session_customers()
+    address = frappe.get_doc("Address", name)
+    permitted = False
+    for l in address.links:
+        for c in customers:
+            if l.link_name == c['customer']:
+                permitted = True
+    if permitted:
+        # delete address: drop links
+        address.links = []
+        try:
+            address.save(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as err:
+            error = err
+    else:
+        error = "Permission error"
+    return {'error': error}
+    
+@frappe.whitelist()
 def get_delivery_notes(commission=None):
     conditions = ""
     if commission:
@@ -353,17 +438,23 @@ def get_delivery_notes(commission=None):
             `tabDelivery Note`.`name` AS `delivery_note`,
             `tabDelivery Note`.`posting_date` AS `date`,
             `tabDelivery Note`.`commission` AS `commission`,
-            `tabDelivery Note`.`grand_total` AS `grand_total`
+            `tabDelivery Note`.`grand_total` AS `grand_total`,
+            `tabDelivery Note`.`status` AS `status`,
+            `tabFile`.`file_url` AS `pdf`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabDelivery Note` ON `tabDelivery Note`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabFile` ON `tabFile`.`attached_to_name` = `tabDelivery Note`.`name`
         WHERE `tabContact`.`user` = "{user}"
           AND `tabDelivery Note`.`docstatus` = 1
           {conditions}
         ORDER BY `tabDelivery Note`.`posting_date` DESC;
     """.format(user=frappe.session.user, conditions=conditions), as_dict=True)
+    # translate status
+    for d in delivery_notes:
+        d['status'] = _(d['status'])
     return delivery_notes
 
 @frappe.whitelist()
@@ -378,19 +469,44 @@ def get_sales_invoices(commission=None):
             `tabSales Invoice`.`due_date` AS `due_date`,
             `tabSales Invoice`.`commission` AS `commission`,
             `tabSales Invoice`.`grand_total` AS `grand_total`,
-            `tabSales Invoice`.`outstanding_amount` AS `grand_total`,
-            `tabSales Invoice`.`status` AS `status`
+            `tabSales Invoice`.`outstanding_amount` AS `outstanding_amount`,
+            `tabSales Invoice`.`status` AS `status`,
+            `tabFile`.`file_url` AS `pdf`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabSales Invoice` ON `tabSales Invoice`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabFile` ON `tabFile`.`attached_to_name` = `tabSales Invoice`.`name`
         WHERE `tabContact`.`user` = "{user}"
           AND `tabSales Invoice`.`docstatus` = 1
           {conditions}
         ORDER BY `tabSales Invoice`.`posting_date` DESC;
     """.format(user=frappe.session.user, conditions=conditions), as_dict=True)
+    # translate status
+    for s in sales_invoices:
+        s['status'] = _(s['status'])
     return sales_invoices
+
+@frappe.whitelist()
+def reorder_delivery_note(delivery_note):
+    delivery_note_items = frappe.db.sql("""
+        SELECT 
+            `tabDelivery Note Item`.`item_code` AS `item_code`,
+            `tabDelivery Note Item`.`qty` AS `qty`
+        FROM `tabContact`
+        JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
+                                       AND `tC1`.`link_doctype` = "Customer" 
+                                       AND `tC1`.`parent` = `tabContact`.`name`
+        JOIN `tabDelivery Note` ON `tabDelivery Note`.`customer` = `tC1`.`link_name`
+        LEFT JOIN `tabDelivery Note Item` ON `tabDelivery Note Item`.`parent` = `tabDelivery Note`.`name`
+        LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
+        WHERE `tabContact`.`user` = "{user}"
+          AND `tabDelivery Note`.`docstatus` = 1
+          AND `tabDelivery Note`.`name` = "{delivery_note}"
+          AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website` = 1);
+    """.format(user=frappe.session.user, delivery_note=delivery_note), as_dict=True)
+    return delivery_note_items
 
 @frappe.whitelist()
 def get_profile():
@@ -398,6 +514,7 @@ def get_profile():
         SELECT 
             `tabCustomer`.`image` AS `image`,
             `tabCustomer`.`name` AS `customer_name`,
+            `tabCustomer`.`payment_terms` AS `payment_terms`,
             `tabContact`.`first_name` AS `first_name`,
             `tabContact`.`last_name` AS `last_name`
         FROM `tabContact`
@@ -423,8 +540,20 @@ def get_visualisations():
     visualisations = frappe.db.sql("""
         SELECT 
             `tabVisualisation`.`project_name` AS `project_name`,
-            `tabVisualisation`.`before_image` AS `before_image`,
-            `tabVisualisation`.`after_image` AS `after_image`,
+            (SELECT 
+                GROUP_CONCAT(`before`.`image` SEPARATOR "::")
+            FROM
+                `tabVisualisation Image` AS `before` 
+            WHERE 
+                `before`.`parent` = `tabVisualisation`.`name` 
+                AND `before`.`parentfield` = "before_images") AS `before_images`,
+            (SELECT 
+                GROUP_CONCAT(`after`.`image` SEPARATOR "::")
+            FROM
+                `tabVisualisation Image` AS `after` 
+            WHERE 
+                `after`.`parent` = `tabVisualisation`.`name` 
+                AND `after`.`parentfield` = "after_images") AS `after_images`,
             `tabVisualisation`.`name` AS `visualisation`,
             `tabVisualisation`.`date` AS `date`
         FROM `tabContact`
@@ -433,12 +562,17 @@ def get_visualisations():
                                        AND `tC1`.`parent` = `tabContact`.`name`
         JOIN `tabVisualisation` ON `tabVisualisation`.`customer` = `tC1`.`link_name`
         WHERE `tabContact`.`user` = "{user}"
+        GROUP BY `tabVisualisation`.`name`
         ORDER BY `tabVisualisation`.`date` DESC;
     """.format(user=frappe.session.user), as_dict=True)
+    for v in visualisations:
+        v['before_images'] = (v['before_images'] or "").split("::")
+        v['after_images'] = (v['after_images'] or "").split("::")
     return visualisations
 
 @frappe.whitelist()
-def place_order(shipping_address, items, commission=None, discount=0, paid=False):
+def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None):
     error = None
     so_ref = None
     # fetch customers for this user
@@ -452,7 +586,11 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             'shipping_address_name': shipping_address,
             'apply_discount_on': 'Net Total',
             'additional_discount_percentage': float(discount),
-            'delivery_date': date.today()
+            'delivery_date': date.today(),
+            'avis_person': avis_person,
+            'avid_phone': avis_phone,
+            'order_person': order_person,
+            'desired_date': desired_date
         })
         # create item records
         items = json.loads(items)
@@ -485,14 +623,14 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
                 'description': t['description']
             })
         # payment
-        if paid == "1":
+        if cint(paid) == 1:
             sales_order.po_no = "Bezahlt mit Stripe ({0})".format(date.today())
         # insert and submit
         sales_order.insert(ignore_permissions=True)
         sales_order.submit()
         frappe.db.commit()
         so_ref = sales_order.name
-        # create payment
+        # create payment (NOTE: FOR SOME REASON, IGNORE_PERMISSIONS DOES NOT WORK ON PAYMENT ENTRY
         #if paid == "1":
         #    payment = frappe.get_doc({
         #        'doctype': 'Payment Entry',
@@ -501,6 +639,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         #        'party_type': 'Customer',
         #        'party': customers[0]['customer'],
         #        'paid_to': frappe.get_value("Webshop Settings", "Webshop Settings", 'stripe_account'),
+        #        #'paid_from': frappe.get_value("Company", frappe.db.get_default("company"), 'default_receivable_account'),
         #        'paid_amount': sales_order.grand_total,
         #        'reference_no': sales_order.name,
         #        'reference_date': date.today(),
@@ -519,4 +658,130 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
     return {'error': error, 'sales_order': so_ref}
     
     
-    
+@frappe.whitelist(allow_guest=True)
+def create_user(api_key, email, password, company_name, first_name, 
+    last_name, street, pincode, city, phone, salutation=None, remarks=""):
+    if check_key(api_key):
+        # create user
+        new_user = frappe.get_doc({
+            'doctype': 'User',
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name,
+            'send_welcome_mail': 0,
+            'language': 'de',
+            'phone': phone,
+            'new_password': password
+        })
+        try:
+            new_user.insert(ignore_permissions=True)
+            new_user.add_roles("Customer")
+            new_user.save(ignore_permissions=True)
+        except Exception as err:
+            return {'status': err}
+        # create customer (included)
+        if not frappe.db.exists("Payment Terms Template", PREPAID):
+            prepaid_terms = frappe.get_doc({
+                'doctype': 'Payment Terms Template',
+                'template_name': PREPAID,
+                'terms': [{
+                    'invoice_portion': 100,
+                    'credit_days': 0
+                }]
+            })
+            prepaid_terms.insert(ignore_permissions=True)
+        new_customer = frappe.get_doc({
+            'doctype': 'Customer',
+            'customer_name': company_name,
+            'name': company_name,
+            'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
+            'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
+            'payment_terms': PREPAID
+        })
+        try:
+            new_customer.insert(ignore_permissions=True)
+            # create new customer discount
+            create_pricing_rule(customer=new_customer.name, discount_percentage=30, ignore_permissions=True)
+                
+        except Exception as err:
+            frappe.log_error("Error on creating customer", "Shop API Error")
+            return {'status': err}
+        # create address (included)
+        new_address = frappe.get_doc({
+            'doctype': 'Address',
+            'address_line1': street,
+            'pincode': pincode,
+            'city': city,
+            'is_primary_address': 1,
+            'links': [{
+                'link_doctype': 'Customer',
+                'link_name': new_customer.name
+            }]
+        })
+        try:
+            new_address.insert(ignore_permissions=True)
+        except Exception as err:
+            return {'status': err}
+        frappe.db.commit()
+        # link contact
+        contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
+        if contacts and len(contacts) > 0:
+            contact = frappe.get_doc("Contact", contacts[0]['name'])
+            contact.append("links", {
+                'link_doctype': 'Customer',
+                'link_name': new_customer.name
+            })
+            contact.save(ignore_permissions=True)
+        frappe.db.commit()
+        return {'status': 'success'}
+    else:
+        return {'status': 'Authentication failed'}
+
+def check_key(key):
+    server_key = frappe.get_value("Webshop Settings", "Webshop Settings", "api_key")
+    if server_key == key:
+        return True
+    else:
+        return False
+
+@frappe.whitelist()
+def get_item_order_count(item, user):
+    from erpnext.controllers.website_list_for_contact import get_customers_suppliers
+    if user:
+        customers, suppliers = get_customers_suppliers("Sales Invoice", user)
+        if len(customers) > 0:
+            customer = customers[0]
+        else:
+            customer  = "None"
+    else:
+        customer = "None"
+    sql_query = """SELECT 
+            SUM(`tabSales Order Item`.`qty`) AS `count`,
+            `tabSales Order Item`.`item_code` AS `item_code`
+        FROM `tabSales Order Item`
+        LEFT JOIN `tabSales Order` ON `tabSales Order`.`name` = `tabSales Order Item`.`parent`
+        WHERE `tabSales Order Item`.`item_code` = "{item_code}"
+          AND `tabSales Order`.`customer` = "{customer}"
+          AND `tabSales Order`.`docstatus` = 1;
+    """.format(customer=customer, item_code=item)
+    data = frappe.db.sql(sql_query, as_dict=True)
+    if len(data) > 0 and data[0]['item_code'] is not None:
+        return data[0]
+    else:
+        return {'item_code': item, 'count': 0}
+
+@frappe.whitelist()
+def change_password(user, new_pass, old_pass):
+    from frappe.utils.password import update_password, check_password
+    if user == frappe.session.user:
+        if user == check_password(user, old_pass):
+            update_password(user, new_pass)
+            return {'success': 1}
+        else:
+            return {'success': 0, 'error': 'wrong password'}
+    else:
+        return {'success': 0, 'error': 'wrong user'}
+
+@frappe.whitelist()
+def get_datatrans_payment_link(currency, refno, amount, verify=True):
+    return get_payment_link(currency, refno, amount, verify)

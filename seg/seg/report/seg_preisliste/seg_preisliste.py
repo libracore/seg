@@ -101,7 +101,7 @@ LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
     return data
 
 @frappe.whitelist()
-def create_pricing_rule(customer, discount_percentage, item_group=None, item_code=None):
+def create_pricing_rule(customer, discount_percentage, item_group=None, item_code=None, ignore_permissions=False):
     # check if a similar set exists already
     target_prio = "1"
     if item_group:
@@ -116,7 +116,7 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
         # update discount of existing rule
         pricing_rule = frappe.get_doc("Pricing Rule", matches[0]['name'])
         pricing_rule.discount_percentage = discount_percentage
-        pr = pricing_rule.save()
+        pr = pricing_rule.save(ignore_permissions=ignore_permissions)
     else:
         # create new pricing rule
         pricing_rule = frappe.get_doc({
@@ -150,6 +150,6 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
             pricing_rule.append("item_groups", {
                 'item_group': pricing_rule.item_group
             })
-        pr = pricing_rule.insert()
+        pr = pricing_rule.insert(ignore_permissions=ignore_permissions)
     
     return pr.name
