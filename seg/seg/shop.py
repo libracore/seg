@@ -260,6 +260,7 @@ def get_item_details(item_code):
         variants = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`,
+                `tabItem`.`verpackungseinheit` AS `packaging_unit`,
                 `tabItem`.`image`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
