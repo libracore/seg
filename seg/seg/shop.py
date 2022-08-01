@@ -147,7 +147,8 @@ def get_top_products():
     top_products = frappe.db.sql("""
         SELECT `item_code`, `item_name`, `image`
         FROM `tabItem`
-        WHERE `show_in_website` = 1
+        WHERE `show_in_website` = 1 
+          AND `is_sample` = 0
         ORDER BY `weightage` DESC
         LIMIT 20;""", as_dict=True)
     return top_products
@@ -162,6 +163,7 @@ def get_products_by_item_group(item_group, show_variants=False):
         SELECT `item_code`, `item_name`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1
+          AND `is_sample` = 0
           AND `item_group` = "{item_group}"
           {condition}
         ORDER BY `weightage` DESC
@@ -196,6 +198,7 @@ def search_products(keyword, offset=0):
         SELECT `item_code`, `item_name`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1
+          AND `is_sample` = 0
           AND (`item_code` LIKE "%{keyword}%"
                OR `item_name` LIKE "%{keyword}%"
                OR `description` LIKE "%{keyword}%")
@@ -516,7 +519,8 @@ def get_profile():
             `tabCustomer`.`name` AS `customer_name`,
             `tabCustomer`.`payment_terms` AS `payment_terms`,
             `tabContact`.`first_name` AS `first_name`,
-            `tabContact`.`last_name` AS `last_name`
+            `tabContact`.`last_name` AS `last_name`,
+            `tabCustomer`.`new_customer` AS `new_customer`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
