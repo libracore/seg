@@ -227,7 +227,7 @@ def get_item_details(item_code):
             `tabItem`.`weight_uom` AS `weight_uom`
         FROM `tabItem`
         WHERE `tabItem`.`item_code` = "{item_code}"
-          AND `tabItem`.`show_in_website` = 1;
+          AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
     """.format(item_code=item_code), as_dict=True)
     if len(item_details) > 0:
         more_images = frappe.db.sql("""
@@ -263,6 +263,7 @@ def get_item_details(item_code):
         variants = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`,
+                `tabItem`.`verpackungseinheit` AS `packaging_unit`,
                 `tabItem`.`image`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
