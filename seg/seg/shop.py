@@ -701,7 +701,8 @@ def create_user(api_key, email, password, company_name, first_name,
             'name': company_name,
             'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
-            'payment_terms': PREPAID
+            'payment_terms': PREPAID,
+            'new_customer': 1
         })
         try:
             new_customer.insert(ignore_permissions=True)
