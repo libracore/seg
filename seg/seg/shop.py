@@ -200,11 +200,21 @@ def search_products(keyword, offset=0):
         WHERE `show_in_website` = 1
           AND `is_sample` = 0
           AND (`item_code` LIKE "%{keyword}%"
-               OR `item_name` LIKE "%{keyword}%"
-               OR `description` LIKE "%{keyword}%")
+               OR `item_name` LIKE "%{keyword}%")
         ORDER BY `weightage` DESC
         LIMIT 20
         OFFSET {offset};""".format(keyword=keyword, offset=offset), as_dict=True)
+    if len(products) == 0:
+        # fallback: on no results, include product description
+        products = frappe.db.sql("""
+            SELECT `item_code`, `item_name`, `image`
+            FROM `tabItem`
+            WHERE `show_in_website` = 1
+              AND `is_sample` = 0
+              AND `description` LIKE "%{keyword}%"
+            ORDER BY `weightage` DESC
+            LIMIT 20
+            OFFSET {offset};""".format(keyword=keyword, offset=offset), as_dict=True)
     return products
 
 @frappe.whitelist(allow_guest=True)
