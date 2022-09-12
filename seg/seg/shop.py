@@ -369,9 +369,10 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
     for c in customers:
         customer_links.append({'link_doctype': 'Customer', 'link_name': c['customer']})
     # create new address
+    pure_name = "{0}-{1}-{2}".format(customers[0]['customer'], address_line1, city).replace(" ", "_").replace("&", "+").replace("?", "-")
     new_address = frappe.get_doc({
         'doctype': 'Address',
-        'address_title': "{0} {1} {2}".format(customers[0]['customer'], address_line1, city),
+        'address_title': pure_name,
         'address_type': address_type,
         'address_line1': address_line1,
         'address_line2': address_line2,
@@ -801,3 +802,8 @@ def change_password(user, new_pass, old_pass):
 @frappe.whitelist()
 def get_datatrans_payment_link(currency, refno, amount, verify=True):
     return get_payment_link(currency, refno, amount, verify)
+
+@frappe.whitelist()
+def log_error(message):
+    frappe.log_error(message, "Webshop error")
+    return {'success': 1, 'error': ''}
