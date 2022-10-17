@@ -369,7 +369,7 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
     for c in customers:
         customer_links.append({'link_doctype': 'Customer', 'link_name': c['customer']})
     # create new address
-    pure_name = "{0}-{1}-{2}".format(customers[0]['customer'], address_line1, city).replace(" ", "_").replace("&", "+").replace("?", "-")
+    pure_name = "{0}-{1}-{2}".format(customers[0]['customer'], address_line1, city).replace(" ", "_").replace("&", "und").replace("+", "und").replace("?", "-").replace("=", "-")
     new_address = frappe.get_doc({
         'doctype': 'Address',
         'address_title': pure_name,
