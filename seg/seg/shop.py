@@ -709,7 +709,7 @@ def create_user(api_key, email, password, company_name, first_name,
         new_customer = frappe.get_doc({
             'doctype': 'Customer',
             'customer_name': company_name,
-            'name': company_name,
+            'name': company_name.replace("&", "und").replace("+", "und"),
             'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
             'payment_terms': PREPAID,
