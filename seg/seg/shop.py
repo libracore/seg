@@ -12,7 +12,7 @@ from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 
-PREPAID = "Vorkasse"
+PREPAID = "N20"
 
 @frappe.whitelist()
 def get_user_image(user):
