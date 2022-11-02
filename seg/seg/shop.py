@@ -87,7 +87,7 @@ def get_prices(item_code, user):
         LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
         LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
         GROUP BY `raw`.`item_code`
-    """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w) for w in item_groups))
+    """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups))
     data = frappe.db.sql(sql_query, as_dict=True)
     return data
 
