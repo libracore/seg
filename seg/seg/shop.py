@@ -46,7 +46,7 @@ def get_prices(item_code, user):
     else:
         customer = "None"
     # find recursive item groups
-    item_groups = get_recursive_item_groups(item_group)
+    item_groups = get_recursive_item_groups(frappe.get_value("Item", item_code, "item_group"))
     sql_query = """SELECT 
             `raw`.`item_code`,
             `raw`.`item_name`,
