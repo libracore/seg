@@ -192,13 +192,13 @@ def bulk_update_last_purchase_rates(clear=False):
         # check if there is a stock entry
         incoming_rates = frappe.db.sql("""
             SELECT 
-                `tabStock Entry Item`.`basic_rate`
+                `tabStock Entry Detail`.`basic_rate`
             FROM `tabStock Entry`
-            LEFT JOIN `tabStock Entry Item` ON `tabStock Entry Item`.`parent` = `tabStock Entry`.`name`
+            LEFT JOIN `tabStock Entry Detail` ON `tabStock Entry Detail`.`parent` = `tabStock Entry`.`name`
             WHERE 
                 `tabStock Entry`.`purpose` = "Material Receipt" 
                 AND `tabStock Entry`.`docstatus` = 1
-                AND `tabStock Entry Item`.`item_code` = "{item_code}"
+                AND `tabStock Entry Detail`.`item_code` = "{item_code}"
             ORDER BY `tabStock Entry`.`posting_date` ASC, `tabStock Entry`.`posting_time` ASC;""".format(item_code=item['item_code']),
             as_dict=True)
             
