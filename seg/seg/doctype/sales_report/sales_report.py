@@ -174,15 +174,41 @@ def update_last_purchase_rates(stock_entry):
     return
 
 """ This will go through all material receipts to find last purchase rates """
-def bulk_update_last_purchase_rates():
-    sql_query = """SELECT `name`
-                   FROM `tabStock Entry`
-                   WHERE `purpose` = "Material Receipt" AND `docstatus` = 1
-                   ORDER BY `posting_date` ASC, `posting_time` ASC;"""
-    stock_entries = frappe.db.sql(sql_query, as_dict=True)
-    for se in stock_entries:
-        print("Updating {0}".format(se['name']))
-        update_last_purchase_rates(se['name'])
+def bulk_update_last_purchase_rates(clear=False):
+    # clear: remove all purchase rates, so that all is re-loaded
+    if clear:
+        frappe.db.sql("""UPDATE `tabItem` SET `last_purchase_rate` = 0;""")
+        
+    # get all items with no last purchase rate
+    zero_valuation_items = frappe.db.sql("""
+        SELECT `item_code`
+        FROM `tabItem`
+        WHERE `disabled` = 0
+          AND `last_purchase_rate` = 0;""", as_dict=True)
+    
+    print("Found {0} items without last purchase rate".format(len(zero_valuation_items)))
+    
+    for item in items:
+        # check if there is a stock entry
+        incoming_rates = frappe.db.sql("""
+            SELECT 
+                `tabStock Entry Item`.`basic_rate`
+            FROM `tabStock Entry`
+            LEFT JOIN `tabStock Entry Item` ON `tabStock Entry Item`.`parent` = `tabStock Entry`.`name`
+            WHERE 
+                `tabStock Entry`.`purpose` = "Material Receipt" 
+                AND `tabStock Entry`.`docstatus` = 1
+                AND `tabStock Entry Item`.`item_code` = "{item_code}"
+            ORDER BY `tabStock Entry`.`posting_date` ASC, `tabStock Entry`.`posting_time` ASC;""".format(item_code=item['item_code']),
+            as_dict=True)
+            
+        if incoming_rates and len(incoming_rates) > 0:
+            print("Updating {0}".format(item['item_code']))
+            item = frappe.get_doc("Item", item['item_code'])
+            item.last_purchase_rate = incoming_rates[0]['basic_rate']
+            item.save()
+            frappe.db.commit()
+
     print("done")
     return
 
