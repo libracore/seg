@@ -45,6 +45,8 @@ def get_prices(item_code, user):
             customer  = "None"
     else:
         customer = "None"
+    # find recursive item groups
+    item_groups = get_recursive_item_groups(frappe.get_value("Item", item_code, "item_group"))
     sql_query = """SELECT 
             `raw`.`item_code`,
             `raw`.`item_name`,
@@ -74,7 +76,7 @@ def get_prices(item_code, user):
                  AND `tabPricing Rule`.`customer` = "{customer}"
                  AND `tabPricing Rule`.`disable` = 0
                  AND (`tabPricing Rule Item Code`.`item_code` = `tabItem`.`item_code`
-                      OR `tabPricing Rule Item Group`.`item_group` = `tabItem`.`item_group`
+                      OR `tabPricing Rule Item Group`.`item_group` IN ({item_groups})
                       OR `tabPricing Rule Item Group`.`item_group` = "Alle Artikelgruppen")
                ORDER BY `tabPricing Rule`.`priority` DESC
                LIMIT 1) AS `pricing_rule`
@@ -85,7 +87,7 @@ def get_prices(item_code, user):
         LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
         LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
         GROUP BY `raw`.`item_code`
-    """.format(customer=customer, item_code=item_code)
+    """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups))
     data = frappe.db.sql(sql_query, as_dict=True)
     return data
 
@@ -807,3 +809,15 @@ def get_datatrans_payment_link(currency, refno, amount, verify=True):
 def log_error(message):
     frappe.log_error(message, "Webshop error")
     return {'success': 1, 'error': ''}
+
+def get_recursive_item_groups(item_group):
+    groups = frappe.db.sql("""SELECT `name`, `parent_item_group` AS `parent` FROM `tabItem Group`;""", as_dict=True)
+    group_map = {}
+    for g in groups:
+        group_map[g['name']] = g['parent']
+    recursive_groups = [item_group]
+    parent = group_map[item_group]
+    while parent:
+        recursive_groups.append(parent)
+        parent = group_map[parent]
+    return recursive_groups
