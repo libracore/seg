@@ -188,7 +188,7 @@ def bulk_update_last_purchase_rates(clear=False):
     
     print("Found {0} items without last purchase rate".format(len(zero_valuation_items)))
     
-    for item in items:
+    for item in zero_valuation_items:
         # check if there is a stock entry
         incoming_rates = frappe.db.sql("""
             SELECT 
