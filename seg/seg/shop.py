@@ -644,6 +644,8 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             WHERE `tabSales Taxes and Charges Template`.`is_default` = 1
             ORDER BY `tabSales Taxes and Charges`.`idx` ASC;
         """, as_dict=True)
+        if len(taxes_and_charges) == 0:
+            return {'error': "Please check the sales taxes configuration, no default found.", 'sales_order': None}
         sales_order.taxes_and_charges = taxes_and_charges[0]['template']
         for t in taxes_and_charges:
             sales_order.append('taxes', {
