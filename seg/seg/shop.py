@@ -595,6 +595,19 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
     so_ref = None
     # fetch customers for this user
     customers = get_session_customers()
+    if len(customers) == 0:
+        # try to fallback to address: customer
+        if frappe.db.exists("Address", shipping_address):
+            adr = frappe.get_doc("Address", shipping_address)
+            customers = []
+            for l in adr.links:
+                if l.link_doctype == "Customer":
+                    customer.append({'customer': l.link_name})
+                    
+            if len(customers) == 0:
+                return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
+        else:
+            return {'error': "Invalid address", 'sales_order': None}
     try:
         # create sales order
         sales_order = frappe.get_doc({
