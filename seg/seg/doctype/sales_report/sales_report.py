@@ -199,7 +199,7 @@ def bulk_update_last_purchase_rates(clear=False):
                 `tabStock Entry`.`purpose` = "Material Receipt" 
                 AND `tabStock Entry`.`docstatus` = 1
                 AND `tabStock Entry Detail`.`item_code` = "{item_code}"
-            ORDER BY `tabStock Entry`.`posting_date` ASC, `tabStock Entry`.`posting_time` ASC;""".format(item_code=item['item_code']),
+            ORDER BY `tabStock Entry`.`posting_date` DESC, `tabStock Entry`.`posting_time` DESC;""".format(item_code=item['item_code']),
             as_dict=True)
             
         if incoming_rates and len(incoming_rates) > 0:
