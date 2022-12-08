@@ -619,7 +619,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             'additional_discount_percentage': float(discount),
             'delivery_date': date.today(),
             'avis_person': avis_person,
-            'avid_phone': avis_phone,
+            'avis_phone': avis_phone,
             'order_person': order_person,
             'desired_date': desired_date
         })
