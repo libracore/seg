@@ -209,6 +209,12 @@ def get_data():
                        "name": "Datatrans Settings",
                        "label": _("Datatrans Settings"),
                        "description": _("Datatrans Settings")                   
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Webshop Log",
+                       "label": _("Webshop Log"),
+                       "description": _("Webshop Log")                   
                    }
             ]
         }

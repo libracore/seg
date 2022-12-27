@@ -5,7 +5,7 @@
 
 import frappe
 import json
-from datetime import date
+from datetime import date, datetime
 from frappe.utils import cint 
 from frappe.core.doctype.user.user import reset_password
 from frappe import _
@@ -105,6 +105,7 @@ def login(usr, pwd):
     lm = LoginManager()
     lm.authenticate(usr, pwd)
     lm.login()
+    add_log(user=usr, method="webshop_login")
     return frappe.local.session
    
 # this will send a reset password email
@@ -690,7 +691,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         #    frappe.db.commit()
     except Exception as err:
         error = err
-        
+    add_log(user=frappe.local.session.user, method="webshop_place_order")
     return {'error': error, 'sales_order': so_ref}
     
     
@@ -839,3 +840,23 @@ def get_recursive_item_groups(item_group):
         recursive_groups.append(parent)
         parent = group_map[parent]
     return recursive_groups
+
+@frappe.whitelist()
+def add_log(user, method="webshop_log"):
+    reference = None
+    error = None
+    try:
+        # create webshop_log
+        webshop_log = frappe.get_doc({
+            'doctype': 'Webshop Log',
+            'date': datetime.now(),
+            'user': user,
+            'content': method,
+        })
+        webshop_log.insert(ignore_permissions=True)
+        reference = webshop_log.name
+        frappe.db.commit()
+    except Exception as err:
+        error = err
+        frappe.log_error(err)
+    return {'error': error, 'webshop_log': reference}
