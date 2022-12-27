@@ -7,8 +7,10 @@
  "engine": "InnoDB",
  "field_order": [
   "code",
+  "discount",
   "disabled",
-  "discount"
+  "discount_column",
+  "valid_until"
  ],
  "fields": [
   {
@@ -29,9 +31,18 @@
    "fieldname": "discount",
    "fieldtype": "Percent",
    "label": "Discount"
+  },
+  {
+   "fieldname": "discount_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_until",
+   "fieldtype": "Date",
+   "label": "Valid Until"
   }
  ],
- "modified": "2022-02-11 21:30:57.447242",
+ "modified": "2022-09-28 16:59:58.132163",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Coupon",
