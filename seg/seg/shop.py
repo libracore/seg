@@ -594,7 +594,7 @@ def get_visualisations():
 
 @frappe.whitelist()
 def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
-        avis_person=None, avis_phone=None, order_person=None, desired_date=None):
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None):
     error = None
     so_ref = None
     # fetch customers for this user
@@ -625,7 +625,8 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             'avis_person': avis_person,
             'avis_phone': avis_phone,
             'order_person': order_person,
-            'desired_date': desired_date
+            'desired_date': desired_date,
+            'additional_remarks': additional_remarks
         })
         # create item records
         items = json.loads(items)
