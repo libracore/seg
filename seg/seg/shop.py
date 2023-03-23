@@ -617,6 +617,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         sales_order = frappe.get_doc({
             'doctype': 'Sales Order',
             'customer': customers[0]['customer'],
+            'customer_group': frappe.get_value("Customer", customers[0]['customer'], "customer_group"),
             'commission': commission,
             'shipping_address_name': shipping_address,
             'apply_discount_on': 'Net Total',
@@ -663,6 +664,13 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         # payment
         if cint(paid) == 1:
             sales_order.po_no = "Bezahlt mit Stripe ({0})".format(date.today())
+        # sales teams
+        customer = frappe.get_doc("Customer", customers[0]['customer'])
+        for sales_team in customer.sales_team:
+            sales_order.append('sales_team', {
+                'sales_person': sales_team.sales_person,
+                'allocated_percentage': sales_team.allocated_percentage
+            })
         # insert and submit
         sales_order.insert(ignore_permissions=True)
         sales_order.submit()
