@@ -385,7 +385,8 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
         'pincode': pincode,
         'city': city,
         'country': country,
-        'links': customer_links
+        'links': customer_links,
+        'is_shipping_address': 1
     })
     
     try:
