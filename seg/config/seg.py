@@ -114,6 +114,24 @@ def get_data():
                        "name": "Stock Entry",
                        "label": _("Stock Entry"),
                        "description": _("Stock Entry")
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Stock Entry",
+                       "label": "create_sample_nic",
+                       "description": "create_sample_nic"
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Stock Entry",
+                       "label": "create_sample_chris",
+                       "description": "create_sample_chris"
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Stock Entry",
+                       "label": "create_sample_ben",
+                       "description": "create_sample_ben"
                    }
             ]
         },
