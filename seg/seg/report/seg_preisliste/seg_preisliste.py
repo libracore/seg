@@ -93,7 +93,10 @@ SELECT
    ORDER BY `tabPricing Rule`.`priority` DESC
    LIMIT 1) AS `pricing_rule`
 FROM `tabItem`
-WHERE `tabItem`.`is_sales_item` = 1
+WHERE 
+  `tabItem`.`is_sales_item` = 1
+  AND `tabItem`.`disabled` = 0
+  AND `tabItem`.`has_variants` = 0
   AND `tabItem`.`item_group` LIKE "{item_group}") AS `raw`
 LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
 ) AS `aggr`;""".format(customer=filters.customer, item_group=filters.item_group)
