@@ -1,0 +1,70 @@
+{
+ "autoname": "WL-.########",
+ "creation": "2022-12-21 14:53:38.152697",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "col_main",
+  "user",
+  "content"
+ ],
+ "fields": [
+  {
+   "fieldname": "date",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "User"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Content"
+  },
+  {
+   "fieldname": "col_main",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "modified": "2022-12-27 16:40:21.902853",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Webshop Log",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager",
+   "share": 1
+  }
+ ],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "title_field": "user",
+ "track_changes": 1
+}

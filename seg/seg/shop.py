@@ -5,14 +5,14 @@
 
 import frappe
 import json
-from datetime import date
+from datetime import date, datetime
 from frappe.utils import cint 
 from frappe.core.doctype.user.user import reset_password
 from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 
-PREPAID = "Vorkasse"
+PREPAID = "N20"
 
 @frappe.whitelist()
 def get_user_image(user):
@@ -37,58 +37,63 @@ def get_matching_variant(item_code, old_selection, new_selection):
 @frappe.whitelist()
 def get_prices(item_code, user):
     from erpnext.controllers.website_list_for_contact import get_customers_suppliers
-    if user:
-        customers, suppliers = get_customers_suppliers("Sales Invoice", user)
-        if len(customers) > 0:
-            customer = customers[0]
+    try:
+        if user:
+            customers, suppliers = get_customers_suppliers("Sales Invoice", user)
+            if len(customers) > 0:
+                customer = customers[0]
+            else:
+                customer  = "None"
         else:
-            customer  = "None"
-    else:
-        customer = "None"
-    sql_query = """SELECT 
-            `raw`.`item_code`,
-            `raw`.`item_name`,
-            `raw`.`item_group`,
-            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value`) AS `attributes`,
-            `raw`.`stock_uom`,
-            ROUND(`raw`.`price_list_rate`, 2) AS `price_list_rate`,
-            `raw`.`pricing_rule`,
-            `tPR`.`discount_percentage` AS `discount_percentage`,
-            ROUND(((100 - IFNULL(`tPR`.`discount_percentage`, 0))/100) * `raw`.`price_list_rate`, 2) AS `discounted_rate`
-        FROM 
-            (SELECT 
-              `tabItem`.`item_code` AS `item_code`,
-              `tabItem`.`item_name` AS `item_name`,
-              `tabItem`.`item_group` AS `item_group`,
-              `tabItem`.`last_purchase_rate` AS `last_purchase_rate`,
-              CONCAT(ROUND(`tabItem`.`weight_per_unit`, 1), " ", `tabItem`.`weight_uom`) AS `stock_uom`,
-              (SELECT `tabItem Price`.`price_list_rate` 
-               FROM `tabItem Price` 
-               WHERE `tabItem Price`.`item_code` = `tabItem`.`item_code`
-                 AND `tabItem Price`.`price_list` = "Standard-Vertrieb") AS `price_list_rate`,
-              (SELECT `tabPricing Rule`.`name`
-               FROM `tabPricing Rule`
-               LEFT JOIN `tabPricing Rule Item Code` ON `tabPricing Rule Item Code`.`parent` = `tabPricing Rule`.`name`
-               LEFT JOIN `tabPricing Rule Item Group` ON `tabPricing Rule Item Group`.`parent` = `tabPricing Rule`.`name`
-               WHERE `tabPricing Rule`.`selling` = 1
-                 AND `tabPricing Rule`.`customer` = "{customer}"
-                 AND `tabPricing Rule`.`disable` = 0
-                 AND (`tabPricing Rule Item Code`.`item_code` = `tabItem`.`item_code`
-                      OR `tabPricing Rule Item Group`.`item_group` = `tabItem`.`item_group`
-                      OR `tabPricing Rule Item Group`.`item_group` = "Alle Artikelgruppen")
-               ORDER BY `tabPricing Rule`.`priority` DESC
-               LIMIT 1) AS `pricing_rule`
-            FROM `tabItem`
-            WHERE `tabItem`.`item_code` = "{item_code}"
-              OR `tabItem`.`variant_of` = "{item_code}"
-            ) AS `raw`
-        LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
-        LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
-        GROUP BY `raw`.`item_code`
-    """.format(customer=customer, item_code=item_code)
-    data = frappe.db.sql(sql_query, as_dict=True)
-    return data
-
+            customer = "None"
+        # find recursive item groups
+        item_groups = get_recursive_item_groups(frappe.get_value("Item", item_code, "item_group"))
+        sql_query = """SELECT 
+                `raw`.`item_code`,
+                `raw`.`item_name`,
+                `raw`.`item_group`,
+                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value`) AS `attributes`,
+                `raw`.`stock_uom`,
+                ROUND(`raw`.`price_list_rate`, 2) AS `price_list_rate`,
+                `raw`.`pricing_rule`,
+                `tPR`.`discount_percentage` AS `discount_percentage`,
+                ROUND(((100 - IFNULL(`tPR`.`discount_percentage`, 0))/100) * `raw`.`price_list_rate`, 2) AS `discounted_rate`
+            FROM 
+                (SELECT 
+                  `tabItem`.`item_code` AS `item_code`,
+                  `tabItem`.`item_name` AS `item_name`,
+                  `tabItem`.`item_group` AS `item_group`,
+                  `tabItem`.`last_purchase_rate` AS `last_purchase_rate`,
+                  CONCAT(ROUND(`tabItem`.`weight_per_unit`, 1), " ", `tabItem`.`weight_uom`) AS `stock_uom`,
+                  (SELECT `tabItem Price`.`price_list_rate` 
+                   FROM `tabItem Price` 
+                   WHERE `tabItem Price`.`item_code` = `tabItem`.`item_code`
+                     AND `tabItem Price`.`price_list` = "Standard-Vertrieb") AS `price_list_rate`,
+                  (SELECT `tabPricing Rule`.`name`
+                   FROM `tabPricing Rule`
+                   LEFT JOIN `tabPricing Rule Item Code` ON `tabPricing Rule Item Code`.`parent` = `tabPricing Rule`.`name`
+                   LEFT JOIN `tabPricing Rule Item Group` ON `tabPricing Rule Item Group`.`parent` = `tabPricing Rule`.`name`
+                   WHERE `tabPricing Rule`.`selling` = 1
+                     AND `tabPricing Rule`.`customer` = "{customer}"
+                     AND `tabPricing Rule`.`disable` = 0
+                     AND (`tabPricing Rule Item Code`.`item_code` = `tabItem`.`item_code`
+                          OR `tabPricing Rule Item Group`.`item_group` IN ({item_groups})
+                          OR `tabPricing Rule Item Group`.`item_group` = "Alle Artikelgruppen")
+                   ORDER BY `tabPricing Rule`.`priority` DESC
+                   LIMIT 1) AS `pricing_rule`
+                FROM `tabItem`
+                WHERE `tabItem`.`item_code` = "{item_code}"
+                  OR `tabItem`.`variant_of` = "{item_code}"
+                ) AS `raw`
+            LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
+            LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
+            GROUP BY `raw`.`item_code`
+        """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups))
+        data = frappe.db.sql(sql_query, as_dict=True)
+        return data
+    except Exception as err:
+        return {'error': err}
+        
 @frappe.whitelist(allow_guest=True)
 def get_public_prices(item_code):
     return get_prices(item_code, None)
@@ -100,6 +105,7 @@ def login(usr, pwd):
     lm = LoginManager()
     lm.authenticate(usr, pwd)
     lm.login()
+    add_log(user=usr, method="webshop_login")
     return frappe.local.session
    
 # this will send a reset password email
@@ -390,7 +396,7 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
     return {'error': error, 'name': new_address.name or None}
 
 @frappe.whitelist()
-def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz", is_primary=0):
+def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz", is_primary=0, is_shipping=0):
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -411,6 +417,10 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
             address.is_primary_address = 1
         else:
             address.is_primary_address = 0
+        if is_shipping:
+            address.is_shipping_address = 1
+        else:
+            address.is_shipping_address = 0
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()
@@ -588,25 +598,40 @@ def get_visualisations():
 
 @frappe.whitelist()
 def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
-        avis_person=None, avis_phone=None, order_person=None, desired_date=None):
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None):
     error = None
     so_ref = None
     # fetch customers for this user
     customers = get_session_customers()
+    if len(customers) == 0:
+        # try to fallback to address: customer
+        if frappe.db.exists("Address", shipping_address):
+            adr = frappe.get_doc("Address", shipping_address)
+            customers = []
+            for l in adr.links:
+                if l.link_doctype == "Customer":
+                    customer.append({'customer': l.link_name})
+                    
+            if len(customers) == 0:
+                return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
+        else:
+            return {'error': "Invalid address", 'sales_order': None}
     try:
         # create sales order
         sales_order = frappe.get_doc({
             'doctype': 'Sales Order',
             'customer': customers[0]['customer'],
+            'customer_group': frappe.get_value("Customer", customers[0]['customer'], "customer_group"),
             'commission': commission,
             'shipping_address_name': shipping_address,
             'apply_discount_on': 'Net Total',
             'additional_discount_percentage': float(discount),
             'delivery_date': date.today(),
             'avis_person': avis_person,
-            'avid_phone': avis_phone,
+            'avis_phone': avis_phone,
             'order_person': order_person,
-            'desired_date': desired_date
+            'desired_date': desired_date,
+            'additional_remarks': additional_remarks
         })
         # create item records
         items = json.loads(items)
@@ -629,6 +654,8 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             WHERE `tabSales Taxes and Charges Template`.`is_default` = 1
             ORDER BY `tabSales Taxes and Charges`.`idx` ASC;
         """, as_dict=True)
+        if len(taxes_and_charges) == 0:
+            return {'error': "Please check the sales taxes configuration, no default found.", 'sales_order': None}
         sales_order.taxes_and_charges = taxes_and_charges[0]['template']
         for t in taxes_and_charges:
             sales_order.append('taxes', {
@@ -641,6 +668,13 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         # payment
         if cint(paid) == 1:
             sales_order.po_no = "Bezahlt mit Stripe ({0})".format(date.today())
+        # sales teams
+        customer = frappe.get_doc("Customer", customers[0]['customer'])
+        for sales_team in customer.sales_team:
+            sales_order.append('sales_team', {
+                'sales_person': sales_team.sales_person,
+                'allocated_percentage': sales_team.allocated_percentage
+            })
         # insert and submit
         sales_order.insert(ignore_permissions=True)
         sales_order.submit()
@@ -670,7 +704,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
         #    frappe.db.commit()
     except Exception as err:
         error = err
-        
+    add_log(user=frappe.local.session.user, method="webshop_place_order")
     return {'error': error, 'sales_order': so_ref}
     
     
@@ -709,7 +743,7 @@ def create_user(api_key, email, password, company_name, first_name,
         new_customer = frappe.get_doc({
             'doctype': 'Customer',
             'customer_name': company_name,
-            'name': company_name,
+            'name': company_name.replace("&", "und").replace("+", "und"),
             'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
             'payment_terms': PREPAID,
@@ -807,3 +841,35 @@ def get_datatrans_payment_link(currency, refno, amount, verify=True):
 def log_error(message):
     frappe.log_error(message, "Webshop error")
     return {'success': 1, 'error': ''}
+
+def get_recursive_item_groups(item_group):
+    groups = frappe.db.sql("""SELECT `name`, `parent_item_group` AS `parent` FROM `tabItem Group`;""", as_dict=True)
+    group_map = {}
+    for g in groups:
+        group_map[g['name']] = g['parent']
+    recursive_groups = [item_group]
+    parent = group_map[item_group]
+    while parent:
+        recursive_groups.append(parent)
+        parent = group_map[parent]
+    return recursive_groups
+
+@frappe.whitelist()
+def add_log(user, method="webshop_log"):
+    reference = None
+    error = None
+    try:
+        # create webshop_log
+        webshop_log = frappe.get_doc({
+            'doctype': 'Webshop Log',
+            'date': datetime.now(),
+            'user': user,
+            'content': method,
+        })
+        webshop_log.insert(ignore_permissions=True)
+        reference = webshop_log.name
+        frappe.db.commit()
+    except Exception as err:
+        error = err
+        frappe.log_error(err)
+    return {'error': error, 'webshop_log': reference}
