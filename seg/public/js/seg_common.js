@@ -22,7 +22,7 @@ function create_menu(endpoint, title, account) {
     var menu_entry_parent = $("a:contains('" + endpoint + "')").parent();
     menu_entry_parent.removeClass("flush-top");
     menu_entry_parent.html("");
-    var menu_entry = $("<span class='indicator grey' data-v-32b346d7=''></span><a class='link_content' data-v-32b346d7='' href='/desk#modules/SEG'>" + title + "</a>");
+    var menu_entry = $("<span class='indicator grey' data-v-32b346d7=''></span><span class='link_content' data-v-32b346d7='' href='/desk#modules/SEG'>" + title + "</span>");
     menu_entry.click(function () { 
         frappe.route_options = {"stock_entry_type": "Material Receipt"};
         locals.difference_account = account; 
