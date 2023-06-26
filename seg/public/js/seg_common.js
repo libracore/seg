@@ -26,7 +26,7 @@ function create_menu(endpoint, title, account) {
     menu_entry.click(function () { 
         frappe.route_options = {"stock_entry_type": "Material Receipt"};
         locals.difference_account = account; 
-        frappe.set_route("Form", "Stock Entry", "New Stock Entry");
+        frappe.set_route("Form", "Stock Entry", __("New") + " " + __("Stock Entry"));
     });
     menu_entry_parent.append(menu_entry);
 }
