@@ -24,7 +24,7 @@ function create_menu(endpoint, title, account) {
     menu_entry_parent.html("");
     var menu_entry = $("<span class='indicator grey' data-v-32b346d7=''></span><span class='link_content' data-v-32b346d7='' href='/desk#modules/SEG'>" + title + "</span>");
     menu_entry.click(function () { 
-        frappe.route_options = {"stock_entry_type": "Material Receipt"};
+        frappe.route_options = {"stock_entry_type": "Material Issue"};
         locals.difference_account = account; 
         frappe.set_route("Form", "Stock Entry", "New Stock Entry");
     });
