@@ -26,7 +26,11 @@ function create_menu(endpoint, title, account) {
     menu_entry.click(function () { 
         frappe.route_options = {"stock_entry_type": "Material Issue"};
         locals.difference_account = account; 
-        frappe.set_route("Form", "Stock Entry", "New Stock Entry");
+        var target = "New Stock Entry";
+        if (frappe.boot.lang === "de") {
+            target = "Neu Lagerbuchung";
+        }
+        frappe.set_route("Form", "Stock Entry", target);
     });
     menu_entry_parent.append(menu_entry);
 }
