@@ -197,7 +197,14 @@ def get_data():
                         "label": _("Kundenbindung"),
                         "doctype": "Customer",
                         "is_query_report": True
-                    }
+                    },
+                    {
+                        "type": "report",
+                        "name": "Beschaffungsplan",
+                        "label": _("Beschaffungsplan"),
+                        "doctype": "Item",
+                        "is_query_report": True
+                    },
             ]
         },
         {
