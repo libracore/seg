@@ -11,7 +11,6 @@ def execute(filters=None):
     filters = frappe._dict(filters or {})
     columns = get_columns()
     data = get_data(filters)
-
     return columns, data
 
 def get_columns():
@@ -42,12 +41,12 @@ def get_data(filters):
             SUM(`tabBin`.`actual_qty`) AS `stock_in_sku`,
             SUM(`tabBin`.`ordered_qty`) AS `ordered_qty`,
             `tabItem`.`lead_time_days` AS `lead_time_days`,
-            (SELECT SUM(`tabDelivery Note Item`.`qty`) / 90
+            (SELECT SUM(`tabDelivery Note Item`.`qty`) / 180
              FROM `tabDelivery Note Item`
              LEFT JOIN `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
              WHERE `tabDelivery Note Item`.`item_code` = `tabItem`.`item_code`
                    AND `tabDelivery Note Item`.`docstatus` = 1
-                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 90 DAY) AND CURDATE()
+                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 180 DAY) AND CURDATE()
             ) AS `avg_consumption_per_day`,
             0 AS `days_until_stock_ends`
         FROM `tabItem`
@@ -55,7 +54,6 @@ def get_data(filters):
         LEFT JOIN `tabUOM Conversion Detail` ON `tabUOM Conversion Detail`.`parent` = `tabItem`.`name`
         WHERE 
             `tabItem`.`item_group` LIKE "{item_group}"
-            AND (`tabBin`.`actual_qty` > 0 OR `tabBin`.`ordered_qty` > 0)
             AND `tabItem`.`is_stock_item` = 1
             AND `tabItem`.`disabled` = 0
         GROUP BY `tabItem`.`item_code`
@@ -66,9 +64,9 @@ def get_data(filters):
     for row in data:
         if row['avg_consumption_per_day']:
             days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / row['avg_consumption_per_day'], 2)
-            row['days_until_sock_ends'] = frappe.utils.data.add_to_date(date=frappe.utils.data.today(), days=days_until_stock_ends)
+            row['days_until_stock_ends'] = frappe.utils.data.add_to_date(date=frappe.utils.data.today(), days=days_until_stock_ends, as_string=True)
         else:
             row['days_until_stock_ends'] = ""
-            
+    
     return data
 
