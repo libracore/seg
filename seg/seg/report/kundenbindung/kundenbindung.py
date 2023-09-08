@@ -96,9 +96,10 @@ def get_data(filters):
     # fetch primary contact
     for d in data:
         contact = get_primary_customer_contact(d.get("customer"))
-        d['phone'] = contact.phone
-        d['email'] = contact.email_id
-        d['first_name'] = contact.first_name
-        d['last_name'] = contact.last_name
+        if contact:
+            d['phone'] = contact.phone
+            d['email'] = contact.email_id
+            d['first_name'] = contact.first_name
+            d['last_name'] = contact.last_name
         
     return data
