@@ -1,6 +1,10 @@
 frappe.ui.form.on('Sales Invoice',  {
 	refresh: function(frm) {
-		check_customer_mahnsperre(frm)
+		if (frm.doc.customer) {
+			check_customer_mahnsperre(frm)
+		} else {
+			cur_frm.set_value("mahnsperre", 0);
+		}
 	},
     before_save: function(frm) {
 		if (frm.doc.mahnsperre === 1) {
@@ -14,18 +18,17 @@ frappe.ui.form.on('Sales Invoice',  {
 
 function check_customer_mahnsperre(frm) {
 	frappe.call({
-		"method": "frappe.client.get_list",
+		"method": "frappe.client.get",
 		"args": {
 			"doctype": "Customer",
-			'filters': [
-         	    ["name","IN", [frm.doc.customer]]
-         	],
-			"fields": ["mahnsperre"]
+			'name': frm.doc.customer
 		},
 		"callback": function(response) {
-			var mahnsperre = response.message[0].mahnsperre;
+			var mahnsperre = response.message.mahnsperre;
 			if (mahnsperre === 1) {
 				cur_frm.set_value("mahnsperre", 1);
+			} else {
+				cur_frm.set_value("mahnsperre", 0);
 			}
 		}
 	});
