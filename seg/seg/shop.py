@@ -677,7 +677,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             })
         # insert and submit
         sales_order.insert(ignore_permissions=True)
-        sales_order.submit()
+        # sales_order.submit()        # change request 2023-09-20 nic: do not automatically submit new orders
         frappe.db.commit()
         so_ref = sales_order.name
         # create payment (NOTE: FOR SOME REASON, IGNORE_PERMISSIONS DOES NOT WORK ON PAYMENT ENTRY
