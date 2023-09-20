@@ -1,7 +1,7 @@
 frappe.ui.form.on('Sales Invoice',  {
 	refresh: function(frm) {
 		if (frm.doc.customer) {
-			check_customer_mahnsperre(frm)
+			check_customer_mahnsperre(frm);
 		} else {
 			cur_frm.set_value("mahnsperre", 0);
 		}
