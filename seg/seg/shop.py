@@ -241,7 +241,10 @@ def get_item_details(item_code):
             `tabItem`.`stock_uom` AS `stock_uom`,
             `tabItem`.`density` AS `density`,
             `tabItem`.`weight_per_unit` AS `weight_per_unit`,
-            `tabItem`.`weight_uom` AS `weight_uom`
+            `tabItem`.`weight_uom` AS `weight_uom`,
+            `tabItem`.`is_out_of_stock` AS `is_out_of_stock`,
+            `tabItem`.`units_per_packaging` AS `units_per_packaging`,
+            `tabItem`.`packaging_type` AS `packaging_type`
         FROM `tabItem`
         WHERE `tabItem`.`item_code` = "{item_code}"
           AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
