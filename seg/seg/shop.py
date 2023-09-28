@@ -273,7 +273,8 @@ def get_item_details(item_code):
                 `tabItem`.`image`
             FROM `tabRelated Item`
             LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabRelated Item`.`item_code`
-            WHERE `tabRelated Item`.`parent` = "{item_code}";
+            WHERE `tabRelated Item`.`parent` = "{item_code}"
+            ORDER BY `weightage` DESC;
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['related_items'] = related_items
         
@@ -284,7 +285,8 @@ def get_item_details(item_code):
                 `tabItem`.`image`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
-              AND `tabItem`.`show_variant_in_website` = 1;
+              AND `tabItem`.`show_variant_in_website` = 1
+            ORDER BY `weightage` DESC;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
