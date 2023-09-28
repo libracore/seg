@@ -11,6 +11,7 @@ from frappe.core.doctype.user.user import reset_password
 from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
+from frappe.desk.like import _toggle_like
 
 PREPAID = "N20"
 
@@ -873,3 +874,30 @@ def add_log(user, method="webshop_log"):
         error = err
         frappe.log_error(err)
     return {'error': error, 'webshop_log': reference}
+
+@frappe.whitelist()
+def set_like(item_code, liked):
+    if frappe.db.exists("Item", item_code):
+        _toggle_like("Item", item_code, "Yes" if cint(liked) else "No")
+        frappe.db.commit()
+        return {'success': 1, 'error': ''}
+    else:
+        return {'success': 0, 'error': 'Item not found'}
+
+@frappe.whitelist()
+def get_favorite_items():
+    products = frappe.db.sql("""
+        SELECT `item_code`, `item_name`, `image`
+        FROM (
+            SELECT 
+                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name`, `image`, `weightage`
+            FROM `tabItem`
+            WHERE (`show_in_website` = 1 OR `show_variant_in_website`)
+              AND `is_sample` = 0
+              AND `_liked_by` LIKE "%{user}%"
+        ) AS `raw`
+        GROUP BY `item_code`
+        ORDER BY `weightage` DESC
+        LIMIT 20
+        ;""".format(user=frappe.session.user), as_dict=True)
+    return products
