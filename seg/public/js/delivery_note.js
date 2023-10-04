@@ -3,9 +3,57 @@ frappe.ui.form.on('Delivery Note', {
         frm.add_custom_button(__("Umlagern"), function() {
             move_stock(frm);
         });
+    },
+    keep_pricing_rule_for_all_items (frm) {
+		if (frm.doc.keep_pricing_rule_for_all_items == 1){
+			frm.doc.items.forEach(function (item) {
+				frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', 1);
+				modify_item_rate(item)
+			});
+		} else {
+			frm.doc.items.forEach(function (item) {
+				frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', 0);
+				modify_item_rate(item)
+			});
+		}
+	}
+})
+
+frappe.ui.form.on('Delivery Note Item', {
+    keep_pricing_rule_rate_for_this_item: function(frm, cdt, cdn) {
+        var item = locals[cdt][cdn];
+
+        if (item.keep_pricing_rule_rate_for_this_item) {
+            modify_item_rate(item)
+        } else {
+            modify_item_rate(item)
+        }
     }
 })
 
+function modify_item_rate(item) {
+	if (item.keep_pricing_rule_rate_for_this_item == 1){
+		var price_rule_rate = item.rate;
+		frappe.model.set_value(item.doctype, item.name, 'discount_percentage', 0);
+		frappe.model.set_value(item.doctype, item.name, 'price_list_rate', price_rule_rate);
+	} else {
+		frappe.call({
+			"method": "frappe.client.get",
+			"args": {
+				"doctype": "Item Price",
+				filters: {
+					item_code: item.item_code
+				}
+			},
+			"callback": function(response) {
+				if (response) {
+					var item_price_list_rate = response.message.price_list_rate;
+					frappe.model.set_value(item.doctype, item.name, 'price_list_rate', item_price_list_rate);
+				}
+			}
+		});
+	}
+}
 function move_stock(frm) {
     var items = [];
     frm.doc.items.forEach(function (item) {
