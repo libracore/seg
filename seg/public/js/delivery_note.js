@@ -41,12 +41,14 @@ function modify_item_rate(item) {
 			"method": "frappe.client.get",
 			"args": {
 				"doctype": "Item Price",
-				filters: {
-					item_code: item.item_code
+				"filters": {
+					"item_code": item.item_code,
+					"selling": 1
 				}
 			},
 			"callback": function(response) {
 				if (response) {
+					console.log("res", response.message)
 					var item_price_list_rate = response.message.price_list_rate;
 					frappe.model.set_value(item.doctype, item.name, 'price_list_rate', item_price_list_rate);
 				}
