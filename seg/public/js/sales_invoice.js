@@ -5,6 +5,10 @@ frappe.ui.form.on('Sales Invoice',  {
 		} else {
 			cur_frm.set_value("mahnsperre", 0);
 		}
+		
+		if (frm.doc.is_return === 1) {
+			update_wir_for_sinv_return(frm);
+		}
 	},
     before_save: function(frm) {
 		if (frm.doc.mahnsperre === 1) {
@@ -32,4 +36,29 @@ function check_customer_mahnsperre(frm) {
 			}
 		}
 	});
+}
+
+function update_wir_for_sinv_return(frm) {
+	frm.doc.items.forEach(function(item) {
+        if (item.delivery_note) {
+			frappe.call({
+				"method": "frappe.client.get",
+				"args": {
+					"doctype": "Delivery Note",
+					"name": item.delivery_note
+				},
+				'callback': function (response) {
+					var dn = response.message;
+					var dn_items = dn.items.length;
+					var wir_percent = dn.wir_percent;
+					var wir_on_returned_items = ((dn.wir_amount / dn_items) * frm.doc.items.length).toFixed(2);
+					var return_wir_percent = ((wir_percent / dn_items) * frm.doc.items.length).toFixed(2);
+					
+					cur_frm.set_value("wir_amount", parseFloat(wir_on_returned_items));  
+					frappe.model.set_value(item.doctype, item.name, "dn_wir", parseFloat(wir_on_returned_items));
+					frappe.model.set_value(item.doctype, item.name, "wir_percent_on_return", parseFloat(return_wir_percent));
+				}
+			});
+		}
+    });
 }
