@@ -5,29 +5,17 @@ frappe.ui.form.on('Delivery Note', {
         });
     },
     keep_pricing_rule_for_all_items (frm) {
-		if (frm.doc.keep_pricing_rule_for_all_items == 1){
-			frm.doc.items.forEach(function (item) {
-				frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', 1);
-				modify_item_rate(item)
-			});
-		} else {
-			frm.doc.items.forEach(function (item) {
-				frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', 0);
-				modify_item_rate(item)
-			});
-		}
+		frm.doc.items.forEach(function (item) {
+			frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', frm.doc.keep_pricing_rule_for_all_items);
+			modify_item_rate(item);
+		});
 	}
 })
 
 frappe.ui.form.on('Delivery Note Item', {
     keep_pricing_rule_rate_for_this_item: function(frm, cdt, cdn) {
         var item = locals[cdt][cdn];
-
-        if (item.keep_pricing_rule_rate_for_this_item) {
-            modify_item_rate(item)
-        } else {
-            modify_item_rate(item)
-        }
+        modify_item_rate(item);
     }
 })
 
@@ -48,7 +36,6 @@ function modify_item_rate(item) {
 			},
 			"callback": function(response) {
 				if (response) {
-					console.log("res", response.message)
 					var item_price_list_rate = response.message.price_list_rate;
 					frappe.model.set_value(item.doctype, item.name, 'price_list_rate', item_price_list_rate);
 				}
