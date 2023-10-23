@@ -4,6 +4,12 @@ frappe.ui.form.on('Delivery Note', {
             move_stock(frm);
         });
     },
+    before_save: function(frm) {
+		//calculate the wir_percent and wir_amount for each item
+		if (frm.doc.wir_percent > 0) {
+			update_wir_for_each_item(frm);
+		}
+	},
     keep_pricing_rule_for_all_items (frm) {
 		frm.doc.items.forEach(function (item) {
 			frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', frm.doc.keep_pricing_rule_for_all_items);
@@ -123,4 +129,11 @@ function move_stock(frm) {
         'primary_action_label': __('Umlagern')
     });
     d.show();
+}
+
+function update_wir_for_each_item(frm) {
+	frm.doc.items.forEach(function(item) {
+        frappe.model.set_value("Delivery Note Item", item.name, "wir_percent_on_item", (frm.doc.wir_percent / frm.doc.items.length));
+		frappe.model.set_value("Delivery Note Item", item.name, "wir_amount_on_item", (frm.doc.wir_amount / frm.doc.items.length));
+   });
 }
