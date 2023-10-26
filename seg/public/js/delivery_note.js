@@ -7,7 +7,6 @@ frappe.ui.form.on('Delivery Note', {
     before_save: function(frm) {
 		//calculate the wir_percent and wir_amount for each item
 		if (frm.doc.wir_percent > 0) {
-			console.log("heewf")
 			update_wir_for_each_item(frm);
 		}
 	},
