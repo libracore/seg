@@ -7,6 +7,7 @@ frappe.ui.form.on('Delivery Note', {
     before_save: function(frm) {
 		//calculate the wir_percent and wir_amount for each item
 		if (frm.doc.wir_percent > 0) {
+			console.log("heewf")
 			update_wir_for_each_item(frm);
 		}
 	},
@@ -134,6 +135,6 @@ function move_stock(frm) {
 function update_wir_for_each_item(frm) {
 	frm.doc.items.forEach(function(item) {
         frappe.model.set_value("Delivery Note Item", item.name, "wir_percent_on_item", (frm.doc.wir_percent / frm.doc.items.length));
-		frappe.model.set_value("Delivery Note Item", item.name, "wir_amount_on_item", (frm.doc.wir_amount / frm.doc.items.length));
+		frappe.model.set_value("Delivery Note Item", item.name, "wir_amount_on_item", (frm.doc.wir_amount * (item.net_amount / frm.doc.net_total)));
    });
 }
