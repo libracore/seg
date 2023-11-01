@@ -5,6 +5,9 @@ frappe.ui.form.on('Sales Invoice',  {
 		} else {
 			cur_frm.set_value("mahnsperre", 0);
 		}
+		if (frm.doc.is_return === 1 && frm.doc.wir_amount > 0) {
+			update_wir_for_sinv_return(frm);
+		}
 	},
     before_save: function(frm) {
 		if (frm.doc.mahnsperre === 1) {
@@ -32,4 +35,12 @@ function check_customer_mahnsperre(frm) {
 			}
 		}
 	});
+}
+
+function update_wir_for_sinv_return(frm) {
+	var return_wir_amount = 0;
+	frm.doc.items.forEach(function(item) {
+		return_wir_amount += item.wir_amount_on_item;
+	});
+	cur_frm.set_value("wir_amount", return_wir_amount);
 }
