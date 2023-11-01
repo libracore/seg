@@ -9,21 +9,39 @@ frappe.ui.form.on('Delivery Note', {
 		if (frm.doc.wir_percent > 0) {
 			update_wir_for_each_item(frm);
 		}
+		
+		if (!frm.doc.ignore_pricing_rule) {
+			cur_frm.set_value("keep_pricing_rule_for_all_items", 0);
+			check_pricing_rule(frm);
+		}
 	},
     keep_pricing_rule_for_all_items (frm) {
-		frm.doc.items.forEach(function (item) {
-			frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', frm.doc.keep_pricing_rule_for_all_items);
-			modify_item_rate(item);
-		});
+		if (frm.doc.keep_pricing_rule_for_all_items == 1 && frm.doc.ignore_pricing_rule) {
+			frappe.msgprint("Please unchecked 'Ignore Pricing Rule' and Save the document before enabling this.");
+			cur_frm.set_value("keep_pricing_rule_for_all_items", 0);
+		} 
+		check_pricing_rule(frm);
+		
 	}
 })
 
 frappe.ui.form.on('Delivery Note Item', {
     keep_pricing_rule_rate_for_this_item: function(frm, cdt, cdn) {
         var item = locals[cdt][cdn];
+        if (item.keep_pricing_rule_rate_for_this_item == 1 && frm.doc.ignore_pricing_rule) {
+			frappe.msgprint("Please unchecked 'Ignore Pricing Rule' and Save the document before enabling this.");
+			frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', 0);
+		} 
         modify_item_rate(item);
     }
 })
+
+function check_pricing_rule(frm) {
+	frm.doc.items.forEach(function (item) {
+		frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', frm.doc.keep_pricing_rule_for_all_items);
+		modify_item_rate(item);
+	});
+}
 
 function modify_item_rate(item) {
 	if (item.keep_pricing_rule_rate_for_this_item == 1){
