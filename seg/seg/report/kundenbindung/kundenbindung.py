@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from erpnextswiss.scripts.crm_tools import get_primary_customer_contact
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
@@ -23,6 +24,7 @@ def get_columns():
         {"label": _("Umsatz PY"), "fieldname": "revenue_py", "fieldtype": "Curreny", "width": 100},
         {"label": _("Umsatz YTD"), "fieldname": "revenue_ytd", "fieldtype": "Currency", "width": 100},
         {"label": _("Email"), "fieldname": "email", "fieldtype": "Data", "width": 100},
+        {"label": _("Phone"), "fieldname": "phone", "fieldtype": "Data", "width": 100},
         {"label": _("First name"), "fieldname": "first_name", "fieldtype": "Data", "width": 100},
         {"label": _("Last name"), "fieldname": "last_name", "fieldtype": "Data", "width": 100},
         {"label": _(""), "fieldname": "blank", "fieldtype": "Data", "width": 20}
@@ -49,9 +51,9 @@ def get_data(filters):
         SELECT 
           `customer` AS `customer`,
           `customer_group` AS `customer_group`,
-          `first_name` AS `first_name`,
+          /*`first_name` AS `first_name`,
           `last_name` AS `last_name`,
-          `email` AS `email`,
+          `email` AS `email`, */
           `delivery_date` AS `delivery_date`,
           `revenue_py` AS `revenue_py`,
           `revenue_ytd` AS `revenue_ytd`
@@ -59,9 +61,9 @@ def get_data(filters):
         (SELECT 
           `tabCustomer`.`name` AS `customer`,
           `tabCustomer`.`customer_group` AS `customer_group`,
-          `tabContact`.`first_name` AS `first_name`, 
+          /* `tabContact`.`first_name` AS `first_name`, 
           `tabContact`.`last_name` AS `last_name`, 
-          `tabContact`.`email_id` AS `email`,
+          `tabContact`.`email_id` AS `email`, */
           (SELECT MAX(`posting_date`) 
            FROM `tabDelivery Note` 
            WHERE `tabDelivery Note`.`customer` = `tabCustomer`.`name` 
@@ -79,8 +81,8 @@ def get_data(filters):
              AND `tabSales Invoice`.`posting_date` >= CONCAT(YEAR(CURDATE()), "-01-01")
              AND `tabSales Invoice`.`posting_date` <= CONCAT(YEAR(CURDATE()), "-12-31")) AS `revenue_ytd`
          FROM `tabCustomer`
-         LEFT JOIN `tabDynamic Link` ON `tabDynamic Link`.`link_name` = `tabCustomer`.`name`
-         LEFT JOIN `tabContact` ON `tabContact`.`name` = `tabDynamic Link`.`parent`
+         /* LEFT JOIN `tabDynamic Link` ON (`tabDynamic Link`.`link_name` = `tabCustomer`.`name` AND `tabDynamic Link`.`parenttype` = "Contact")
+         LEFT JOIN `tabContact` ON `tabContact`.`name` = `tabDynamic Link`.`parent` */
          {restriction}
          GROUP BY `tabCustomer`.`name`) AS `raw`
         WHERE 
@@ -91,4 +93,13 @@ def get_data(filters):
 
     data = frappe.db.sql(sql_query, as_dict=1)
 
+    # fetch primary contact
+    for d in data:
+        contact = get_primary_customer_contact(d.get("customer"))
+        if contact:
+            d['phone'] = contact.phone
+            d['email'] = contact.email_id
+            d['first_name'] = contact.first_name
+            d['last_name'] = contact.last_name
+        
     return data

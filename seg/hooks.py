@@ -17,6 +17,9 @@ app_license = "AGPL"
 # include js, css files in header of desk.html
 # app_include_css = "/assets/seg/css/seg.css"
 # app_include_js = "/assets/seg/js/seg.js"
+app_include_js = [
+    "/assets/seg/js/seg_common.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/seg/css/seg.css"
@@ -27,7 +30,8 @@ app_license = "AGPL"
 
 # include js in doctype views
 doctype_js = {
-    "Delivery Note" : "public/js/delivery_note.js"
+    "Delivery Note" : "public/js/delivery_note.js",
+    "Sales Invoice" : "public/js/sales_invoice.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}

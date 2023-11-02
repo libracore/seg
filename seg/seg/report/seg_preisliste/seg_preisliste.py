@@ -69,11 +69,11 @@ SELECT
    LEFT JOIN `tabItem Group` AS `r2` ON `r2`.`name` = `r1`.`parent_item_group`
    LEFT JOIN `tabItem Group` AS `r3` ON `r3`.`name` = `r2`.`parent_item_group`
    LEFT JOIN `tabItem Group` AS `r4` ON `r4`.`name` = `r3`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r5` ON `r5`.`name` = `r4`.`parent_item_group`
+   /* LEFT JOIN `tabItem Group` AS `r5` ON `r5`.`name` = `r4`.`parent_item_group`
    LEFT JOIN `tabItem Group` AS `r6` ON `r6`.`name` = `r5`.`parent_item_group`
    LEFT JOIN `tabItem Group` AS `r7` ON `r7`.`name` = `r6`.`parent_item_group`
    LEFT JOIN `tabItem Group` AS `r8` ON `r8`.`name` = `r7`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r9` ON `r9`.`name` = `r8`.`parent_item_group`
+   LEFT JOIN `tabItem Group` AS `r9` ON `r9`.`name` = `r8`.`parent_item_group` */
    WHERE `tabPricing Rule`.`selling` = 1
      AND `tabPricing Rule`.`customer` = "{customer}"
      AND `tabPricing Rule`.`disable` = 0
@@ -84,16 +84,19 @@ SELECT
           OR `tabPricing Rule Item Group`.`item_group` = `r2`.`name`
           OR `tabPricing Rule Item Group`.`item_group` = `r3`.`name`
           OR `tabPricing Rule Item Group`.`item_group` = `r4`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r5`.`name`
+          /* OR `tabPricing Rule Item Group`.`item_group` = `r5`.`name`
           OR `tabPricing Rule Item Group`.`item_group` = `r6`.`name`
           OR `tabPricing Rule Item Group`.`item_group` = `r7`.`name`
           OR `tabPricing Rule Item Group`.`item_group` = `r8`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r9`.`name`
+          OR `tabPricing Rule Item Group`.`item_group` = `r9`.`name` */
         )
    ORDER BY `tabPricing Rule`.`priority` DESC
    LIMIT 1) AS `pricing_rule`
 FROM `tabItem`
-WHERE `tabItem`.`is_sales_item` = 1
+WHERE 
+  `tabItem`.`is_sales_item` = 1
+  AND `tabItem`.`disabled` = 0
+  AND `tabItem`.`has_variants` = 0
   AND `tabItem`.`item_group` LIKE "{item_group}") AS `raw`
 LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
 ) AS `aggr`;""".format(customer=filters.customer, item_group=filters.item_group)

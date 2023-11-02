@@ -11,6 +11,7 @@ from frappe.core.doctype.user.user import reset_password
 from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
+from frappe.desk.like import _toggle_like
 
 PREPAID = "N20"
 
@@ -240,7 +241,10 @@ def get_item_details(item_code):
             `tabItem`.`stock_uom` AS `stock_uom`,
             `tabItem`.`density` AS `density`,
             `tabItem`.`weight_per_unit` AS `weight_per_unit`,
-            `tabItem`.`weight_uom` AS `weight_uom`
+            `tabItem`.`weight_uom` AS `weight_uom`,
+            `tabItem`.`is_out_of_stock` AS `is_out_of_stock`,
+            `tabItem`.`units_per_packaging` AS `units_per_packaging`,
+            `tabItem`.`packaging_type` AS `packaging_type`
         FROM `tabItem`
         WHERE `tabItem`.`item_code` = "{item_code}"
           AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
@@ -272,7 +276,8 @@ def get_item_details(item_code):
                 `tabItem`.`image`
             FROM `tabRelated Item`
             LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabRelated Item`.`item_code`
-            WHERE `tabRelated Item`.`parent` = "{item_code}";
+            WHERE `tabRelated Item`.`parent` = "{item_code}"
+            ORDER BY `weightage` DESC;
         """.format(item_code=item_code), as_dict=True)
         item_details[0]['related_items'] = related_items
         
@@ -678,7 +683,7 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             })
         # insert and submit
         sales_order.insert(ignore_permissions=True)
-        sales_order.submit()
+        # sales_order.submit()        # change request 2023-09-20 nic: do not automatically submit new orders
         frappe.db.commit()
         so_ref = sales_order.name
         # create payment (NOTE: FOR SOME REASON, IGNORE_PERMISSIONS DOES NOT WORK ON PAYMENT ENTRY
@@ -874,3 +879,30 @@ def add_log(user, method="webshop_log"):
         error = err
         frappe.log_error(err)
     return {'error': error, 'webshop_log': reference}
+
+@frappe.whitelist()
+def set_like(item_code, liked):
+    if frappe.db.exists("Item", item_code):
+        _toggle_like("Item", item_code, "Yes" if cint(liked) else "No")
+        frappe.db.commit()
+        return {'success': 1, 'error': ''}
+    else:
+        return {'success': 0, 'error': 'Item not found'}
+
+@frappe.whitelist()
+def get_favorite_items():
+    products = frappe.db.sql("""
+        SELECT `item_code`, `item_name`, `image`
+        FROM (
+            SELECT 
+                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name`, `image`, `weightage`
+            FROM `tabItem`
+            WHERE (`show_in_website` = 1 OR `show_variant_in_website`)
+              AND `is_sample` = 0
+              AND `_liked_by` LIKE "%{user}%"
+        ) AS `raw`
+        GROUP BY `item_code`
+        ORDER BY `weightage` DESC
+        LIMIT 20
+        ;""".format(user=frappe.session.user), as_dict=True)
+    return products
