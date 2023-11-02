@@ -1,10 +1,10 @@
 frappe.ui.form.on('Sales Invoice',  {
     before_save: function(frm) {
-		if (frm.doc.is_return === 1 && frm.doc.wir_amount > 0) {
+		if ((frm.doc.is_return === 1) && (frm.doc.wir_amount > 0)) {
 			update_wir_for_sinv_return(frm);
 		}
 		
-		if (frm.doc.mahnsperre === 1 && frm.doc.is_return === 0) {
+		if ((frm.doc.mahnsperre === 1) && (frm.doc.is_return === 0)) {
 			cur_frm.set_value("exclude_from_payment_reminder_until", "2099-12-31");
 		} else if (frm.doc.is_return === 0) {
 			// do not remind 20 days
