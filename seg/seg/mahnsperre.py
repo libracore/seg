@@ -6,7 +6,7 @@ from frappe.utils import cint
 
 @frappe.whitelist()
 def set_mahnsperre(mahnsperre, customer):
-    invoices = frappe.get_all("Sales Invoice", filters={"customer": customer, "docstatus": ["!=", 2], "status": ["not in", ["Paid", "Return", "Credit Note Issued"]]})
+    invoices = frappe.get_all("Sales Invoice", filters={"customer": customer, "docstatus": ["<", 2], "outstanding_amount": [">", 0]})
     for invoice in invoices:
         doc = frappe.get_doc("Sales Invoice", invoice.name)
         if cint(mahnsperre) == 1:
