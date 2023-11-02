@@ -48,7 +48,7 @@ function uncheck_keep_price_rule(frm) {
 	check_pricing_rule(frm);
 }
 
-function showIgnorePricingRuleMessage(){
+function show_ignore_pricing_rule_message(){
 	frappe.msgprint("Please unchecked 'Ignore Pricing Rule' and Save the document before enabling this.");
 }
 
