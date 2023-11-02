@@ -283,7 +283,8 @@ def get_item_details(item_code):
                 `tabItem`.`image`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
-              AND `tabItem`.`show_variant_in_website` = 1;
+              AND `tabItem`.`show_variant_in_website` = 1
+            ORDER BY `tabItem`.`weightage` DESC;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
