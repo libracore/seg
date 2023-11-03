@@ -3,67 +3,44 @@ frappe.ui.form.on('Delivery Note', {
         frm.add_custom_button(__("Umlagern"), function() {
             move_stock(frm);
         });
+        frm.add_custom_button(__("Detach From Pricing Rule"), function() {
+            if (frm.doc.ignore_pricing_rule) {
+				// In case the user has set first "Ignore Pricing Rule"
+				show_ignore_pricing_rule_message();
+			} else {
+				modify_item_rate(frm);
+			}
+        });
     },
     before_save: function(frm) {
 		//calculate the wir_percent and wir_amount for each item
 		if (frm.doc.wir_percent > 0) {
 			update_wir_for_each_item(frm);
 		}
-		
-		// If the "ignore_pricing_rule" it removes the checkbox "keep_pricing_rule_for_all_items" because rules are set and not being ignored
-		if (!frm.doc.ignore_pricing_rule) {
-			uncheck_keep_price_rule(frm);
-		} 
 	},
-    keep_pricing_rule_for_all_items (frm) {
-		watchover_price_rule_checkboxs(frm);
+	ignore_pricing_rule: function(frm) {
+		// When unchecking the "Ignore Pricing Rule" after "Deatch Prices" the rate with the rule remains so this will bring back the original selling rate
+		if (!frm.doc.ignore_pricing_rule) {
+			return_to_previous_rate(frm);
+		} 
 	}
 })
-
-frappe.ui.form.on('Delivery Note Item', {
-    keep_pricing_rule_rate_for_this_item: function(frm, cdt, cdn) {
-        var item = locals[cdt][cdn];
-        // This condition will allow to keep the correct sequence order, if the "ignore_pricing_rule" is set first this checkbox will not set the correct rate.
-        if (item && item.keep_pricing_rule_rate_for_this_item == 1 && frm.doc.ignore_pricing_rule){
-			showIgnorePricingRuleMessage();
-			uncheck_keep_price_rule(frm);
-		} else {
-			modify_item_rate(item);
-		}
-    }
-})
-
-function watchover_price_rule_checkboxs(frm, item) {
-	// This condition will allow to keep the correct sequence order, if the "ignore_pricing_rule" is set first this checkbox will not set the correct rate.
-	if (frm.doc.keep_pricing_rule_for_all_items == 1 && frm.doc.ignore_pricing_rule) {
-		showIgnorePricingRuleMessage();
-		uncheck_keep_price_rule(frm);
-	} else {
-		check_pricing_rule(frm);
-	}
-}
-
-function uncheck_keep_price_rule(frm) {
-	cur_frm.set_value("keep_pricing_rule_for_all_items", 0);
-	check_pricing_rule(frm);
-}
 
 function show_ignore_pricing_rule_message(){
 	frappe.msgprint("Please unchecked 'Ignore Pricing Rule' and Save the document before enabling this.");
 }
 
-function check_pricing_rule(frm) {
+function modify_item_rate(frm) {
 	frm.doc.items.forEach(function (item) {
-		frappe.model.set_value(item.doctype, item.name, 'keep_pricing_rule_rate_for_this_item', frm.doc.keep_pricing_rule_for_all_items);
-	});
-}
-
-function modify_item_rate(item) {
-	if (item.keep_pricing_rule_rate_for_this_item == 1){
 		var price_rule_rate = item.rate;
 		frappe.model.set_value(item.doctype, item.name, 'discount_percentage', 0);
 		frappe.model.set_value(item.doctype, item.name, 'price_list_rate', price_rule_rate);
-	} else {
+	});
+	cur_frm.set_value("ignore_pricing_rule", 1);
+}
+
+function return_to_previous_rate(frm){
+	frm.doc.items.forEach(function (item) {
 		frappe.call({
 			"method": "frappe.client.get",
 			"args": {
@@ -80,8 +57,9 @@ function modify_item_rate(item) {
 				}
 			}
 		});
-	}
+	});
 }
+
 function move_stock(frm) {
     var items = [];
     frm.doc.items.forEach(function (item) {
