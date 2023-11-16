@@ -1,6 +1,6 @@
 frappe.ui.form.on('Pricing Rule', {
     after_save: function(frm) {
-        check_pricing_rule_conflicts(frm)
+        check_pricing_rule_conflicts(frm);
     }
 })
 
