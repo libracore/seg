@@ -97,13 +97,13 @@ doctype_js = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"seg.tasks.all"
 # 	],
-# 	"daily": [
-# 		"seg.tasks.daily"
-# 	],
+    "daily": [
+        "seg.seg.utils.convert_credits_to_advances"
+    ]
 # 	"hourly": [
 # 		"seg.tasks.hourly"
 # 	],
@@ -113,7 +113,7 @@ doctype_js = {
 # 	"monthly": [
 # 		"seg.tasks.monthly"
 # 	]
-# }
+}
 
 # Testing
 # -------

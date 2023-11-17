@@ -69,7 +69,7 @@ def convert_credits_to_advances():
 def transfer_credit(sales_invoice_name):
     sales_invoice = frappe.get_doc("Sales Invoice", sales_invoice_name)
     outstanding_amount = (-1) * sales_invoice.outstanding_amount
-    if outstanding_amount >= 0:
+    if outstanding_amount <= 0:
         return
     
     debit_account = sales_invoice.debit_to
