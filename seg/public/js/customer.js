@@ -1,8 +1,6 @@
 frappe.ui.form.on('Customer',  {
 	mahnsperre: function(frm) {
-		if (cur_frm.doc.customer_name){
-			check_mahnsperre_on_invoices(frm);
-		}
+		check_mahnsperre_on_invoices(frm);
 	}
 });
 
