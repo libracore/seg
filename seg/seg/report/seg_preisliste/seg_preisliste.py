@@ -156,5 +156,5 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
             })
         pr = pricing_rule.insert(ignore_permissions=ignore_permissions)
 
-    validate_pricing_rule(pr.name, pr.apply_on)
+    validate_pricing_rule(pr.name)
     return pr.name
