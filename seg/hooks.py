@@ -32,7 +32,7 @@ app_include_js = [
 doctype_js = {
     "Delivery Note" : "public/js/delivery_note.js",
     "Sales Invoice" : "public/js/sales_invoice.js",
-    "Pricing Rule" : "public/js/pricing_rule.js"
+    "Pricing Rule" : "public/js/pricing_rule.js",
     "Customer" : "public/js/customer.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
