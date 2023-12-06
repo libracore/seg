@@ -75,11 +75,11 @@ def get_conflicts_for_pricing_rules(customer, new_pricing_rule):
         
         if conflict_same_priority:
             print("Conflic! Same priority <br> {0}".format(conflict_same_priority))
-            return f"The new rule <a href='#Form/Pricing Rule/{new_pricing_rule.name}'><b>{new_pricing_rule.name}</b></a> conflicts with existing rule <a href='#Form/Pricing Rule/{conflict_same_priority[0].name}'><b>{conflict_same_priority[0].name}</b></a> due to the both having the same Priority within the same items group hierarchy."
+            return """The new rule <a href='#Form/Pricing Rule/{0}'><b>{0}</b></a> conflicts with existing rule <a href='#Form/Pricing Rule/{1}'><b>{1}</b></a> due to the both having the same Priority within the same items group hierarchy.""".format(new_pricing_rule.name, conflict_same_priority[0].name)
     else:
         sql_query += pr_sql_same_category
         conflict_same_category = frappe.db.sql(sql_query, as_dict=True)
         
         if conflict_same_category:
             print("Conflic! Same category <br> {0}".format(conflict_same_category))
-            return f"The new rule <a href='#Form/Pricing Rule/{new_pricing_rule.name}'><b>{new_pricing_rule.name}</b></a> conflicts with existing rule <a href='#Form/Pricing Rule/{conflict_same_category[0].name}'><b>{conflict_same_category[0].name}</b></a> due to the both having the same {new_pricing_rule.apply_on}."
+            return """The new rule <a href='#Form/Pricing Rule/{0}'><b>{0}</b></a> conflicts with existing rule <a href='#Form/Pricing Rule/{1}'><b>{1}</b></a> due to the both having the same {new_pricing_rule.apply_on}.""".format(new_pricing_rule.name, conflict_same_category[0].name)
