@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from seg.seg.pricing_rule_validation import validate_pricing_rule
 
 def execute(filters=None):
     columns = get_columns()
@@ -154,5 +155,6 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
                 'item_group': pricing_rule.item_group
             })
         pr = pricing_rule.insert(ignore_permissions=ignore_permissions)
-    
+
+    validate_pricing_rule(pr.name)
     return pr.name
