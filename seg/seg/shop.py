@@ -388,6 +388,8 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
         'address_type': address_type,
         'address_line1': address_line1,
         'address_line2': address_line2,
+        'is_primary_address': 1 if address_type == "Billing" else 0,
+        'is_shipping_address': 1 if address_type == "Shipping" else 0,
         'pincode': pincode,
         'city': city,
         'country': country,
@@ -399,6 +401,14 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
         frappe.db.commit()
     except Exception as err:
         error = err
+    
+    try:
+        if address_type == "Billing":
+            for c in customers:
+                assert_only_one_primary_address(new_address.name, c['customer'])
+    except:
+        pass
+        
     return {'error': error, 'name': new_address.name or None}
 
 @frappe.whitelist()
@@ -406,12 +416,14 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
     error = None
     # fetch customers for this user
     customers = get_session_customers()
+    customer = None
     address = frappe.get_doc("Address", name)
     permitted = False
     for l in address.links:
         for c in customers:
             if l.link_name == c['customer']:
                 permitted = True
+                customer = c['customer']
     if permitted:
         # update address
         address.address_line1 = address_line1
@@ -419,11 +431,12 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
         address.pincode = pincode
         address.city = city
         address.country = country
-        if is_primary:
+        if cint(is_primary):
             address.is_primary_address = 1
+            assert_only_one_primary_address(name, customer)
         else:
             address.is_primary_address = 0
-        if is_shipping:
+        if cint(is_shipping):
             address.is_shipping_address = 1
         else:
             address.is_shipping_address = 0
@@ -458,6 +471,29 @@ def delete_address(name):
     else:
         error = "Permission error"
     return {'error': error}
+
+"""
+Check that there is only one primary address for one customer
+"""
+def assert_only_one_primary_address(address_name, customer):
+    # find all other primary addresses
+    primary_addresses = frappe.db.sql("""
+        SELECT `tabAddress`.`name`, `tabAddress`.`is_primary_address`,  `tabDynamic Link`.`link_name`
+        FROM `tabDynamic Link` 
+        LEFT JOIN `tabAddress` ON `tabAddress`.`name` = `tabDynamic Link`.`parent`
+        WHERE 
+            `tabDynamic Link`.`link_name` = "{customer}"
+            AND `tabDynamic Link`.`link_doctype` = "Customer" 
+            AND `tabDynamic Link`.`parenttype` = "Address"
+            AND `tabAddress`.`is_primary_address` = 1
+            AND `tabAddress`.`name` != "{æddress_name}";
+    """.format(customer=customer, address_name=address_name), as_dict=True)
+    # make all others non-primary (db-based to prevent save conflicts
+    if primary_addresses:
+        for address in primary_addresses:
+            frappe.db.sql("""UPDATE `tabAddress` SET `is_primary_address` = 0 WHERE `name` = "{address}";""".format(address=address.get('name')))
+        frappe.db.commit()
+    return
     
 @frappe.whitelist()
 def get_delivery_notes(commission=None):
