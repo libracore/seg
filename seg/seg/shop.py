@@ -486,7 +486,7 @@ def assert_only_one_primary_address(address_name, customer):
             AND `tabDynamic Link`.`link_doctype` = "Customer" 
             AND `tabDynamic Link`.`parenttype` = "Address"
             AND `tabAddress`.`is_primary_address` = 1
-            AND `tabAddress`.`name` != "{æddress_name}";
+            AND `tabAddress`.`name` != "{address_name}";
     """.format(customer=customer, address_name=address_name), as_dict=True)
     # make all others non-primary (db-based to prevent save conflicts
     if primary_addresses:
