@@ -8,6 +8,18 @@ import six
 from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
+from frappe.utils import cint
+
+naming_patterns = {
+    'Address': {
+        'prefix': "A-",
+        'length': 5
+    },
+    'Contact': {
+        'prefix': "C-",
+        'length': 5
+    }
+}
 
 @frappe.whitelist()
 def get_total_weight(items, qtys, kgperL=1.5):
@@ -100,3 +112,39 @@ def transfer_credit(sales_invoice_name):
     jv.submit()
     frappe.db.commit()
     
+def object_autoname(self, method):
+    if self.doctype not in ["Address", "Contact"]:
+        frappe.throw("Custom autoname is not implemented for this doctype.", "Not implemented")
+        
+    self.name = get_next_number(self)
+    return
+    
+def get_next_number(self):
+    if self.doctype not in ["Address", "Contact"]:
+        frappe.throw("Custom autoname is not implemented for this doctype.", "Not implemented")
+    
+    last_name = frappe.db.sql("""
+        SELECT `name`
+        FROM `tab{dt}`
+        WHERE `name` LIKE "{prefix}%"
+        ORDER BY `name` DESC
+        LIMIT 1;""".format(
+        dt=self.doctype, 
+        prefix=naming_patterns[self.doctype]['prefix']),
+        as_dict=True)
+    
+    if len(last_name) == 0:
+        next_number = 1
+    else:
+        prefix_length = len(naming_patterns[self.doctype]['prefix'])
+        last_number = cint((last_name[0]['name'])[prefix_length:])
+        next_number = last_number + 1
+    
+    next_number_string = "{0}{1}".format(
+        (naming_patterns[self.doctype]['length'] * "0"),
+        next_number)[((-1)*naming_patterns[self.doctype]['length']):]
+    # prevent duplicates on naming series overload
+    if next_number > cint(next_number_string):
+        next_number_string = "{0}".format(next_number)
+        
+    return "{prefix}{n}".format(prefix=naming_patterns[self.doctype]['prefix'], n=next_number_string)

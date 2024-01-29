@@ -94,6 +94,14 @@ doctype_js = {
 # 		"on_trash": "method"
 #	}
 # }
+doc_events = {
+    "Address": {
+        "autoname": "seg.seg.utils.object_autoname"
+    },
+    "Contact": {
+        "autoname": "seg.seg.utils.object_autoname"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
