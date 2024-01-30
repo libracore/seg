@@ -17,6 +17,9 @@ frappe.ui.form.on('Sales Invoice',  {
 		} else {
 			cur_frm.set_value("mahnsperre", 0);
 		}
+	},
+	before_save: function(frm) {
+		update_discout(frm)
 	}
 });
 
@@ -44,4 +47,26 @@ function update_wir_for_sinv_return(frm) {
 		return_wir_amount += item.wir_amount_on_item;
 	});
 	cur_frm.set_value("wir_amount", return_wir_amount);
+}
+
+function update_discout(frm) {
+	// check if there is a discount from delivery notes
+	var dn_discount_total= 0;
+	var current_dn = null;
+	
+	if (frm.doc.items) {  
+		frm.doc.items.forEach(function(item) {
+			if (current_dn != item.delivery_note) {
+				current_dn = item.delivery_note;
+				//console.log("item", item.delivery_note, item.dn_discount_amount)
+				dn_discount_total = dn_discount_total + item.dn_discount_amount;
+			}
+		});
+	}
+	
+	// if there is a discount from delivery notes, set this as an absolute discount
+	if (dn_discount_total > 0) {
+		cur_frm.set_value("additional_discount_percentage", 0);
+		cur_frm.set_value("discount_amount", dn_discount_total);
+	}
 }
