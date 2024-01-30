@@ -11,18 +11,6 @@ frappe.ui.form.on('Sales Invoice',  {
 			cur_frm.set_value("exclude_from_payment_reminder_until",frappe.datetime.add_days(frm.doc.due_date, 20));
 		}
     },
-    refresh: function(frm) {
-        if ((frm.doc.__islocal) && (frm.doc.is_return === 0)) {
-            // apply tax template
-            cur_frm.set_value("taxes_and_charges", "MwSt, LSVA und VOC 2024 - SEG");
-        }
-        
-        if ((frm.doc.docstatus === 1) && (cur_frm.attachments.get_attachments().length === 0)) {
-            frm.add_custom_button(__("PDF"), function() {
-                attach_pdf(frm);
-            });
-        }
-    },
     customer: function(frm) {
 		if (frm.doc.customer) {
 			check_customer_mahnsperre(frm);
