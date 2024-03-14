@@ -373,7 +373,7 @@ def get_session_customers():
     return customers
     
 @frappe.whitelist()
-def create_address(address_line1, pincode, city, address_type="Shipping", address_line2=None, country="Schweiz"):
+def create_address(address_line1, pincode, city, address_type="Shipping", is_shipping=0, address_line2=None, country="Schweiz"):
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -389,7 +389,7 @@ def create_address(address_line1, pincode, city, address_type="Shipping", addres
         'address_line1': address_line1,
         'address_line2': address_line2,
         'is_primary_address': 1 if address_type == "Billing" else 0,
-        'is_shipping_address': 1 if address_type == "Shipping" else 0,
+        'is_shipping_address': 1 if is_shipping == "1" else 0,
         'pincode': pincode,
         'city': city,
         'country': country,
