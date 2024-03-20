@@ -24,3 +24,23 @@ def attach_print_for_doctype(doctype, print_format):
             print("skipped {0} ({1}%)".format(d['name'], int(100 * count / len(docs))))
     print("done")
     return
+
+def remove_multiple_shipping_addresses():
+	clients = frappe.db.sql("""SELECT
+								`address`.`name`,
+								`link`.`link_name`
+								FROM `tabAddress` AS `address`
+								LEFT JOIN `tabDynamic Link` AS `link` ON `link`.`parent` = `address`.`name`
+								WHERE `address`.`is_shipping_address` = 1
+								ORDER BY `link`.`link_name`""", as_dict=True)
+	
+	
+	filtered_clients = []
+	for client in clients:
+		if client['link_name'] in filtered_clients:
+			#remove check
+			#add to filteret clients
+		else:
+			#add to filteret clients
+		
+	return
