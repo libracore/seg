@@ -34,13 +34,18 @@ def remove_multiple_shipping_addresses():
 								WHERE `address`.`is_shipping_address` = 1
 								ORDER BY `link`.`link_name`""", as_dict=True)
 	
-	
+	frappe.log_error(clients, "clients")
 	filtered_clients = []
 	for client in clients:
 		if client['link_name'] in filtered_clients:
+			print(client['link_name'])
 			#remove check
+			doc = frappe.get_doc("Address", client['name'])
+			doc.is_shipping_address = 0
+			doc.save()
 			#add to filteret clients
+			filtered_clients.append(client['link_name'])
 		else:
 			#add to filteret clients
-		
+			filtered_clients.append(client['link_name'])
 	return
