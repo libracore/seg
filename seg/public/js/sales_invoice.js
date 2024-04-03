@@ -20,6 +20,16 @@ frappe.ui.form.on('Sales Invoice',  {
 	},
 	before_save: function(frm) {
 		update_discout(frm)
+	},
+	refresh: function(frm) {
+		if (frm.doc.__islocal) {
+			set_naming_series(frm)
+		}
+	},
+	is_return: function(frm) {
+		if (frm.doc.__islocal) {
+			set_naming_series(frm)
+		}
 	}
 });
 
@@ -69,4 +79,12 @@ function update_discout(frm) {
 		cur_frm.set_value("additional_discount_percentage", 0);
 		cur_frm.set_value("discount_amount", dn_discount_total);
 	}
+}
+
+function set_naming_series(frm) {
+    if (cur_frm.doc.is_return === 0) {
+        cur_frm.set_value("naming_series", "RG-.#####.");
+    } else {
+        cur_frm.set_value("naming_series", "GS-.#####.");
+    }
 }

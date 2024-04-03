@@ -8,6 +8,9 @@ frappe.ui.form.on('Delivery Note', {
                 modify_item_rate(frm);
             });
         }
+        if (frm.doc.is_return === 1) {
+			remind_of_discount(frm);
+		}
     },
     before_save: function(frm) {
         //calculate the wir_percent and wir_amount for each item
@@ -140,4 +143,19 @@ function update_wir_for_each_item(frm) {
         frappe.model.set_value("Delivery Note Item", item.name, "wir_percent_on_item", (frm.doc.wir_percent / frm.doc.items.length));
         frappe.model.set_value("Delivery Note Item", item.name, "wir_amount_on_item", (frm.doc.wir_amount * (item.net_amount / frm.doc.net_total)));
    });
+}
+
+function remind_of_discount(frm) {
+    frappe.call({
+        'method': "seg.seg.utils.check_dn_discount",
+        'args': {
+            'delivery_note': frm.doc.return_against
+        },
+        'callback': function(response) {
+            var discount = response.message;
+            if (discount) {
+                cur_frm.dashboard.add_comment( "Achtung: Lieferschein " + frm.doc.return_against + " hat CHF " + discount + " Rabatt", 'red', true);
+            }
+        }
+    });
 }

@@ -148,3 +148,19 @@ def get_next_number(self):
         next_number_string = "{0}".format(next_number)
         
     return "{prefix}{n}".format(prefix=naming_patterns[self.doctype]['prefix'], n=next_number_string)
+
+@frappe.whitelist()
+def check_dn_discount(delivery_note):
+	data = frappe.db.sql("""
+							SELECT `discount_amount`
+							FROM `tabDelivery Note`
+							WHERE `name` = '{dn}'""".format(dn=delivery_note), as_dict=True)
+	
+	if len(data) > 0:
+		discount = data[0]['discount_amount']
+		if discount > 0:
+			return discount
+		else:
+			return False
+	else:
+		return False
