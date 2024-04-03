@@ -151,16 +151,29 @@ def get_next_number(self):
 
 @frappe.whitelist()
 def check_dn_discount(delivery_note):
-	data = frappe.db.sql("""
-							SELECT `discount_amount`
-							FROM `tabDelivery Note`
-							WHERE `name` = '{dn}'""".format(dn=delivery_note), as_dict=True)
-	
-	if len(data) > 0:
-		discount = data[0]['discount_amount']
-		if discount > 0:
-			return discount
-		else:
-			return False
-	else:
-		return False
+    data = frappe.db.sql("""
+                            SELECT `discount_amount`
+                            FROM `tabDelivery Note`
+                            WHERE `name` = '{dn}'""".format(dn=delivery_note), as_dict=True)
+    
+    if len(data) > 0:
+        discount = data[0]['discount_amount']
+        if discount > 0:
+            return discount
+        else:
+            return False
+    else:
+        return False
+        
+@frappe.whitelist()
+def check_for_lsva(customer):
+    data = frappe.db.sql("""
+                            SELECT `always_pick_up`
+                            FROM `tabCustomer`
+                            WHERE `name` = '{c}'""".format(c=customer), as_dict=True)
+    
+    pick_up = False
+    if len(data) > 0 and data[0]['always_pick_up'] == 1:
+        pick_up = True
+
+    return pick_up
