@@ -24,7 +24,6 @@ frappe.ui.form.on('Sales Invoice',  {
     refresh: function(frm) {
         if (frm.doc.__islocal) {
             set_naming_series(frm);
-            check_for_lsva(frm);
         }
     },
     is_return: function(frm) {
@@ -88,25 +87,4 @@ function set_naming_series(frm) {
     } else {
         cur_frm.set_value("naming_series", "GS-.#####.");
     }
-}
-
-function check_for_lsva(frm) {
-    frappe.call({
-        'method': "seg.seg.utils.check_for_lsva",
-        'args': {
-            'customer': frm.doc.customer
-        },
-        'callback': function(response) {
-            var pick_up = response.message;
-            if (pick_up) {
-                for (let i = 0; i < taxes.length; i++) {
-                    if (taxes[i].account_head == "2209 Geschuldete LSVA - SEG") {
-						console.log("HOIMAN");
-                        frappe.model.set_value(cur_frm.doc.taxes[i].doctype, cur_frm.doc.taxes[i].name, "total", 0);
-                        frappe.model.set_value(cur_frm.doc.taxes[i].doctype, cur_frm.doc.taxes[i].name, "base_total", 0);
-                    }
-                }
-            }
-        }
-    });
 }
