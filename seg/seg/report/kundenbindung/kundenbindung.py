@@ -17,9 +17,9 @@ def get_columns():
     return [
 
       
-        #{"label": _("Customer"), "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
+        {"label": _("Customer"), "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 75},
         {"label": _("Customer Name"), "fieldname": "customer_name", "fieldtype": "Data", "width": 130},
-        {"label": _("Customer"), "fieldname": "customer_group", "fieldtype": "Link", "options": "Customer Group", "width": 120},
+        {"label": _("Customer Group"), "fieldname": "customer_group", "fieldtype": "Link", "options": "Customer Group", "width": 120},
         {"label": _("Letzte Lieferung"), "fieldname": "delivery_date", "fieldtype": "Date", "width": 100},
         {"label": _("Umsatz PY"), "fieldname": "revenue_py", "fieldtype": "Curreny", "width": 100},
         {"label": _("Umsatz YTD"), "fieldname": "revenue_ytd", "fieldtype": "Currency", "width": 100},
