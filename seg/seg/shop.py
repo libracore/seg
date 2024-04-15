@@ -463,6 +463,7 @@ def delete_address(name):
     if permitted:
         # delete address: drop links
         address.links = []
+        address.owner = "Nobody"
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()

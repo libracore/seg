@@ -17,9 +17,9 @@ def get_columns():
     return [
 
       
-        {"label": _("Customer"), "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 200},
-        #{"label": _("Customer Name"), "fieldname": "customer_name", "fieldtype": "Data", "width": 130},
-        {"label": _("Customer"), "fieldname": "customer_group", "fieldtype": "Link", "options": "Customer Group", "width": 120},
+        {"label": _("Customer"), "fieldname": "customer", "fieldtype": "Link", "options": "Customer", "width": 75},
+        {"label": _("Customer Name"), "fieldname": "customer_name", "fieldtype": "Data", "width": 130},
+        {"label": _("Customer Group"), "fieldname": "customer_group", "fieldtype": "Link", "options": "Customer Group", "width": 120},
         {"label": _("Letzte Lieferung"), "fieldname": "delivery_date", "fieldtype": "Date", "width": 100},
         {"label": _("Umsatz PY"), "fieldname": "revenue_py", "fieldtype": "Curreny", "width": 100},
         {"label": _("Umsatz YTD"), "fieldname": "revenue_ytd", "fieldtype": "Currency", "width": 100},
@@ -50,6 +50,7 @@ def get_data(filters):
     sql_query = """
         SELECT 
           `customer` AS `customer`,
+          `customer_name` AS `customer_name`,
           `customer_group` AS `customer_group`,
           /*`first_name` AS `first_name`,
           `last_name` AS `last_name`,
@@ -60,6 +61,7 @@ def get_data(filters):
         FROM 
         (SELECT 
           `tabCustomer`.`name` AS `customer`,
+          `tabCustomer`.`customer_name` AS `customer_name`,
           `tabCustomer`.`customer_group` AS `customer_group`,
           /* `tabContact`.`first_name` AS `first_name`, 
           `tabContact`.`last_name` AS `last_name`, 
