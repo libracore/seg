@@ -320,7 +320,7 @@ def get_item_details(item_code):
                     `description`
                 FROM `tabItem Website Specification`
                 WHERE `parent` = "{item_code}";
-            """.format(item_code=item_code), as_dict=True)
+            """.format(item_code=v['item_code']), as_dict=True)
             v['website_specification'] = web_specs  
         item_details[0]['variants'] = variants
         
@@ -660,8 +660,14 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
                 return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
         else:
             return {'error': "Invalid address", 'sales_order': None}
-    payment_methods = frappe.get_list("Payment Method")
-    frappe.log_error(payment_methods, "payment_methods")
+    #validate given payment method
+    payment_methods = frappe.get_list("Mode of Payment", ignore_permissions=True)
+    if len(payment_methods) > 0:
+        payment_methods_list = []
+        for method in payment_methods:
+            payment_methods_list.append(method.get('name'))
+    if not payment_method in payment_methods_list:
+        payment_method = None
     try:
         # create sales order
         sales_order = frappe.get_doc({
