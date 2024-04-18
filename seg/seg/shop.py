@@ -320,7 +320,7 @@ def get_item_details(item_code):
                     `description`
                 FROM `tabItem Website Specification`
                 WHERE `parent` = "{item_code}";
-            """.format(item_code=item_code), as_dict=True)
+            """.format(item_code=v['item_code']), as_dict=True)
             v['website_specification'] = web_specs  
         item_details[0]['variants'] = variants
         
@@ -585,7 +585,8 @@ def get_profile():
             `tabCustomer`.`payment_terms` AS `payment_terms`,
             `tabContact`.`first_name` AS `first_name`,
             `tabContact`.`last_name` AS `last_name`,
-            `tabCustomer`.`new_customer` AS `new_customer`
+            `tabCustomer`.`new_customer` AS `new_customer`,
+            `tabCustomer`.`allow_invoice` AS `allow_invoice`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
@@ -641,7 +642,7 @@ def get_visualisations():
 
 @frappe.whitelist()
 def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
-        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None):
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None, shipping_costs=1, payment_method=None):
     error = None
     so_ref = None
     # fetch customers for this user
@@ -659,6 +660,14 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
                 return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
         else:
             return {'error': "Invalid address", 'sales_order': None}
+    #validate given payment method
+    payment_methods = frappe.get_list("Mode of Payment", ignore_permissions=True)
+    if len(payment_methods) > 0:
+        payment_methods_list = []
+        for method in payment_methods:
+            payment_methods_list.append(method.get('name'))
+    if not payment_method in payment_methods_list:
+        payment_method = None
     try:
         # create sales order
         sales_order = frappe.get_doc({
@@ -674,7 +683,8 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             'avis_phone': avis_phone,
             'order_person': order_person,
             'desired_date': desired_date,
-            'additional_remarks': additional_remarks
+            'additional_remarks': additional_remarks,
+            'payment_method': payment_method
         })
         # create item records
         items = json.loads(items)
@@ -682,6 +692,12 @@ def place_order(shipping_address, items, commission=None, discount=0, paid=False
             sales_order.append('items', {
                 'item_code': i['item'],
                 'qty': i['qty']
+            })
+        if shipping_costs == 1:
+            shipping_item = frappe.db.get_value("Webshop Settings", "Webshop Settings", "shipping_item")
+            sales_order.append('items', {
+                'item_code': shipping_item,
+                'qty': 1
             })
         # taxes and charges
         taxes_and_charges = frappe.db.sql("""
