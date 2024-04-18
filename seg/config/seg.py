@@ -237,6 +237,12 @@ def get_data():
                    },
                    {
                        "type": "doctype",
+                       "name": "Payment Method",
+                       "label": _("Payment Method"),
+                       "description": _("Payment Method")                   
+                   },
+                   {
+                       "type": "doctype",
                        "name": "Webshop Log",
                        "label": _("Webshop Log"),
                        "description": _("Webshop Log")                   

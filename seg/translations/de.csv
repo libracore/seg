@@ -1,1 +1,4 @@
 DocType: Customer, Always pick up, Holt immer ab
+DocType: Customer, Allow Invoice, Rechnung erlauben
+DocType: Webshop Settings, Shipping Item, Versanditem
+DocType: Payment Method, Payment Method, Zahlunsmethode
