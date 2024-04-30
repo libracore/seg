@@ -823,6 +823,7 @@ def create_user(api_key, email, password, company_name, first_name,
             'pincode': pincode,
             'city': city,
             'is_primary_address': 1,
+            'is_shipping_address': 1,
             'links': [{
                 'link_doctype': 'Customer',
                 'link_name': new_customer.name
