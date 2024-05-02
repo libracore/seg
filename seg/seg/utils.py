@@ -177,3 +177,14 @@ def check_for_lsva(customer):
         pick_up = True
 
     return pick_up
+    
+@frappe.whitelist()
+def check_cash_discount(customer):
+    cash_discount = False
+    #get customer doc
+    customer_doc = frappe.get_doc("Customer", customer)
+    #check for skonto
+    if customer_doc.has_cash_discount == 1:
+        cash_discount = customer_doc.cash_discount
+    #return skonto or False(if there is no skonto)
+    return cash_discount
