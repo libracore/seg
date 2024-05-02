@@ -25,6 +25,9 @@ frappe.ui.form.on('Sales Invoice',  {
         if (frm.doc.__islocal) {
             set_naming_series(frm);
         }
+        if (frm.doc.customer) {
+            check_cash_discount(frm);
+        }
     },
     is_return: function(frm) {
         if (frm.doc.__islocal) {
@@ -88,3 +91,19 @@ function set_naming_series(frm) {
         cur_frm.set_value("naming_series", "GS-.#####.");
     }
 }
+
+function check_cash_discount(frm) {
+    frappe.call({
+        'method': "seg.seg.utils.check_cash_discount",
+        'args': {
+            'customer': frm.doc.customer
+        },
+        'callback': function(response) {
+            var cash_discount = response.message;
+            if (cash_discount) {
+                cur_frm.dashboard.add_comment( "Achtung, Kunde " + cur_frm.doc.customer_name + " hat " + cash_discount + "% Skonto hinterlegt.", 'yellow', true);
+            }
+        }
+    });
+}
+

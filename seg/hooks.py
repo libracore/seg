@@ -33,7 +33,8 @@ doctype_js = {
     "Delivery Note" : "public/js/delivery_note.js",
     "Sales Invoice" : "public/js/sales_invoice.js",
     "Pricing Rule" : "public/js/pricing_rule.js",
-    "Customer" : "public/js/customer.js"
+    "Customer" : "public/js/customer.js",
+    "Sales Order" : "public/js/sales_order.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
