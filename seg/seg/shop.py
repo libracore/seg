@@ -36,7 +36,11 @@ def get_matching_variant(item_code, old_selection, new_selection):
     return None
 
 @frappe.whitelist()
-def get_prices(item_code, user):
+def get_prices(item_code=None, user=None):
+    if not item_code:
+        return {'error': "Parameter Error: item_code"}
+    if not user:
+        return {'error': "Parameter Error: Missing user"}
     from erpnext.controllers.website_list_for_contact import get_customers_suppliers
     try:
         if user:
@@ -96,12 +100,21 @@ def get_prices(item_code, user):
         return {'error': err}
         
 @frappe.whitelist(allow_guest=True)
-def get_public_prices(item_code):
+def get_public_prices(item_code=None):
+    if not item_code:
+        return {'error': "Parameter Error: item_code"}
     return get_prices(item_code, None)
 
 # deprecated, will be dropped in future versions; refer to shop module
 @frappe.whitelist(allow_guest=True)
-def login(usr, pwd):
+def login(usr=None, pwd=None):
+    if not usr:
+        return {'error': "Parameter Error: usr"}
+    if not pwd:
+        return {'error': "Parameter Error: pwd"}
+    customers = get_session_customers()
+    if not customers:
+        return {'error': "Customer missing for User"}
     from frappe.auth import LoginManager
     lm = LoginManager()
     lm.authenticate(usr, pwd)
@@ -161,7 +174,9 @@ def get_top_products():
     return top_products
 
 @frappe.whitelist(allow_guest=True)
-def get_products_by_item_group(item_group, show_variants=False):
+def get_products_by_item_group(item_group=None, show_variants=False):
+    if not item_group:
+        return {'error': "Parameter Error: item_group"}
     if show_variants:
         condition = ""
     else:
@@ -178,7 +193,11 @@ def get_products_by_item_group(item_group, show_variants=False):
     return products
     
 @frappe.whitelist(allow_guest=True)
-def register_newsletter(name, email):
+def register_newsletter(name=None, email=None):
+    if not name:
+        return {'error': "Parameter Error: name"}
+    if not email:
+        return {'error': "Parameter Error: email"}
     status = "unkonwn"
     error = None
     try:
@@ -200,7 +219,9 @@ def register_newsletter(name, email):
     return {'status': status, 'error': error}
 
 @frappe.whitelist(allow_guest=True)
-def search_products(keyword, offset=0):
+def search_products(keyword=None, offset=0):
+    if not keyword:
+        return {'error': "Parameter Error: keyword"}
     products = frappe.db.sql("""
         SELECT `item_code`, `item_name`, `image`
         FROM `tabItem`
@@ -225,7 +246,9 @@ def search_products(keyword, offset=0):
     return products
 
 @frappe.whitelist(allow_guest=True)
-def get_item_details(item_code):
+def get_item_details(item_code=None):
+    if not item_code:
+        return {'error': "Parameter Error: item_code"}
     item_details = frappe.db.sql("""
         SELECT
             `tabItem`.`item_code` AS `item_code`,
