@@ -112,9 +112,9 @@ def login(usr=None, pwd=None):
         return {'error': "Parameter Error: usr"}
     if not pwd:
         return {'error': "Parameter Error: pwd"}
-    customers = get_session_customers()
-    if not customers:
-        return {'error': "Customer missing for User"}
+    # ~ customers = get_session_customers()
+    # ~ if not customers:
+        # ~ return {'error': "Customer missing for User"}
     from frappe.auth import LoginManager
     lm = LoginManager()
     lm.authenticate(usr, pwd)
@@ -396,7 +396,13 @@ def get_session_customers():
     return customers
     
 @frappe.whitelist()
-def create_address(address_line1, pincode, city, address_type="Shipping", is_shipping=0, address_line2=None, country="Schweiz"):
+def create_address(address_line1=None, pincode=None, city=None, address_type="Shipping", is_shipping=0, address_line2=None, country="Schweiz"):
+    if not address_line1:
+        return {'error': "Parameter Error: address_line1"}
+    if not pincode:
+        return {'error': "Parameter Error: pincode"}
+    if not city:
+        return {'error': "Parameter Error: city"}
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -435,7 +441,15 @@ def create_address(address_line1, pincode, city, address_type="Shipping", is_shi
     return {'error': error, 'name': new_address.name or None}
 
 @frappe.whitelist()
-def update_address(name, address_line1, pincode, city, address_line2=None, country="Schweiz", is_primary=0, is_shipping=0):
+def update_address(name=None, address_line1=None, pincode=None, city=None, address_line2=None, country="Schweiz", is_primary=0, is_shipping=0):
+    if not name:
+        return {'error': "Parameter Error: name"}
+    if not address_line1:
+        return {'error': "Parameter Error: address_line1"}
+    if not pincode:
+        return {'error': "Parameter Error: pincode"}
+    if not city:
+        return {'error': "Parameter Error: city"}
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -473,7 +487,9 @@ def update_address(name, address_line1, pincode, city, address_line2=None, count
     return {'error': error, 'name': address.name or None}
 
 @frappe.whitelist()
-def delete_address(name):
+def delete_address(name=None):
+    if not name:
+        return {'error': "Parameter Error: name"}
     error = None
     # fetch customers for this user
     customers = get_session_customers()
@@ -580,7 +596,9 @@ def get_sales_invoices(commission=None):
     return sales_invoices
 
 @frappe.whitelist()
-def reorder_delivery_note(delivery_note):
+def reorder_delivery_note(delivery_note=None):
+    if not delivery_note:
+        return {'error': "Parameter Error: delivery_note"}
     delivery_note_items = frappe.db.sql("""
         SELECT 
             `tabDelivery Note Item`.`item_code` AS `item_code`,
@@ -620,7 +638,9 @@ def get_profile():
     return profile
 
 @frappe.whitelist()
-def get_coupon(coupon):
+def get_coupon(coupon=None):
+    if not coupon:
+        return {'error': "Parameter Error: coupon"}
     coupons = frappe.db.sql("""
         SELECT `discount`
         FROM `tabCoupon`
@@ -664,8 +684,12 @@ def get_visualisations():
     return visualisations
 
 @frappe.whitelist()
-def place_order(shipping_address, items, commission=None, discount=0, paid=False, 
+def place_order(shipping_address=None, items=None, commission=None, discount=0, paid=False, 
         avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None, shipping_costs=1, payment_method=None):
+    if not shipping_address:
+        return {'error': "Parameter Error: shipping_address"}
+    if not items:
+        return {'error': "Parameter Error: items"}
     error = None
     so_ref = None
     # fetch customers for this user
@@ -879,7 +903,11 @@ def check_key(key):
         return False
 
 @frappe.whitelist()
-def get_item_order_count(item, user):
+def get_item_order_count(item=None, user=None):
+    if not item:
+        return {'error': "Parameter Error: item"}
+    if not user:
+        return {'error': "Parameter Error: user"}
     from erpnext.controllers.website_list_for_contact import get_customers_suppliers
     if user:
         customers, suppliers = get_customers_suppliers("Sales Invoice", user)
@@ -905,7 +933,13 @@ def get_item_order_count(item, user):
         return {'item_code': item, 'count': 0}
 
 @frappe.whitelist()
-def change_password(user, new_pass, old_pass):
+def change_password(user=None, new_pass=None, old_pass=None):
+    if not user:
+        return {'error': "Parameter Error: user"}
+    if not new_pass:
+        return {'error': "Parameter Error: new_pass"}
+    if not old_pass:
+        return {'error': "Parameter Error: old_pass"}
     from frappe.utils.password import update_password, check_password
     if user == frappe.session.user:
         if user == check_password(user, old_pass):
@@ -958,7 +992,11 @@ def add_log(user, method="webshop_log"):
     return {'error': error, 'webshop_log': reference}
 
 @frappe.whitelist()
-def set_like(item_code, liked):
+def set_like(item_code=None, liked=None):
+    if not item_code:
+        return {'error': "Parameter Error: item_code"}
+    if not liked:
+        return {'error': "Parameter Error: liked"}
     if frappe.db.exists("Item", item_code):
         _toggle_like("Item", item_code, "Yes" if cint(liked) else "No")
         frappe.db.commit()
