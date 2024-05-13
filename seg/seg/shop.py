@@ -114,7 +114,7 @@ def login(usr=None, pwd=None):
         return {'error': "Parameter Error: pwd"}
     customers = get_session_customers(usr)
     if not customers:
-        return {'error': "Customer missing for User"}
+        return {'error': "Customer missing for User {usr}".format(usr=usr)}
     from frappe.auth import LoginManager
     lm = LoginManager()
     lm.authenticate(usr, pwd)
