@@ -112,9 +112,9 @@ def login(usr=None, pwd=None):
         return {'error': "Parameter Error: usr"}
     if not pwd:
         return {'error': "Parameter Error: pwd"}
-    # ~ customers = get_session_customers()
-    # ~ if not customers:
-        # ~ return {'error': "Customer missing for User"}
+    customers = get_session_customers(usr)
+    if not customers:
+        return {'error': "Customer missing for User"}
     from frappe.auth import LoginManager
     lm = LoginManager()
     lm.authenticate(usr, pwd)
@@ -382,7 +382,9 @@ def get_addresses():
     """.format(user=frappe.session.user), as_dict=True)
     return addresses
 
-def get_session_customers():
+def get_session_customers(user=None):
+    if not user:
+        user = frappe.session.user
     # fetch customers for this user
     customers = frappe.db.sql("""
         SELECT 
@@ -392,8 +394,9 @@ def get_session_customers():
                                        AND `tC1`.`link_doctype` = "Customer" 
                                        AND `tC1`.`parent` = `tabContact`.`name`
         WHERE `tabContact`.`user` = "{user}";
-    """.format(user=frappe.session.user), as_dict=True)
+    """.format(user=user), as_dict=True)
     return customers
+    
     
 @frappe.whitelist()
 def create_address(address_line1=None, pincode=None, city=None, address_type="Shipping", is_shipping=0, address_line2=None, country="Schweiz"):
