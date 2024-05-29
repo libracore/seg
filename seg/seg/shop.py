@@ -731,7 +731,8 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
             'order_person': order_person,
             'desired_date': desired_date,
             'additional_remarks': additional_remarks,
-            'payment_method': payment_method
+            'payment_method': payment_method,
+            'transaction_id': transaction_id
         })
         # create item records
         items = json.loads(items)
