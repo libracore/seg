@@ -12,6 +12,7 @@ from frappe import _
 from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
+from erpnextswiss.erpnextswiss.datatrans import get_payment_status
 
 PREPAID = "N20"
 
@@ -688,7 +689,7 @@ def get_visualisations():
 
 @frappe.whitelist()
 def place_order(shipping_address=None, items=None, commission=None, discount=0, paid=False, 
-        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None, shipping_costs=1, payment_method=None):
+        avis_person=None, avis_phone=None, order_person=None, desired_date=None, additional_remarks=None, shipping_costs=1, transaction_id=None):
     if not shipping_address:
         return {'error': "Parameter Error: shipping_address"}
     if not items:
@@ -710,14 +711,10 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
                 return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
         else:
             return {'error': "Invalid address", 'sales_order': None}
-    #validate given payment method
-    payment_methods = frappe.get_list("Mode of Payment", ignore_permissions=True)
-    if len(payment_methods) > 0:
-        payment_methods_list = []
-        for method in payment_methods:
-            payment_methods_list.append(method.get('name'))
-    if not payment_method in payment_methods_list:
-        payment_method = None
+    if transaction_id == "Invoice":
+        payment_method = "Rechnung"
+    else:
+        payment_method = get_payment_method(transaction_id)
     try:
         # create sales order
         sales_order = frappe.get_doc({
@@ -734,7 +731,8 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
             'order_person': order_person,
             'desired_date': desired_date,
             'additional_remarks': additional_remarks,
-            'payment_method': payment_method
+            'payment_method': payment_method,
+            'transaction_id': transaction_id
         })
         # create item records
         items = json.loads(items)
@@ -1024,3 +1022,19 @@ def get_favorite_items():
         LIMIT 20
         ;""".format(user=frappe.session.user), as_dict=True)
     return products
+    
+@frappe.whitelist()
+def get_payment_method(transaction_id):
+    status = get_payment_status(transaction_id)
+    if status['status'].get('error'):
+        return None
+    else:
+        if status['status']['paymentMethod'] == "VIS" or status['status']['paymentMethod'] == "ECA":
+            payment_method = "Kreditkarte"
+        elif status['status']['paymentMethod'] == "TWI":
+            payment_method = "Twint"
+        elif status['status']['paymentMethod'] == "PAP":
+            payment_method = "PayPal"
+        else:
+            return None
+        return payment_method
