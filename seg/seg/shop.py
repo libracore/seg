@@ -1032,7 +1032,7 @@ def get_payment_method(transaction_id):
         return None
     else:
         if status['status']['paymentMethod'] == "VIS" or status['status']['paymentMethod'] == "ECA":
-            payment_method = "Kreditkarte"
+            payment_method = "ClearHouse"
         elif status['status']['paymentMethod'] == "TWI":
             payment_method = "Twint"
         elif status['status']['paymentMethod'] == "PAP":
