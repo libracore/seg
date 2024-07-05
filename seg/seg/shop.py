@@ -694,9 +694,10 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
         return {'error': "Parameter Error: shipping_address"}
     if not items:
         return {'error': "Parameter Error: items"}
+    if not transaction_id:
+        return {'error': "Parameter Error: transaction_id"}
     error = None
     so_ref = None
-    frappe.log_error(transaction_id, "transaction_id_check")
     # fetch customers for this user
     customers = get_session_customers()
     if len(customers) == 0:
@@ -716,7 +717,6 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
         payment_method = "Rechnung"
     else:
         payment_method = get_payment_method(transaction_id)
-    frappe.log_error(payment_method, "payment_method_check")
     try:
         # create sales order
         sales_order = frappe.get_doc({
