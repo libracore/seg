@@ -192,8 +192,6 @@ def check_cash_discount(customer):
 @frappe.whitelist()
 def get_email_recipient_and_message(customer, doctype):
     recipient = frappe.db.get_value("Customer", customer, "preferred_invoice_email")
-    
-    template = frappe.db.get_value("emh settings", "emh settings", "invoice_email_template")
 
     html = frappe.db.get_value("Email Template", doctype, "response")
     
