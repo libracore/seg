@@ -188,3 +188,15 @@ def check_cash_discount(customer):
         cash_discount = customer_doc.cash_discount
     #return skonto or False(if there is no skonto)
     return cash_discount
+    
+@frappe.whitelist()
+def get_email_recipient_and_message(customer, doctype):
+    recipient = frappe.db.get_value("Customer", customer, "preferred_invoice_email")
+
+    html = frappe.db.get_value("Email Template", doctype, "response")
+    
+    return {
+        'recipient': recipient,
+        'message': html
+        }
+
