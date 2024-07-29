@@ -28,79 +28,60 @@ def get_columns():
 def get_data(filters):
     if not filters.item_group:
         filters.item_group = "%"
-    sql_query = """SELECT 
-  `aggr`.`item_code`,
-  `aggr`.`item_name`,
-  `aggr`.`item_group`,
-  `aggr`.`stock_uom`,
-  `aggr`.`price_list_rate`,
-  `aggr`.`pricing_rule`,
-  `aggr`.`discount_percentage`,
-  `aggr`.`discounted_rate`,
-  `aggr`.`db1`,
-  ((`aggr`.`db1` / `aggr`.`discounted_rate`) * 100) AS `db1_percent` 
-  FROM (SELECT 
-  `raw`.`item_code`,
-  `raw`.`item_name`,
-  `raw`.`item_group`,
-  `raw`.`stock_uom`,
-  `raw`.`price_list_rate`,
-  `raw`.`pricing_rule`,
-  `tPR`.`discount_percentage` AS `discount_percentage`,
-  ((100 - `tPR`.`discount_percentage`)/100) * `raw`.`price_list_rate` AS `discounted_rate`,
-  ((((100 - `tPR`.`discount_percentage`)/100) * `raw`.`price_list_rate`) - `raw`.`last_purchase_rate`) AS `db1`
-FROM (
-SELECT 
-  `tabItem`.`item_code` AS `item_code`,
-  `tabItem`.`item_name` AS `item_name`,
-  `tabItem`.`item_group` AS `item_group`,
-  IF(`tabItem`.`last_purchase_rate` = 0, `tabItem`.`valuation_rate`, `tabItem`.`last_purchase_rate`) AS `last_purchase_rate`,
-  CONCAT(ROUND(`tabItem`.`weight_per_unit`, 1), " ", `tabItem`.`weight_uom`) AS `stock_uom`,
-  (SELECT `tabItem Price`.`price_list_rate` 
-   FROM `tabItem Price` 
-   WHERE `tabItem Price`.`item_code` = `tabItem`.`item_code`
-     AND `tabItem Price`.`price_list` = "Standard-Vertrieb") AS `price_list_rate`,
-  (SELECT `tabPricing Rule`.`name`
-   FROM `tabPricing Rule`
-   LEFT JOIN `tabPricing Rule Item Code` ON `tabPricing Rule Item Code`.`parent` = `tabPricing Rule`.`name`
-   LEFT JOIN `tabPricing Rule Item Group` ON `tabPricing Rule Item Group`.`parent` = `tabPricing Rule`.`name`
-   /* this is recursion for item groups */
-   LEFT JOIN `tabItem Group` AS `r0` ON `r0`.`name` = `tabItem`.`item_group`
-   LEFT JOIN `tabItem Group` AS `r1` ON `r1`.`name` = `r0`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r2` ON `r2`.`name` = `r1`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r3` ON `r3`.`name` = `r2`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r4` ON `r4`.`name` = `r3`.`parent_item_group`
-   /* LEFT JOIN `tabItem Group` AS `r5` ON `r5`.`name` = `r4`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r6` ON `r6`.`name` = `r5`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r7` ON `r7`.`name` = `r6`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r8` ON `r8`.`name` = `r7`.`parent_item_group`
-   LEFT JOIN `tabItem Group` AS `r9` ON `r9`.`name` = `r8`.`parent_item_group` */
-   WHERE `tabPricing Rule`.`selling` = 1
-     AND `tabPricing Rule`.`customer` = "{customer}"
-     AND `tabPricing Rule`.`disable` = 0
-     AND (`tabPricing Rule Item Code`.`item_code` = `tabItem`.`item_code`
-          OR `tabPricing Rule Item Group`.`item_group` = `tabItem`.`item_group`
-          OR `tabPricing Rule Item Group`.`item_group` = `r0`.`name` 
-          OR `tabPricing Rule Item Group`.`item_group` = `r1`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r2`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r3`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r4`.`name`
-          /* OR `tabPricing Rule Item Group`.`item_group` = `r5`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r6`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r7`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r8`.`name`
-          OR `tabPricing Rule Item Group`.`item_group` = `r9`.`name` */
-        )
-   ORDER BY `tabPricing Rule`.`priority` DESC
-   LIMIT 1) AS `pricing_rule`
-FROM `tabItem`
-WHERE 
-  `tabItem`.`is_sales_item` = 1
-  AND `tabItem`.`disabled` = 0
-  AND `tabItem`.`has_variants` = 0
-  AND `tabItem`.`item_group` LIKE "{item_group}") AS `raw`
-LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
-) AS `aggr`;""".format(customer=filters.customer, item_group=filters.item_group)
+    sql_query = """SELECT
+          `aggr`.`item_code`,
+          `aggr`.`item_name`,
+          `aggr`.`item_group`,
+          `aggr`.`stock_uom`,
+          `aggr`.`price_list_rate`,
+          `aggr`.`pricing_rule`,
+          `aggr`.`discount_percentage`,
+          `aggr`.`discounted_rate`,
+          `aggr`.`db1`,
+          ((`aggr`.`db1` / `aggr`.`discounted_rate`) * 100) AS `db1_percent`
+          FROM (SELECT
+          `raw`.`item_code`,
+          `raw`.`item_name`,
+          `raw`.`item_group`,
+          `raw`.`stock_uom`,
+          `raw`.`price_list_rate`,
+          `raw`.`pricing_rule`,
+          `tPR`.`discount_percentage` AS `discount_percentage`,
+          ((100 - `tPR`.`discount_percentage`)/100) * `raw`.`price_list_rate` AS `discounted_rate`,
+          ((((100 - `tPR`.`discount_percentage`)/100) * `raw`.`price_list_rate`) - `raw`.`last_purchase_rate`) AS `db1`
+        FROM (
+        SELECT
+          `item`.`item_code` AS `item_code`,
+          `item`.`item_name` AS `item_name`,
+          `item`.`item_group` AS `item_group`,
+          IF(`item`.`last_purchase_rate` = 0, `item`.`valuation_rate`, `item`.`last_purchase_rate`) AS `last_purchase_rate`,
+          CONCAT(ROUND(`item`.`weight_per_unit`, 1), " ", `item`.`weight_uom`) AS `stock_uom`,
+          (SELECT `tabItem Price`.`price_list_rate`
+           FROM `tabItem Price`
+           WHERE `tabItem Price`.`item_code` = `item`.`item_code`
+             AND `tabItem Price`.`price_list` = "Standard-Vertrieb") AS `price_list_rate`,
+          (SELECT `tabPricing Rule`.`name`
+           FROM `tabPricing Rule`
+           LEFT JOIN `tabPricing Rule Item Code` ON `tabPricing Rule Item Code`.`parent` = `tabPricing Rule`.`name`
+           LEFT JOIN `tabPricing Rule Item Group` ON `tabPricing Rule Item Group`.`parent` = `tabPricing Rule`.`name`
+           LEFT JOIN `tabItem Group` ON `tabItem Group`.`name` = `tabPricing Rule Item Group`.`item_group`
+           WHERE `tabPricing Rule`.`selling` = 1
+             AND `tabPricing Rule`.`customer` = "{customer}"
+             AND `tabPricing Rule`.`disable` = 0
+             AND (`tabPricing Rule Item Code`.`item_code` = `item`.`item_code`
+                  OR (SELECT `grp`.`lft` FROM `tabItem Group` AS `grp` WHERE `grp`.`name` = `item`.`item_group`)
+                      BETWEEN `tabItem Group`.`lft` AND `tabItem Group`.`rgt`
+                )
+           ORDER BY `tabPricing Rule`.`priority` DESC
+           LIMIT 1) AS `pricing_rule`
+        FROM `tabItem` AS `item`
+        WHERE
+          `item`.`is_sales_item` = 1
+          AND `item`.`disabled` = 0
+          AND `item`.`has_variants` = 0
+          AND `item`.`item_group` LIKE "{item_group}") AS `raw`
+        LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
+        ) AS `aggr`;""".format(customer=filters.customer, item_group=filters.item_group)
     data = frappe.db.sql(sql_query, as_list=True)
     return data
 
