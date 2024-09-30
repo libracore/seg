@@ -1,7 +1,6 @@
-DocType: Customer, Always pick up, Holt immer ab
-DocType: Customer, Allow Invoice, Rechnung erlauben
-DocType: Webshop Settings, Shipping Item, Versandartikel
-DocType: Customer, Preferred Invoice E-Mail, Bevorzugte Rechnungen E-Mail
-DocType: Sales Order, Payment Method, Zahlungsmethode
-DocType: Delivery Note, Payment Method, Zahlungsmethode
-DocType: Sales Invoice, Payment Method, Zahlungsmethode
+DocType: Customer,Always pick up,Holt immer ab
+DocType: Customer,Allow Invoice,Rechnung erlauben
+DocType: Webshop Settings,Shipping Item,Versandartikel
+DocType: Customer,Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail
+DocType: Sales Order,Payment Method,Zahlungsmethode
+DocType: Delivery Note,Payment Method,Zahlungsmethode
