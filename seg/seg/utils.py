@@ -232,5 +232,6 @@ def create_journal_entry(date, account, customer, amount, payment_method, invoic
                                     })
         journal_entry.insert()
         journal_entry.submit()
+        frappe.db.set_value("Sales Invoice", invoice_name, "autocreated_journal_entry", journal_entry.name)
         frappe.db.commit()
         return

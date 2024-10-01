@@ -47,6 +47,17 @@ frappe.ui.form.on('Sales Invoice',  {
         if (frm.doc.payment_method != "Rechnung") {
             create_journal_entry(frm);
         }
+    },
+    after_cancel: function(frm) {
+        if (frm.doc.autocreated_journal_entry) {
+            frappe.call({
+                method: "frappe.client.cancel",
+                args: {
+                    doctype: "Journal Entry",
+                    name: frm.doc.autocreated_journal_entry
+                }
+            });
+        }
     }
 });
 
