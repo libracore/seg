@@ -44,7 +44,6 @@ frappe.ui.form.on('Sales Invoice',  {
         }
     },
     on_submit: function(frm) {
-        console.log(frm.doc.payment_method);
         if (frm.doc.payment_method != "Rechnung") {
             create_journal_entry(frm);
         }
