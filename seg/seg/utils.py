@@ -199,4 +199,38 @@ def get_email_recipient_and_message(customer, doctype):
         'recipient': recipient,
         'message': html
         }
-
+        
+@frappe.whitelist()
+def create_journal_entry(date, account, customer, amount, payment_method, invoice_name):
+    suspense_account = frappe.db.sql("""
+                                        SELECT
+                                            `default_account`
+                                        FROM
+                                            `tabMode of Payment Account`
+                                        WHERE
+                                            `parent` = '{payment_method}'""".format(payment_method=payment_method), as_dict=True)
+    if len(suspense_account) > 0:
+        journal_entry = frappe.get_doc({
+                                        'doctype': "Journal Entry",
+                                        'voucher_type': "Journal Entry",
+                                        'posting_date': date,
+                                        'user_remark': "Diese Buchung wurde automatisch aus Rechnung {0} erstellt".format(invoice_name),
+                                        'mode_of_payment': payment_method,
+                                        'accounts': [{
+                                            'reference_doctype': "Journal Entry Account",
+                                            'account': account,
+                                            'party_type': "Customer",
+                                            'party': customer,
+                                            'credit_in_account_currency': amount,
+                                            'reference_type': "Sales Invoice",
+                                            'reference_name': invoice_name},
+                                        {
+                                            'reference_doctype': "Journal Entry Account",
+                                            'account': suspense_account[0].get('default_account'),
+                                            'debit_in_account_currency': amount
+                                        }]
+                                    })
+        journal_entry.insert()
+        journal_entry.submit()
+        frappe.db.commit()
+        return

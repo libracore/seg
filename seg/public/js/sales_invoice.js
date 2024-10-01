@@ -44,7 +44,8 @@ frappe.ui.form.on('Sales Invoice',  {
         }
     },
     on_submit: function(frm) {
-        if (!frm.doc.payment_method == "Rechnung") {
+        console.log(frm.doc.payment_method);
+        if (frm.doc.payment_method != "Rechnung") {
             create_journal_entry(frm);
         }
     }
@@ -154,7 +155,12 @@ function create_journal_entry(frm) {
             'date': frm.doc.posting_date,
             'account': frm.doc.debit_to,
             'customer': frm.doc.customer,
-            'amount': frm.doc.outstanding_amount
+            'amount': frm.doc.outstanding_amount,
+            'payment_method': frm.doc.payment_method,
+            'invoice_name': frm.doc.name
+        },
+        'callback': function(response) {
+            frm.reload_doc();
         }
     });
 }
