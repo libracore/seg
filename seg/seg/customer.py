@@ -4,8 +4,7 @@
 import frappe
 
 @frappe.whitelist()
-def set_allow_invoice(customer, allow_invoice):
-    customer = frappe.get_doc("Customer", customer)
-    customer.allow_invoice = allow_invoice
-    customer.save()
+def set_allow_invoice(doc, method):
+    if doc.owner != "Guest":
+        doc.allow_invoice = 1
     return

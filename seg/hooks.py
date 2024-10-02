@@ -101,6 +101,9 @@ doc_events = {
     },
     "Contact": {
         "autoname": "seg.seg.utils.object_autoname"
+    },
+    "Customer": {
+        "before_insert": "seg.seg.customer.set_allow_invoice"
     }
 }
 
