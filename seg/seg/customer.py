@@ -3,8 +3,8 @@
 
 import frappe
 
-@frappe.whitelist()
 def set_allow_invoice(doc, method):
     if doc.owner != "Guest":
         doc.allow_invoice = 1
+        frappe.db.commit()
     return
