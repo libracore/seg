@@ -42,22 +42,6 @@ frappe.ui.form.on('Sales Invoice',  {
         if (frm.doc.__islocal) {
             set_naming_series(frm);
         }
-    },
-    on_submit: function(frm) {
-        if (frm.doc.payment_method != "Rechnung") {
-            create_journal_entry(frm);
-        }
-    },
-    after_cancel: function(frm) {
-        if (frm.doc.autocreated_journal_entry) {
-            frappe.call({
-                method: "frappe.client.cancel",
-                args: {
-                    doctype: "Journal Entry",
-                    name: frm.doc.autocreated_journal_entry
-                }
-            });
-        }
     }
 });
 
@@ -154,23 +138,6 @@ function custom_mail_dialog(frm) {
                 attach_document_print: true,
                 message: message
             });
-        }
-    });
-}
-
-function create_journal_entry(frm) {
-    frappe.call({
-        'method': 'seg.seg.utils.create_journal_entry',
-        'args': {
-            'date': frm.doc.posting_date,
-            'account': frm.doc.debit_to,
-            'customer': frm.doc.customer,
-            'amount': frm.doc.outstanding_amount,
-            'payment_method': frm.doc.payment_method,
-            'invoice_name': frm.doc.name
-        },
-        'callback': function(response) {
-            frm.reload_doc();
         }
     });
 }
