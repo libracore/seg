@@ -199,4 +199,47 @@ def get_email_recipient_and_message(customer, doctype):
         'recipient': recipient,
         'message': html
         }
-
+        
+def create_journal_entry(self, event):
+    if self.currency == "CHF" and not self.payment_method == "Rechnung":
+        if event == "on_cancel":
+            journal_entry = frappe.get_doc("Journal Entry", self.autocreated_journal_entry)
+            journal_entry.cancel()
+        else:
+            suspense_account = frappe.db.sql("""
+                                                SELECT
+                                                    `default_account`
+                                                FROM
+                                                    `tabMode of Payment Account`
+                                                WHERE
+                                                    `parent` = '{payment_method}'""".format(payment_method=self.payment_method), as_dict=True)
+            if len(suspense_account) > 0:
+                journal_entry = frappe.get_doc({
+                                                'doctype': "Journal Entry",
+                                                'voucher_type': "Journal Entry",
+                                                'posting_date': self.posting_date,
+                                                'user_remark': "Diese Buchung wurde automatisch aus Rechnung {0} erstellt".format(self.name),
+                                                'mode_of_payment': self.payment_method})
+                                                
+                journal_entry.append("accounts", {
+                                                    'reference_doctype': "Journal Entry Account",
+                                                    'account': self.debit_to,
+                                                    'party_type': "Customer",
+                                                    'party': self.customer,
+                                                    'credit_in_account_currency': self.outstanding_amount,
+                                                    'reference_type': "Sales Invoice",
+                                                    'reference_name': self.name
+                                                })
+                                                
+                journal_entry.append("accounts", {
+                                                    'reference_doctype': "Journal Entry Account",
+                                                    'account': suspense_account[0].get('default_account'),
+                                                    'debit_in_account_currency': self.outstanding_amount
+                                                })
+                journal_entry.insert()
+                journal_entry.submit()
+                frappe.db.set_value("Sales Invoice", self.name, "autocreated_journal_entry", journal_entry.name)
+                frappe.db.commit()
+                return
+            else:
+                return
