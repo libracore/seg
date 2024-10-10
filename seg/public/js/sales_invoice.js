@@ -142,4 +142,3 @@ function custom_mail_dialog(frm) {
     });
 }
 
-

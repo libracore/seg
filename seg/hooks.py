@@ -104,6 +104,10 @@ doc_events = {
     },
     "Customer": {
         "before_insert": "seg.seg.customer.set_allow_invoice"
+    },
+    "Sales Invoice": {
+        "on_submit": "seg.seg.utils.create_journal_entry",
+        "on_cancel": "seg.seg.utils.create_journal_entry"
     }
 }
 
