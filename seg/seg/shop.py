@@ -856,7 +856,8 @@ def create_user(api_key, email, password, company_name, first_name,
             'customer_group': frappe.get_value("Selling Settings", "Selling Settings", "customer_group"),
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
             'payment_terms': PREPAID,
-            'new_customer': 1
+            'new_customer': 1,
+            'allow_invoice': 0
         })
         try:
             new_customer.insert(ignore_permissions=True)
