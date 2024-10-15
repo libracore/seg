@@ -203,8 +203,9 @@ def get_email_recipient_and_message(customer, doctype):
 def create_journal_entry(self, event):
     if self.currency == "CHF" and not self.payment_method == "Rechnung":
         if event == "on_cancel":
-            journal_entry = frappe.get_doc("Journal Entry", self.autocreated_journal_entry)
-            journal_entry.cancel()
+            if self.autocreated_journal_entry:
+                journal_entry = frappe.get_doc("Journal Entry", self.autocreated_journal_entry)
+                journal_entry.cancel()
         else:
             suspense_account = frappe.db.sql("""
                                                 SELECT
