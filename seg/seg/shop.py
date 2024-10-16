@@ -57,8 +57,11 @@ def get_prices(item_code=None, user=None):
         sql_query = """SELECT 
                 `raw`.`item_code`,
                 `raw`.`item_name`,
+                `raw`.`item_name_fr`,
                 `raw`.`item_group`,
+                `raw`.`item_group_fr`,
                 GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value`) AS `attributes`,
+                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr`) AS `attributes_fr`,
                 `raw`.`stock_uom`,
                 ROUND(`raw`.`price_list_rate`, 2) AS `price_list_rate`,
                 `raw`.`pricing_rule`,
@@ -68,7 +71,9 @@ def get_prices(item_code=None, user=None):
                 (SELECT 
                   `tabItem`.`item_code` AS `item_code`,
                   `tabItem`.`item_name` AS `item_name`,
+                  `tabItem`.`item_name_fr` AS `item_name_fr`,
                   `tabItem`.`item_group` AS `item_group`,
+                  `tabItem Group`.`item_group_name_fr` AS `item_group_fr`,
                   `tabItem`.`last_purchase_rate` AS `last_purchase_rate`,
                   CONCAT(ROUND(`tabItem`.`weight_per_unit`, 1), " ", `tabItem`.`weight_uom`) AS `stock_uom`,
                   (SELECT `tabItem Price`.`price_list_rate` 
@@ -88,6 +93,7 @@ def get_prices(item_code=None, user=None):
                    ORDER BY `tabPricing Rule`.`priority` DESC
                    LIMIT 1) AS `pricing_rule`
                 FROM `tabItem`
+                LEFT JOIN `tabItem Group` ON `tabItem`.`item_group` = `tabItem Group`.`name`
                 WHERE `tabItem`.`item_code` = "{item_code}"
                   OR `tabItem`.`variant_of` = "{item_code}"
                 ) AS `raw`
