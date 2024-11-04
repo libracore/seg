@@ -168,14 +168,14 @@ def get_child_group(item_group):
     return groups
 
 @frappe.whitelist(allow_guest=True)
-def get_top_products():
+def get_top_products(language="de"):
     top_products = frappe.db.sql("""
-        SELECT `item_code`, `item_name`, `image`
+        SELECT `item_code`, `item_name{lang}`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1 
           AND `is_sample` = 0
         ORDER BY `weightage` DESC
-        LIMIT 20;""", as_dict=True)
+        LIMIT 20;""".format( lang = "_fr" if language == "fr" else ""), as_dict=True)
     return top_products
 
 #deprication note: show_variants=True is not working
