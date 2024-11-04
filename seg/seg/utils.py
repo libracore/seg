@@ -5,7 +5,6 @@
 import frappe
 import json
 import six
-from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
 from frappe.utils import cint

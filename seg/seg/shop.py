@@ -13,6 +13,7 @@ from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
 from erpnextswiss.erpnextswiss.datatrans import get_payment_status
+from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 
 PREPAID = "N20"
 
@@ -20,6 +21,7 @@ PREPAID = "N20"
 def get_user_image(user):
     return "this function has been deprecated. please use get_profile instead"
 
+#deprication note: probably not used anymore
 @frappe.whitelist()
 def get_matching_variant(item_code, old_selection, new_selection):
     attributes = json.loads(new_selection)
@@ -37,7 +39,7 @@ def get_matching_variant(item_code, old_selection, new_selection):
     return None
 
 @frappe.whitelist()
-def get_prices(item_code=None, user=None):
+def get_prices(item_code=None, user=None, language="de"):
     if not item_code:
         return {'error': "Parameter Error: item_code"}
     if not user:
@@ -57,11 +59,8 @@ def get_prices(item_code=None, user=None):
         sql_query = """SELECT 
                 `raw`.`item_code`,
                 `raw`.`item_name`,
-                `raw`.`item_name_fr`,
                 `raw`.`item_group`,
-                `raw`.`item_group_fr`,
-                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value`) AS `attributes`,
-                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr`) AS `attributes_fr`,
+                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value{lang}`) AS `attributes`,
                 `raw`.`stock_uom`,
                 ROUND(`raw`.`price_list_rate`, 2) AS `price_list_rate`,
                 `raw`.`pricing_rule`,
@@ -70,10 +69,8 @@ def get_prices(item_code=None, user=None):
             FROM 
                 (SELECT 
                   `tabItem`.`item_code` AS `item_code`,
-                  `tabItem`.`item_name` AS `item_name`,
-                  `tabItem`.`item_name_fr` AS `item_name_fr`,
-                  `tabItem`.`item_group` AS `item_group`,
-                  `tabItem Group`.`item_group_name_fr` AS `item_group_fr`,
+                  `tabItem`.`item_name{lang}` AS `item_name`,
+                  `tabItem Group`.`item_group_name{lang}` AS `item_group`,
                   `tabItem`.`last_purchase_rate` AS `last_purchase_rate`,
                   CONCAT(ROUND(`tabItem`.`weight_per_unit`, 1), " ", `tabItem`.`weight_uom`) AS `stock_uom`,
                   (SELECT `tabItem Price`.`price_list_rate` 
@@ -100,7 +97,7 @@ def get_prices(item_code=None, user=None):
             LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
             LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
             GROUP BY `raw`.`item_code`
-        """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups))
+        """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups), lang = "_fr" if language == "fr" else "")
         data = frappe.db.sql(sql_query, as_dict=True)
         return data
     except Exception as err:
@@ -151,6 +148,7 @@ def get_child_group(item_group):
     for s in sub_groups:
         sg = {}
         sg[s['name']] = get_child_group(s['name'])
+        # ~ sg[s['name_fr']] = frappe.db.get_value("Item Group", s.get('name'), "item_group_name_fr")
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
@@ -180,6 +178,7 @@ def get_top_products():
         LIMIT 20;""", as_dict=True)
     return top_products
 
+#deprication note: show_variants=True is not working
 @frappe.whitelist(allow_guest=True)
 def get_products_by_item_group(item_group=None, show_variants=False):
     if not item_group:
@@ -260,8 +259,11 @@ def get_item_details(item_code=None):
         SELECT
             `tabItem`.`item_code` AS `item_code`,
             `tabItem`.`item_name` AS `item_name`,
+            `tabItem`.`item_name_fr` AS `item_name_fr`,
             `tabItem`.`description` AS `description`,
+            `tabItem`.`description_fr` AS `description_fr`,
             `tabItem`.`web_long_description` AS `web_long_description`,
+            `tabItem`.`website_description_fr` AS `web_long_description_fr`,
             `tabItem`.`website_content` AS `website_content`,
             `tabItem`.`has_variants` AS `has_variants`,
             `tabItem`.`image` AS `image`,
@@ -269,13 +271,18 @@ def get_item_details(item_code=None):
             `tabItem`.`verpackungseinheit` AS `packaging_unit`,
             `tabItem`.`voc` AS `voc`,
             `tabItem`.`stock_uom` AS `stock_uom`,
+            `tabUOM`.`uom_name_fr` AS `stock_uom_fr`,
             `tabItem`.`density` AS `density`,
             `tabItem`.`weight_per_unit` AS `weight_per_unit`,
             `tabItem`.`weight_uom` AS `weight_uom`,
             `tabItem`.`is_out_of_stock` AS `is_out_of_stock`,
             `tabItem`.`units_per_packaging` AS `units_per_packaging`,
-            `tabItem`.`packaging_type` AS `packaging_type`
-        FROM `tabItem`
+            `tabItem`.`packaging_type` AS `packaging_type`,
+            `tabItem`.`packaging_type_fr` AS `packaging_type_fr`
+        FROM
+            `tabItem`
+        LEFT JOIN
+            `tabUOM` ON `tabUOM`.`name` = `tabItem`.`stock_uom`
         WHERE `tabItem`.`item_code` = "{item_code}"
           AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
     """.format(item_code=item_code), as_dict=True)
@@ -283,6 +290,7 @@ def get_item_details(item_code=None):
         more_images = frappe.db.sql("""
             SELECT
                 `description`,
+                `description_fr`,
                 `image`
             FROM `tabItem Image`
             WHERE `parent` = "{item_code}";
@@ -292,7 +300,9 @@ def get_item_details(item_code=None):
         web_specs = frappe.db.sql("""
             SELECT
                 `label`,
-                `description`
+                `label_fr`,
+                `description`,
+                `description_fr`
             FROM `tabItem Website Specification`
             WHERE `parent` = "{item_code}"
             ORDER BY `idx` ASC;
@@ -302,7 +312,8 @@ def get_item_details(item_code=None):
         related_items = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`, 
-                `tabItem`.`item_name`, 
+                `tabItem`.`item_name`,
+                `tabItem`.`item_name_fr`,
                 `tabItem`.`image`
             FROM `tabRelated Item`
             LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabRelated Item`.`item_code`
@@ -325,12 +336,16 @@ def get_item_details(item_code=None):
             variant_attributes = frappe.db.sql("""
                 SELECT 
                     `tabItem Variant Attribute`.`attribute`,
+                    `tabItem Attribute`.`attribute_name_fr` AS `attribute_fr`,
                     `tabItem Variant Attribute`.`attribute_value`,
+                    `tabItem Variant Attribute`.`attribute_value_fr`,
                     `tSort`.`idx`
                 FROM `tabItem Variant Attribute`
                 LEFT JOIN `tabItem Attribute Value` AS `tSort` ON 
                     `tabItem Variant Attribute`.`attribute` = `tSort`.`parent`
                     AND `tabItem Variant Attribute`.`attribute_value` = `tSort`.`attribute_value`
+                LEFT JOIN
+                    `tabItem Attribute` ON `tabItem Attribute`.`name` = `tabItem Variant Attribute`.`attribute`
                 WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
             v['attributes'] = variant_attributes
@@ -338,6 +353,7 @@ def get_item_details(item_code=None):
             more_images = frappe.db.sql("""
                 SELECT
                     `description`,
+                    `description_fr`,
                     `image`
                 FROM `tabItem Image`
                 WHERE `parent` = "{item_code}";
@@ -347,7 +363,9 @@ def get_item_details(item_code=None):
             web_specs = frappe.db.sql("""
                 SELECT
                     `label`,
-                    `description`
+                    `label_fr`,
+                    `description`,
+                    `description_fr`
                 FROM `tabItem Website Specification`
                 WHERE `parent` = "{item_code}";
             """.format(item_code=v['item_code']), as_dict=True)
@@ -970,7 +988,7 @@ def log_error(message):
     return {'success': 1, 'error': ''}
 
 def get_recursive_item_groups(item_group):
-    groups = frappe.db.sql("""SELECT `name`, `parent_item_group` AS `parent` FROM `tabItem Group`;""", as_dict=True)
+    groups = frappe.db.sql("""SELECT `name`, `item_group_name_fr` , `parent_item_group` AS `parent` FROM `tabItem Group`;""", as_dict=True)
     group_map = {}
     for g in groups:
         group_map[g['name']] = g['parent']
@@ -1017,10 +1035,10 @@ def set_like(item_code=None, liked=None):
 @frappe.whitelist()
 def get_favorite_items():
     products = frappe.db.sql("""
-        SELECT `item_code`, `item_name`, `image`
+        SELECT `item_code`, `item_name`, `item_name_fr`, `image`
         FROM (
             SELECT 
-                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name`, `image`, `weightage`
+                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name`, `item_name_fr`, `image`, `weightage`
             FROM `tabItem`
             WHERE (`show_in_website` = 1 OR `show_variant_in_website`)
               AND `is_sample` = 0
