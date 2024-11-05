@@ -369,7 +369,7 @@ def get_item_details(item_code=None, language="de"):
             variant_attributes = frappe.db.sql("""
                 SELECT 
                     {attr} AS `attribute`,
-                    `tabItem Variant Attribute`.`attribute_value{lang}`,
+                    `tabItem Variant Attribute`.`attribute_value{lang}` AS `attribute_value`,
                     `tSort`.`idx`
                 FROM `tabItem Variant Attribute`
                 LEFT JOIN `tabItem Attribute Value` AS `tSort` ON 
@@ -383,7 +383,7 @@ def get_item_details(item_code=None, language="de"):
             # add more images per variant
             more_images = frappe.db.sql("""
                 SELECT
-                    `description{lang}`,
+                    `description{lang}` AS `description`,
                     `image`
                 FROM `tabItem Image`
                 WHERE `parent` = "{item_code}";
@@ -392,8 +392,8 @@ def get_item_details(item_code=None, language="de"):
             
             web_specs = frappe.db.sql("""
                 SELECT
-                    `label{lang}`,
-                    `description{lang}`
+                    `label{lang}` AS `label`,
+                    `description{lang}` AS `description`
                 FROM `tabItem Website Specification`
                 WHERE `parent` = "{item_code}";
             """.format(item_code=v['item_code'], lang = "_fr" if language == "fr" else ""), as_dict=True)
@@ -1066,7 +1066,7 @@ def set_like(item_code=None, liked=None):
 @frappe.whitelist()
 def get_favorite_items(language="de"):
     products = frappe.db.sql("""
-        SELECT `item_code`, `item_name{lang}`, `image`
+        SELECT `item_code`, `item_name{lang}` AS `item_name`, `image`
         FROM (
             SELECT 
                 IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name{lang}`, `image`, `weightage`

@@ -8,7 +8,6 @@ frappe.ui.form.on('Item',  {
         });
     },
     packaging_type: function(frm) {
-        console.log("HOIII");
         set_french_packaging_type(frm);
     }
 });
