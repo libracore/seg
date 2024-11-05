@@ -34,7 +34,8 @@ doctype_js = {
     "Sales Invoice" : "public/js/sales_invoice.js",
     "Pricing Rule" : "public/js/pricing_rule.js",
     "Customer" : "public/js/customer.js",
-    "Sales Order" : "public/js/sales_order.js"
+    "Sales Order" : "public/js/sales_order.js",
+    "Item" : "public/js/item.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -48,7 +49,7 @@ doctype_js = {
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+#   "Role": "home_page"
 # }
 
 # Website user home page (by function)
@@ -77,24 +78,17 @@ doctype_js = {
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {
-# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+#   "Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }
 #
 # has_permission = {
-# 	"Event": "frappe.desk.doctype.event.event.has_permission",
+#   "Event": "frappe.desk.doctype.event.event.has_permission",
 # }
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-#	}
-# }
 doc_events = {
     "Address": {
         "autoname": "seg.seg.utils.object_autoname"
@@ -108,6 +102,9 @@ doc_events = {
     "Sales Invoice": {
         "on_submit": "seg.seg.utils.create_journal_entry",
         "on_cancel": "seg.seg.utils.create_journal_entry"
+    },
+    "Item": {
+        "after_insert": "seg.seg.utils.set_french_attributes"
     }
 }
 
@@ -115,21 +112,21 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-# 	"all": [
-# 		"seg.tasks.all"
-# 	],
+#   "all": [
+#       "seg.tasks.all"
+#   ],
     "daily": [
         "seg.seg.utils.convert_credits_to_advances"
     ]
-# 	"hourly": [
-# 		"seg.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"seg.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"seg.tasks.monthly"
-# 	]
+#   "hourly": [
+#       "seg.tasks.hourly"
+#   ],
+#   "weekly": [
+#       "seg.tasks.weekly"
+#   ]
+#   "monthly": [
+#       "seg.tasks.monthly"
+#   ]
 }
 
 # Testing
@@ -141,13 +138,13 @@ scheduler_events = {
 # ------------------------------
 #
 # override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "seg.event.get_events"
+#   "frappe.desk.doctype.event.event.get_events": "seg.event.get_events"
 # }
 #
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
 # override_doctype_dashboards = {
-# 	"Task": "seg.task.get_dashboard_data"
+#   "Task": "seg.task.get_dashboard_data"
 # }
 

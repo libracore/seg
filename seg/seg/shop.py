@@ -132,12 +132,15 @@ def send_reset_password(user):
     return reset_password(user)
     
 @frappe.whitelist(allow_guest=True)
-def get_item_groups():
+def get_item_groups(language="de"):
     # grab root node
     root_node = frappe.db.sql("""SELECT `name` FROM `tabItem Group` 
         WHERE (`parent_item_group` IS NULL OR `parent_item_group` = "");""", 
         as_dict=True)[0]['name']
-    return get_child_group(root_node)
+    if language == "de":
+        return get_child_group(root_node)
+    else:
+        return get_translated_child_group(root_node, language, root_call=True)
     
 def get_child_group(item_group):
     groups = []
@@ -148,7 +151,6 @@ def get_child_group(item_group):
     for s in sub_groups:
         sg = {}
         sg[s['name']] = get_child_group(s['name'])
-        # ~ sg[s['name_fr']] = frappe.db.get_value("Item Group", s.get('name'), "item_group_name_fr")
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
@@ -166,11 +168,51 @@ def get_child_group(item_group):
             record[n['name']] = item[0]
         groups.append(record)
     return groups
+    
+def get_translated_child_group(item_group, language, root_call=False):
+    groups = []
+    if not root_call:
+        item_group = frappe.db.get_value("Item Group", {"item_group_name_{0}".format(language): item_group}, "name")
+        
+    sub_groups = frappe.db.sql("""
+                                SELECT
+                                    `item_group_name_{lang}` AS `name`
+                                FROM
+                                    `tabItem Group`
+                                WHERE
+                                    `parent_item_group` = '{item_group}'
+                                AND
+                                    `is_group` = 1
+                                AND
+                                    `show_in_website` = 1
+                                ORDER BY
+                                    `weightage` DESC""".format(lang=language, item_group=item_group), as_dict=True)
+    for s in sub_groups:
+        sg = {}
+        sg[s['name']] = get_translated_child_group(s['name'], language)
+        groups.append(sg)
+    nodes = frappe.get_all("Item Group", 
+        filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
+        order_by='weightage desc',
+        fields=['name', 'item_group_name_{0}'.format(language)])
+    frappe.log_error(nodes, "nodes")
+    for n in nodes:
+        # first item per group
+        item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
+            fields=['name'], 
+            order_by='weightage desc',
+            limit=1)
+        record = n['item_group_name_{0}'.format(language)]
+        if item and len(item) > 0:
+            record = {}
+            record[n['item_group_name_{0}'.format(language)]] = item[0]
+        groups.append(record)
+    return groups
 
 @frappe.whitelist(allow_guest=True)
 def get_top_products(language="de"):
     top_products = frappe.db.sql("""
-        SELECT `item_code`, `item_name{lang}`, `image`
+        SELECT `item_code`, `item_name{lang}` AS `item_name`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1 
           AND `is_sample` = 0
@@ -180,7 +222,7 @@ def get_top_products(language="de"):
 
 #deprication note: show_variants=True is not working
 @frappe.whitelist(allow_guest=True)
-def get_products_by_item_group(item_group=None, show_variants=False):
+def get_products_by_item_group(item_group=None, show_variants=False, language="de"):
     if not item_group:
         return {'error': "Parameter Error: item_group"}
     if show_variants:
@@ -188,14 +230,14 @@ def get_products_by_item_group(item_group=None, show_variants=False):
     else:
         condition = "AND `variant_of` IS NULL"
     products = frappe.db.sql("""
-        SELECT `item_code`, `item_name`, `image`
+        SELECT `item_code`, `item_name{lang}` AS `item_name`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1
           AND `is_sample` = 0
           AND `item_group` = "{item_group}"
           {condition}
         ORDER BY `weightage` DESC
-        LIMIT 20;""".format(item_group=item_group, condition=condition), as_dict=True)
+        LIMIT 20;""".format(item_group=item_group, condition=condition, lang = "_fr" if language == "fr" else ""), as_dict=True)
     return products
     
 @frappe.whitelist(allow_guest=True)
@@ -225,11 +267,11 @@ def register_newsletter(name=None, email=None):
     return {'status': status, 'error': error}
 
 @frappe.whitelist(allow_guest=True)
-def search_products(keyword=None, offset=0):
+def search_products(keyword=None, offset=0, language="de"):
     if not keyword:
         return {'error': "Parameter Error: keyword"}
     products = frappe.db.sql("""
-        SELECT `item_code`, `item_name`, `image`
+        SELECT `item_code`, `item_name{lang}` AS `item_name`, `image`
         FROM `tabItem`
         WHERE `show_in_website` = 1
           AND `is_sample` = 0
@@ -237,89 +279,80 @@ def search_products(keyword=None, offset=0):
                OR `item_name` LIKE "%{keyword}%")
         ORDER BY `weightage` DESC
         LIMIT 20
-        OFFSET {offset};""".format(keyword=keyword, offset=offset), as_dict=True)
+        OFFSET {offset};""".format(keyword=keyword, offset=offset, lang = "_fr" if language == "fr" else ""), as_dict=True)
     if len(products) == 0:
         # fallback: on no results, include product description
         products = frappe.db.sql("""
-            SELECT `item_code`, `item_name`, `image`
+            SELECT `item_code`, `item_name{lang} AS `item_name`, `image`
             FROM `tabItem`
             WHERE `show_in_website` = 1
               AND `is_sample` = 0
               AND `description` LIKE "%{keyword}%"
             ORDER BY `weightage` DESC
             LIMIT 20
-            OFFSET {offset};""".format(keyword=keyword, offset=offset), as_dict=True)
+            OFFSET {offset};""".format(keyword=keyword, offset=offset, lang = "_fr" if language == "fr" else ""), as_dict=True)
     return products
 
 @frappe.whitelist(allow_guest=True)
-def get_item_details(item_code=None):
+def get_item_details(item_code=None, language="de"):
     if not item_code:
         return {'error': "Parameter Error: item_code"}
     item_details = frappe.db.sql("""
         SELECT
             `tabItem`.`item_code` AS `item_code`,
-            `tabItem`.`item_name` AS `item_name`,
-            `tabItem`.`item_name_fr` AS `item_name_fr`,
-            `tabItem`.`description` AS `description`,
-            `tabItem`.`description_fr` AS `description_fr`,
-            `tabItem`.`web_long_description` AS `web_long_description`,
-            `tabItem`.`website_description_fr` AS `web_long_description_fr`,
+            `tabItem`.`item_name{lang}` AS `item_name`,
+            `tabItem`.`description{lang}` AS `description`,
+            `tabItem`.`{desc}` AS `web_long_description`,
             `tabItem`.`website_content` AS `website_content`,
             `tabItem`.`has_variants` AS `has_variants`,
             `tabItem`.`image` AS `image`,
             `tabItem`.`website_image` AS `website_image`,
             `tabItem`.`verpackungseinheit` AS `packaging_unit`,
             `tabItem`.`voc` AS `voc`,
-            `tabItem`.`stock_uom` AS `stock_uom`,
-            `tabUOM`.`uom_name_fr` AS `stock_uom_fr`,
+            {uom} AS `stock_uom`,
             `tabItem`.`density` AS `density`,
             `tabItem`.`weight_per_unit` AS `weight_per_unit`,
             `tabItem`.`weight_uom` AS `weight_uom`,
             `tabItem`.`is_out_of_stock` AS `is_out_of_stock`,
             `tabItem`.`units_per_packaging` AS `units_per_packaging`,
-            `tabItem`.`packaging_type` AS `packaging_type`,
-            `tabItem`.`packaging_type_fr` AS `packaging_type_fr`
+            `tabItem`.`packaging_type{lang}` AS `packaging_type`
         FROM
             `tabItem`
         LEFT JOIN
             `tabUOM` ON `tabUOM`.`name` = `tabItem`.`stock_uom`
         WHERE `tabItem`.`item_code` = "{item_code}"
           AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
-    """.format(item_code=item_code), as_dict=True)
+    """.format(item_code=item_code, lang = "_fr" if language == "fr" else "", desc= "website_description_fr" if language == "fr" else "web_long_description", uom = "`tabUOM`.`uom_name_fr`" if language == "fr" else "`tabItem`.`stock_uom`"), as_dict=True)
     if len(item_details) > 0:
         more_images = frappe.db.sql("""
             SELECT
-                `description`,
-                `description_fr`,
+                `description{lang}` AS description,
                 `image`
             FROM `tabItem Image`
             WHERE `parent` = "{item_code}";
-        """.format(item_code=item_code), as_dict=True)
+        """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['more_images'] = more_images
         
         web_specs = frappe.db.sql("""
             SELECT
-                `label`,
-                `label_fr`,
-                `description`,
-                `description_fr`
+                `label{lang}` AS `label`,
+                `description{lang}` AS `description`
             FROM `tabItem Website Specification`
             WHERE `parent` = "{item_code}"
             ORDER BY `idx` ASC;
-        """.format(item_code=item_code), as_dict=True)
+        """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['website_specification'] = web_specs
         
         related_items = frappe.db.sql("""
             SELECT 
                 `tabItem`.`item_code`, 
-                `tabItem`.`item_name`,
-                `tabItem`.`item_name_fr`,
+                `tabItem`.`item_name{lang}` AS `item_name`,
                 `tabItem`.`image`
             FROM `tabRelated Item`
             LEFT JOIN `tabItem` ON `tabItem`.`item_code` = `tabRelated Item`.`item_code`
             WHERE `tabRelated Item`.`parent` = "{item_code}"
             ORDER BY `weightage` DESC;
-        """.format(item_code=item_code), as_dict=True)
+        """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['related_items'] = related_items
         
         variants = frappe.db.sql("""
@@ -335,10 +368,8 @@ def get_item_details(item_code=None):
         for v in variants:
             variant_attributes = frappe.db.sql("""
                 SELECT 
-                    `tabItem Variant Attribute`.`attribute`,
-                    `tabItem Attribute`.`attribute_name_fr` AS `attribute_fr`,
-                    `tabItem Variant Attribute`.`attribute_value`,
-                    `tabItem Variant Attribute`.`attribute_value_fr`,
+                    {attr} AS `attribute`,
+                    `tabItem Variant Attribute`.`attribute_value{lang}`,
                     `tSort`.`idx`
                 FROM `tabItem Variant Attribute`
                 LEFT JOIN `tabItem Attribute Value` AS `tSort` ON 
@@ -347,37 +378,37 @@ def get_item_details(item_code=None):
                 LEFT JOIN
                     `tabItem Attribute` ON `tabItem Attribute`.`name` = `tabItem Variant Attribute`.`attribute`
                 WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
-            """.format(item_code=v['item_code']), as_dict=True)
+            """.format(item_code=v['item_code'], lang = "_fr" if language == "fr" else "", attr = "`tabItem Attribute`.`attribute_name_fr`" if language == "fr" else "`tabItem Variant Attribute`.`attribute`"), as_dict=True)
             v['attributes'] = variant_attributes
             # add more images per variant
             more_images = frappe.db.sql("""
                 SELECT
-                    `description`,
-                    `description_fr`,
+                    `description{lang}`,
                     `image`
                 FROM `tabItem Image`
                 WHERE `parent` = "{item_code}";
-            """.format(item_code=v['item_code']), as_dict=True)
+            """.format(item_code=v['item_code'], lang = "_fr" if language == "fr" else ""), as_dict=True)
             v['more_images'] = more_images  
             
             web_specs = frappe.db.sql("""
                 SELECT
-                    `label`,
-                    `label_fr`,
-                    `description`,
-                    `description_fr`
+                    `label{lang}`,
+                    `description{lang}`
                 FROM `tabItem Website Specification`
                 WHERE `parent` = "{item_code}";
-            """.format(item_code=v['item_code']), as_dict=True)
+            """.format(item_code=v['item_code'], lang = "_fr" if language == "fr" else ""), as_dict=True)
             v['website_specification'] = web_specs  
         item_details[0]['variants'] = variants
         
         variant_attributes = frappe.db.sql("""
             SELECT 
-                `tabItem Variant Attribute`.`attribute`
-            FROM `tabItem Variant Attribute`
+                {attr} AS`attribute`
+            FROM
+                `tabItem Variant Attribute`
+            LEFT JOIN
+                `tabItem Attribute` ON `tabItem Attribute`.`name` = `tabItem Variant Attribute`.`attribute`
             WHERE `tabItem Variant Attribute`.`parent` = "{item_code}";
-        """.format(item_code=item_code), as_dict=True)
+        """.format(item_code=item_code, attr = "`tabItem Attribute`.`attribute_name_fr`" if language == "fr" else "`tabItem Variant Attribute`.`attribute`"), as_dict=True)
         item_details[0]['variant_attributes'] = variant_attributes
     return item_details
 
@@ -987,8 +1018,8 @@ def log_error(message):
     frappe.log_error(message, "Webshop error")
     return {'success': 1, 'error': ''}
 
-def get_recursive_item_groups(item_group):
-    groups = frappe.db.sql("""SELECT `name`, `item_group_name_fr` , `parent_item_group` AS `parent` FROM `tabItem Group`;""", as_dict=True)
+def get_recursive_item_groups(item_group, language="de"):
+    groups = frappe.db.sql("""SELECT {name} AS `name`, `parent_item_group` AS `parent` FROM `tabItem Group`;""".format(name = "`item_group_name_fr`" if language == "fr" else "`name`"), as_dict=True)
     group_map = {}
     for g in groups:
         group_map[g['name']] = g['parent']
@@ -1033,12 +1064,12 @@ def set_like(item_code=None, liked=None):
         return {'success': 0, 'error': 'Item not found'}
 
 @frappe.whitelist()
-def get_favorite_items():
+def get_favorite_items(language="de"):
     products = frappe.db.sql("""
-        SELECT `item_code`, `item_name`, `item_name_fr`, `image`
+        SELECT `item_code`, `item_name{lang}`, `image`
         FROM (
             SELECT 
-                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name`, `item_name_fr`, `image`, `weightage`
+                IF(`variant_of`, `variant_of`, `item_code`) AS `item_code`, `item_name{lang}`, `image`, `weightage`
             FROM `tabItem`
             WHERE (`show_in_website` = 1 OR `show_variant_in_website`)
               AND `is_sample` = 0
@@ -1047,7 +1078,7 @@ def get_favorite_items():
         GROUP BY `item_code`
         ORDER BY `weightage` DESC
         LIMIT 20
-        ;""".format(user=frappe.session.user), as_dict=True)
+        ;""".format(user=frappe.session.user, lang = "_fr" if language == "fr" else ""), as_dict=True)
     return products
     
 @frappe.whitelist()

@@ -243,3 +243,20 @@ def create_journal_entry(self, event):
                 return
             else:
                 return
+
+@frappe.whitelist()
+def set_french_attributes(self, event):
+    if type(self) == str:
+        self = frappe.get_doc("Item", self)
+    
+    for attribute in self.attributes:
+        frappe.db.set_value("Item Variant Attribute", attribute.name, "attribute_value_fr", frappe.db.get_value("Item Attribute Value", {"parent": attribute.get('attribute'), 'attribute_value': attribute.get('attribute_value')}, "attribute_value_fr"))
+    
+    if self.packaging_type == "Karton":
+        frappe.db.set_value("Item", self.name, "packaging_type_fr", "Carton")
+    elif self.packaging_type == "Palette":
+        frappe.db.set_value("Item", self.name, "packaging_type_fr", "Palette")
+        
+    self.reload()
+    
+    return
