@@ -1,0 +1,1 @@
+seg.patches.set_french_packaging_type.set_french_packaging_type
