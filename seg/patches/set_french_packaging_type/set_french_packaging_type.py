@@ -1,7 +1,8 @@
 import frappe
 
 def execute():
-    frappe.reload_doc("seg", "doctype", "Item")
+    from frappe.modules.utils import sync_customizations
+    sync_customizations("seg")
     success = True
     errors = []
     items = frappe.db.sql("""
