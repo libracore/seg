@@ -42,8 +42,6 @@ def get_matching_variant(item_code, old_selection, new_selection):
 def get_prices(item_code=None, user=None, language="de"):
     if not item_code:
         return {'error': "Parameter Error: item_code"}
-    if not user:
-        return {'error': "Parameter Error: Missing user"}
     from erpnext.controllers.website_list_for_contact import get_customers_suppliers
     try:
         if user:
