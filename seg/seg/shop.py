@@ -872,7 +872,7 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
     
 @frappe.whitelist(allow_guest=True)
 def create_user(api_key, email, password, company_name, first_name, 
-    last_name, street, pincode, city, phone, salutation=None, remarks=""):
+    last_name, street, pincode, city, phone, salutation=None, language="de", remarks=""):
     if check_key(api_key):
         # create user
         new_user = frappe.get_doc({
