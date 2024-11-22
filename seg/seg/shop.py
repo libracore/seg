@@ -123,6 +123,28 @@ def login(usr=None, pwd=None):
     lm.login()
     add_log(user=usr, method="webshop_login")
     return frappe.local.session
+    
+@frappe.whitelist(allow_guest=True)
+def get_customer_language(usr=None):
+    if not usr:
+        return {'error': "Parameter Error: usr"}
+    customers = get_session_customers(usr)
+    if not customers:
+        return {'error': "Customer missing for User {usr}".format(usr=usr)}
+    else:
+        return frappe.get_value("Customer", customers[0].get('customer'), "customer_language")
+        
+@frappe.whitelist(allow_guest=True)
+def set_customer_language(usr=None, language="de"):
+    if not usr:
+        return {'error': "Parameter Error: usr"}
+    customers = get_session_customers(usr)
+    if not customers:
+        return {'error': "Customer missing for User {usr}".format(usr=usr)}
+    else:
+        frappe.set_value("Customer", customers[0].get('customer'), "customer_language", language)
+        frappe.db.commit()
+        return {'success': 1, 'error': ''}
    
 # this will send a reset password email
 @frappe.whitelist(allow_guest=True)
@@ -910,7 +932,8 @@ def create_user(api_key, email, password, company_name, first_name,
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
             'payment_terms': PREPAID,
             'new_customer': 1,
-            'allow_invoice': 0
+            'allow_invoice': 0,
+            'customer_language': language
         })
         try:
             new_customer.insert(ignore_permissions=True)
