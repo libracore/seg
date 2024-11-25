@@ -933,7 +933,7 @@ def create_user(api_key, email, password, company_name, first_name,
             'payment_terms': PREPAID,
             'new_customer': 1,
             'allow_invoice': 0,
-            'customer_language': language
+            'language': language
         })
         try:
             new_customer.insert(ignore_permissions=True)
