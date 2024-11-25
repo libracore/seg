@@ -132,7 +132,7 @@ def get_customer_language(usr=None):
     if not customers:
         return {'error': "Customer missing for User {usr}".format(usr=usr)}
     else:
-        return frappe.get_value("Customer", customers[0].get('customer'), "customer_language")
+        return frappe.get_value("Customer", customers[0].get('customer'), "language")
         
 @frappe.whitelist(allow_guest=True)
 def set_customer_language(usr=None, language="de"):
@@ -142,7 +142,7 @@ def set_customer_language(usr=None, language="de"):
     if not customers:
         return {'error': "Customer missing for User {usr}".format(usr=usr)}
     else:
-        frappe.set_value("Customer", customers[0].get('customer'), "customer_language", language)
+        frappe.set_value("Customer", customers[0].get('customer'), "language", language)
         frappe.db.commit()
         return {'success': 1, 'error': ''}
    
