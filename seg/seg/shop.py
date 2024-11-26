@@ -125,20 +125,16 @@ def login(usr=None, pwd=None):
     return frappe.local.session
     
 @frappe.whitelist(allow_guest=True)
-def get_customer_language(usr=None):
-    if not usr:
-        return {'error': "Parameter Error: usr"}
-    customers = get_session_customers(usr)
+def get_customer_language():
+    customers = get_session_customers()
     if not customers:
         return {'error': "Customer missing for User {usr}".format(usr=usr)}
     else:
         return frappe.get_value("Customer", customers[0].get('customer'), "language")
         
 @frappe.whitelist(allow_guest=True)
-def set_customer_language(usr=None, language="de"):
-    if not usr:
-        return {'error': "Parameter Error: usr"}
-    customers = get_session_customers(usr)
+def set_customer_language(language="de"):
+    customers = get_session_customers()
     if not customers:
         return {'error': "Customer missing for User {usr}".format(usr=usr)}
     else:
