@@ -123,6 +123,24 @@ def login(usr=None, pwd=None):
     lm.login()
     add_log(user=usr, method="webshop_login")
     return frappe.local.session
+    
+@frappe.whitelist()
+def get_customer_language():
+    customers = get_session_customers()
+    if not customers:
+        return {'error': "Customer missing for User {usr}".format(usr=usr)}
+    else:
+        return frappe.get_value("Customer", customers[0].get('customer'), "language")
+    
+@frappe.whitelist()
+def set_customer_language(language="de"):
+    customers = get_session_customers()
+    if not customers:
+        return {'error': "Customer missing for User {usr}".format(usr=usr)}
+    else:
+        frappe.set_value("Customer", customers[0].get('customer'), "language", language)
+        frappe.db.commit()
+        return {'success': 1, 'error': ''}
    
 # this will send a reset password email
 @frappe.whitelist(allow_guest=True)
@@ -872,7 +890,7 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
     
 @frappe.whitelist(allow_guest=True)
 def create_user(api_key, email, password, company_name, first_name, 
-    last_name, street, pincode, city, phone, salutation=None, remarks=""):
+    last_name, street, pincode, city, phone, salutation=None, language="de", remarks=""):
     if check_key(api_key):
         # create user
         new_user = frappe.get_doc({
@@ -910,7 +928,8 @@ def create_user(api_key, email, password, company_name, first_name,
             'territory': frappe.get_value("Selling Settings", "Selling Settings", "territory"),
             'payment_terms': PREPAID,
             'new_customer': 1,
-            'allow_invoice': 0
+            'allow_invoice': 0,
+            'language': language
         })
         try:
             new_customer.insert(ignore_permissions=True)
