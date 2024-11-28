@@ -124,13 +124,15 @@ def login(usr=None, pwd=None):
     add_log(user=usr, method="webshop_login")
     return frappe.local.session
     
+@frappe.whitelist()
 def get_customer_language():
     customers = get_session_customers()
     if not customers:
         return {'error': "Customer missing for User {usr}".format(usr=usr)}
     else:
         return frappe.get_value("Customer", customers[0].get('customer'), "language")
-        
+    
+@frappe.whitelist()
 def set_customer_language(language="de"):
     customers = get_session_customers()
     if not customers:
