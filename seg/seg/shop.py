@@ -281,7 +281,7 @@ def search_products(keyword=None, offset=0, language="de"):
     if len(products) == 0:
         # fallback: on no results, include product description
         products = frappe.db.sql("""
-            SELECT `item_code`, `item_name{lang} AS `item_name`, `image`
+            SELECT `item_code`, `item_name{lang}` AS `item_name`, `image`
             FROM `tabItem`
             WHERE `show_in_website` = 1
               AND `is_sample` = 0
