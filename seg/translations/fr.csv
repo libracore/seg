@@ -1,18 +1,18 @@
-DocType: Quotation, Lieferadresse, Adresse de livraison
-DocType: Quotation, Rechnungsadresse, Adresse de facturation
-DocType: Quotation, Offerte, Offre
-DocType: Quotation, Offertenpositionen, Détails de l‘offre 
-DocType: Quotation, Artikel-Nr., Réf. Article
-DocType: Quotation, Beschreibung, Description
-DocType: Quotation, Einheit, Unité
-DocType: Quotation, Preis, Prix unitaire
-DocType: Quotation, Menge, Quantité
-DocType: Quotation, Betrag, Montant
-DocType: Quotation, Summe netto, Total net
-DocType: Quotation, LSVA, RPLP
-DocType: Quotation, VOC, COV
-DocType: Quotation, MwSt, TVA
-DocType: Quotation, Rundungsdifferenz, Arrondi
-DocType: Quotation, Gesamtbetrag, Total
-DocType: Quotation, Es gelten unsere allgemeinen Geschäftsbedingungen unter shop.seg.swiss., Toute transaction est soumise à nos conditions générales de vente (CGV) disponibles sur notre site shop.seg.swiss
-DocType: Quotation, Besten Dank für Ihren Auftrag, Merci pour votre commande
+DocType: Quotation,Lieferadresse,Adresse de livraison
+DocType: Quotation,Rechnungsadresse,Adresse de facturation
+DocType: Quotation,Offerte,Offre
+DocType: Quotation,Offertenpositionen,Détails de l‘offre 
+DocType: Quotation,Artikel-Nr.,Réf. Article
+DocType: Quotation,Beschreibung,Description
+DocType: Quotation,Einheit,Unité
+DocType: Quotation,Preis,Prix unitaire
+DocType: Quotation,Menge,Quantité
+DocType: Quotation,Betrag,Montant
+DocType: Quotation,Summe netto,Total net
+DocType: Quotation,LSVA,RPLP
+DocType: Quotation,VOC,COV
+DocType: Quotation,MwSt,TVA
+DocType: Quotation,Rundungsdifferenz,Arrondi
+DocType: Quotation,Gesamtbetrag,Total
+DocType: Quotation,Es gelten unsere allgemeinen Geschäftsbedingungen unter shop.seg.swiss.,Toute transaction est soumise à nos conditions générales de vente (CGV) disponibles sur notre site shop.seg.swiss
+DocType: Quotation,Besten Dank für Ihren Auftrag,Merci pour votre commande
