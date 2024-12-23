@@ -53,3 +53,5 @@ DocType: Sales Invoice,Zahlungsempfänger,Bénéficiaire
 DocType: Sales Invoice,Zusätzliche Informationen,Informations supplémentaires
 DocType: Sales Invoice,Zahlungspflichtiger,Payable par
 DocType: Sales Invoice,Zahlbar durch,Payable par
+DocType: Delivery Note,Datum,Date
+DocType: Delivery Note,Gesamtgewicht,Poids total
