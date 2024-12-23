@@ -1,0 +1,57 @@
+DocType: Quotation,Lieferadresse,Adresse de livraison
+DocType: Quotation,Rechnungsadresse,Adresse de facturation
+DocType: Quotation,Offerte,Offre
+DocType: Quotation,Offertenpositionen,Détails de l‘offre 
+DocType: Quotation,Artikel-Nr.,Réf. Article
+DocType: Quotation,Beschreibung,Description
+DocType: Quotation,Einheit,Unité
+DocType: Quotation,Preis,Prix unitaire
+DocType: Quotation,Menge,Quantité
+DocType: Quotation,Betrag,Montant
+DocType: Quotation,Summe netto,Total net
+DocType: Quotation,LSVA,RPLP
+DocType: Quotation,VOC,COV
+DocType: Quotation,MwSt,TVA
+DocType: Quotation,Rundungsdifferenz,Arrondi
+DocType: Quotation,Gesamtbetrag,Total
+DocType: Quotation,Es gelten unsere allgemeinen Geschäftsbedingungen unter,Toute transaction est soumise à nos conditions générales de vente (CGV) disponibles sur notre site
+DocType: Quotation,Besten Dank für Ihren Auftrag,Merci pour votre commande
+DocType: Quotation,LSVA (*),RPLP (*)
+DocType: Quotation,MwSt 8.1%,TVA 8.1%
+DocType: Sales Order,Kommission,v/référence
+DocType: Sales Order,Auftraggeber,v/contact
+DocType: Sales Order,Avisierungsperson,v/contact
+DocType: Sales Order,Zusätzliche Beschreibung,Remarque
+DocType: Sales Order,Telefon Nr.,n°/téléphone
+DocType: Sales Order,Bestellung,Commande
+DocType: Sales Order,Bestelldatum,Date de commande
+DocType: Sales Order,Lieferdatum,Date de livraison
+DocType: Sales Order,Bestellgunspositionen,Détails de la commande
+DocType: Sales Order,Bezeichnung,Description
+DocType: Sales Order,Stückpreis,Prix unitaire
+DocType: Sales Order,Ware in einwandfreiem Zustand erhalten,Marchandises reçus en bon état
+DocType: Sales Order,Zahlungsmethode,Mode de paiement
+DocType: Sales Order,Unterschrift,Signature 
+DocType: Sales Order,Rechnung,Facture
+DocType: Sales Order,Kreditkarte,Carte de crédit
+DocType: Sales Invoice,Rechnungsdatum,Date de facturation
+DocType: Sales Invoice,Zahlbar bis,Délai de paiement
+DocType: Sales Invoice,Rechnungspositionen,Detail de la facture
+DocType: Sales Invoice,Lieferschein,Bulletin de livraison
+DocType: Sales Invoice,Auftraggeber,v/contact
+DocType: Sales Invoice,Kommission,v/référence
+DocType: Sales Invoice,Abtönung,Teinte
+DocType: Sales Invoice,Anzahlung,Acompte
+DocType: Sales Invoice,*LSVA,*RPLP
+DocType: Sales Invoice,Empfangsschein,Récépissé
+DocType: Sales Invoice,Konto / Zahlbar an,Compte / Payable à
+DocType: Sales Invoice,Referenz,Référence
+DocType: Sales Invoice,Währung,Monnaie
+DocType: Sales Invoice,Zahlteil,Section paiement
+DocType: Sales Invoice,Konto,Compte
+DocType: Sales Invoice,Zahlungsempfänger,Bénéficiaire
+DocType: Sales Invoice,Zusätzliche Informationen,Informations supplémentaires
+DocType: Sales Invoice,Zahlungspflichtiger,Payable par
+DocType: Sales Invoice,Zahlbar durch,Payable par
+DocType: Delivery Note,Datum,Date
+DocType: Delivery Note,Gesamtgewicht,Poids total
