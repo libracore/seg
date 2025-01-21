@@ -158,3 +158,13 @@ def upload_attachments(dt, dn):
         physical_file_name = get_physical_path(a.get('file_name'))
         upload_from_local_file(dt, dn, PATHS[dt]['general'], physical_file_name)
     return
+
+"""
+This is the event handler for after insert events
+
+Make sure to update hooks.py and include doctype
+"""
+def after_insert_handler(doc, event):
+    if doc.doctype in ["Item", "Customer", "Supplier"]:
+        create_folder(doc.doctype, doc.name)
+    return

@@ -97,14 +97,21 @@ doc_events = {
         "autoname": "seg.seg.utils.object_autoname"
     },
     "Customer": {
-        "before_insert": "seg.seg.customer.set_allow_invoice"
+        "before_insert": "seg.seg.customer.set_allow_invoice",
+        "after_insert": "seg.seg.nextcloud.after_insert_handler"
     },
     "Sales Invoice": {
         "on_submit": "seg.seg.utils.create_journal_entry",
         "on_cancel": "seg.seg.utils.create_journal_entry"
     },
     "Item": {
-        "after_insert": "seg.seg.utils.set_french_attributes"
+        "after_insert": [
+            "seg.seg.utils.set_french_attributes", 
+            "seg.seg.nextcloud.after_insert_handler"
+        ]
+    },
+    "Supplier": {
+        "after_insert": "seg.seg.nextcloud.after_insert_handler"
     }
 }
 
