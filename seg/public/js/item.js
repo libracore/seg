@@ -3,9 +3,11 @@
 
 frappe.ui.form.on('Item',  {
     refresh: function(frm) {
-        frm.add_custom_button(__("French Attributes"),  function(){
-          set_french_attributes(frm);
-        });
+        if (!cur_frm.doc.__islocal) {
+            frm.add_custom_button(__("French Attributes"),  function(){
+              set_french_attributes(frm);
+            });
+        }
     },
     packaging_type: function(frm) {
         set_french_packaging_type(frm);
