@@ -169,7 +169,20 @@ function remind_of_discount(frm) {
 
 function check_pick_up(frm) {
     if (frm.doc.customer) {
-        
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Customer",
+                'name': frm.doc.customer
+            },
+            'callback': function(response) {
+                if (response.message.always_pick_up) {
+                    cur_frm.set_value("picked_up" , 1);
+                } else {
+                    cur_frm.set_value("picked_up" , 0);
+                }
+            }
+        });
     } else {
         cur_frm.set_value("picked_up" , 0)
     }
