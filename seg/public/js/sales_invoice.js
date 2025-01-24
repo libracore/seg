@@ -5,6 +5,7 @@ frappe.ui.form.on('Sales Invoice',  {
         } else {
             cur_frm.set_value("mahnsperre", 0);
         }
+        check_email_invoice(frm);
     },
     before_save: function(frm) {
         update_discout(frm)
@@ -36,7 +37,7 @@ frappe.ui.form.on('Sales Invoice',  {
                 $(target).parent().parent().remove();   // remove Menu > Email
             }
         }
-
+        check_email_invoice(frm);
     },
     is_return: function(frm) {
         if (frm.doc.__islocal) {
@@ -142,3 +143,21 @@ function custom_mail_dialog(frm) {
     });
 }
 
+function check_email_invoice(frm) {
+    if (frm.doc.customer) {
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Customer",
+                'name': frm.doc.customer
+            },
+            'callback': function(response) {
+                if (response.message) {
+                    if (response.message.email_invoices) {
+                        cur_frm.dashboard.add_comment( "Kunde hat Emailrechnungsversand!<br>" + response.message.preferred_invoice_email, 'red', true);
+                    }
+                }
+            }
+        });
+    }
+}
