@@ -32,7 +32,7 @@ frappe.ui.form.on('Sales Invoice',  {
             if (document.getElementsByClassName("fa-envelope-o").length === 0) {
                 cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
                     custom_mail_dialog(frm);
-                })
+                });
                 var target ="span[data-label='" + __("Email") + "']";
                 $(target).parent().parent().remove();   // remove Menu > Email
             }
