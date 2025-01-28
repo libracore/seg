@@ -30,7 +30,9 @@ function add_pricing_rule() {
       'title': __('Preisregel erstellen'),
       'fields': [
         {'fieldname': 'customer', 'fieldtype': 'Link', 'label': __('Customer'), 'options': 'Customer', 'reqd': 1, 'default': frappe.query_report.filters[0].value},
-        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein'},
+        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein'},
+        {'fieldname': 'product_category', 'fieldtype': 'Link', 'label': __('Product Category'), 'options': 'Item Group', 'depends_on': 'eval:doc.type=="Produktkategorie"'},
+        {'fieldname': 'product_group', 'fieldtype': 'Link', 'label': __('Product Group'), 'options': 'Item Group', 'depends_on': 'eval:doc.type=="Produktgruppe"'},
         {'fieldname': 'item_group', 'fieldtype': 'Link', 'label': __('Item Group'), 'options': 'Item Group', 'depends_on': 'eval:doc.type=="Artikelgruppe"'},
         {'fieldname': 'item', 'fieldtype': 'Link', 'label': __('Item'), 'options': 'Item', 'depends_on': 'eval:doc.type=="Artikel"'},
         {'fieldname': 'discount_percent', 'fieldtype': 'Percent', 'label': __('Rabattprozent'), 'reqd': 1}
@@ -43,6 +45,8 @@ function add_pricing_rule() {
               'args':{
                   'customer': values.customer,
                   'discount_percentage': values.discount_percent,
+                  'product_category': values.product_category,
+                  'product_group': values.product_group,
                   'item_group': values.item_group,
                   'item_code': values.item
               },
