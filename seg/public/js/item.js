@@ -7,6 +7,8 @@ frappe.ui.form.on('Item',  {
             frm.add_custom_button(__("French Attributes"),  function(){
               set_french_attributes(frm);
             });
+            
+            add_nextcloud_button(frm);
         }
     },
     packaging_type: function(frm) {

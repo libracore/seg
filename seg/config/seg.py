@@ -242,5 +242,17 @@ def get_data():
                        "description": _("Webshop Log")                   
                    }
             ]
+        },
+        {
+            "label": _("Settings"),
+            "icon": "fa fa-users",
+            "items": [
+                   {
+                       "type": "doctype",
+                       "name": "SEG Settings",
+                       "label": _("SEG Settings"),
+                       "description": _("SEG Settings")
+                   }
+            ]
         }
 ]

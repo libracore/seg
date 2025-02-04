@@ -35,10 +35,11 @@ app_include_js = [
 doctype_js = {
     "Delivery Note" : "public/js/delivery_note.js",
     "Sales Invoice" : "public/js/sales_invoice.js",
-    "Pricing Rule" : "public/js/pricing_rule.js",
-    "Customer" : "public/js/customer.js",
-    "Sales Order" : "public/js/sales_order.js",
-    "Item" : "public/js/item.js"
+    "Pricing Rule"  : "public/js/pricing_rule.js",
+    "Customer"      : "public/js/customer.js",
+    "Sales Order"   : "public/js/sales_order.js",
+    "Item"          : "public/js/item.js",
+    "Supplier"      : "public/js/supplier.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -100,14 +101,21 @@ doc_events = {
         "autoname": "seg.seg.utils.object_autoname"
     },
     "Customer": {
-        "before_insert": "seg.seg.customer.set_allow_invoice"
+        "before_insert": "seg.seg.customer.set_allow_invoice",
+        "after_insert": "seg.seg.nextcloud.after_insert_handler"
     },
     "Sales Invoice": {
         "on_submit": "seg.seg.utils.create_journal_entry",
         "on_cancel": "seg.seg.utils.create_journal_entry"
     },
     "Item": {
-        "after_insert": "seg.seg.utils.set_french_attributes"
+        "after_insert": [
+            "seg.seg.utils.set_french_attributes", 
+            "seg.seg.nextcloud.after_insert_handler"
+        ]
+    },
+    "Supplier": {
+        "after_insert": "seg.seg.nextcloud.after_insert_handler"
     }
 }
 
