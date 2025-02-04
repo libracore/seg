@@ -14,18 +14,30 @@ from frappe.utils import cint
 
 PATHS = {
     'Item': {
-        'general': "Allgemein",
-        'procurement': "Einkauf"
+        'public': {
+            'general': "Allgemein"
+        },
+        'restricted': {
+            'procurement': "Einkauf"
+        }
     },
     'Customer': {
-        'lables': "Etiketten",
-        'visualisation': "Visualisierungen",
-        'documents': "Dokumente",
-        'general': "Allgemein"
+        'public': {
+            'lables': "Etiketten",
+            'visualisation': "Visualisierungen",
+            'general': "Allgemein"
+        },
+        'restricted': {
+            'documents': "Dokumente"
+        }
     },
     'Supplier': {
-        'general': "Allgemein",
-        'procurement': "Einkauf"
+        'public': {
+            'general': "Allgemein"
+        },
+        'restricted': {
+            'procurement': "Einkauf"
+        }
     }
 }
 
@@ -79,26 +91,39 @@ def create_folder(doctype, name):
         
     client = get_client()
     
-    storage_path = get_storage_path(doctype, name)
+    storage_path = get_storage_path(doctype, name, restricted=False)
+    restricted_storage_path = get_storage_path(doctype, name, restricted=True)
     
-    create_path(client, storage_path)
-    for k, v in PATHS[doctype].items():
-        # create child folders
-        create_path(client, os.path.join(storage_path, PATHS[doctype][k]))
+    base_folders = [
+        {'restricted': False, 'key': 'public', 'path': storage_path},
+        {'restricted': True, 'key': 'restricted', 'path': restricted_storage_path}
+    ]
     
+    for bf in base_folders:
+        
+        create_path(client, bf['path'])
+        
+        for k, v in PATHS[doctype][bf['key']].items():
+            # create child folders
+            create_path(client, os.path.join(bf['path'], PATHS[doctype][bf['key']][k]))
+        
     return
 
     
-def get_storage_path(doctype, name):
-    storage_folder = get_base_path()
-
+def get_storage_path(doctype, name, restricted=False):
+    storage_folder = get_base_path(restricted)
+    
     if not storage_folder:
-        frappe.throw("Please configure the projects folder under SEG Settings", "Configuration missing")
+        frappe.throw("Please configure the (restriceted) storage folder under SEG Settings", "Configuration missing")
         
     return os.path.join(storage_folder, doctype, name)
 
-def get_base_path():
-    storage_folder = frappe.get_value("SEG Settings", "SEG Settings", "storage_folder")
+def get_base_path(restricted=False):
+    storage_folder = frappe.get_value(
+        "SEG Settings", 
+        "SEG Settings", 
+        "restricted_storage_folder" if restricted else "storage_folder"
+    )
     return storage_folder
     
 def create_path(client, path):
@@ -123,7 +148,7 @@ def upload_from_local_file(doctype, name, target, file_name):
         return      # skip if nextcloud is disabled (develop environments)
         
     client = get_client()
-    storage_path = get_storaget_path(doctype, name)
+    storage_path = get_storage_path(doctype, name)
     target_path = os.path.join(storage_path, target)
     
     #client.files.upload_stream(os.path.join(storage_path, target, file_name.split("/")[-1]), file_name)
