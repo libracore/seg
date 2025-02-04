@@ -1,0 +1,43 @@
+{
+ "creation": "2025-02-04 19:13:05.473252",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_group_type",
+  "column_break_2",
+  "group_priority"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_group_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Item Goup Type",
+   "options": "Item Group\nProduct Group\nProduct Category",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "group_priority",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Priority",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2025-02-04 19:15:15.211245",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Item Group Priority",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from seg.seg.pricing_rule_validation import validate_pricing_rule
+from frappe.utils.data import cint
+
 
 def execute(filters=None):
     columns = get_columns()
@@ -89,25 +91,27 @@ def get_data(filters):
 def create_pricing_rule(customer, discount_percentage, product_category=None, product_group=None, item_group=None, item_code=None, ignore_permissions=False):
     # check if a similar set exists already
     target_prio = "1"
+    frappe.log_error(product_category, "product_category")
     if product_category:
-        target_prio = "2"
+        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Product Category"}, "group_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_category}, fields=['name'])
     if product_group:
-        target_prio = "3"
+        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Product Group"}, "group_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_group}, fields=['name'])
     if item_group:
-        target_prio = "4"
+        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Item Group"}, "group_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': item_group}, fields=['name'])
     elif item_code:
         target_prio = "5"
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_code': item_code}, fields=['name'])
     else:
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio}, fields=['name'])
-    frappe.log_error(product_category, "product_category")
-    frappe.log_error(product_group, "product_group")
-    frappe.log_error(item_group, "item_group")
-    frappe.log_error(item_code, "item_code")
-    frappe.log_error(matches, "matches")
+        
+    if not target_prio:
+        frappe.throw("Please define priority in SEG Settings")
+    elif cint(target_prio) > 20:
+        frappe.throw("Priority can not be higher than 20, please check SEG Settings")
+    
     if matches and len(matches) > 0:
         # update discount of existing rule
         pricing_rule = frappe.get_doc("Pricing Rule", matches[0]['name'])
@@ -126,15 +130,13 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
             'price_or_product_discount': 'Price'
          })
         if product_category or product_group or item_group:
-            frappe.log_error("group", "group")
             pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=product_category or product_group or item_group, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
             pricing_rule.item_group = product_category or product_group or item_group
             pricing_rule.append("item_groups", {
-                'item_group': item_group
+                'item_group': product_category or product_group or item_group
             })
         elif item_code:
-            frappe.log_error("item", "item")
             pricing_rule.title = ("{c} {i} ({d})".format(c=customer, i=item_code, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Code"
             pricing_rule.item_code = item_code
@@ -142,7 +144,6 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
                 'item_code': item_code
             })
         else:
-            frappe.log_error("else", "else")
             pricing_rule.title = ("{c} Basis ({d})".format(c=customer, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
             pricing_rule.item_group = "Alle Artikelgruppen"
