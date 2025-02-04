@@ -91,6 +91,9 @@ def create_folder(doctype, name):
         
     client = get_client()
     
+    # remove special characters from name
+    name = name.replace("/", "_")
+    
     storage_path = get_storage_path(doctype, name, restricted=False)
     restricted_storage_path = get_storage_path(doctype, name, restricted=True)
     
