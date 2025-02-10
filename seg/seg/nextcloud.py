@@ -112,6 +112,32 @@ def create_folder(doctype, name):
         
     return
 
+"""
+This function will create a new folder with the required structure
+"""
+def move_folder(doctype, old_name, new_name):
+    if cint(frappe.get_value("SEG Settings", "SEG Settings", "nextcloud_enabled")) == 0:
+        return      # skip if nextcloud is disabled (develop environments)
+        
+    client = get_client()
+    
+    # remove special characters from name
+    old_name = old_name.replace("/", "_")
+    new_name = new_name.replace("/", "_")
+    
+    storage_path = get_storage_path(doctype, name, restricted=False)
+    restricted_storage_path = get_storage_path(doctype, name, restricted=True)
+    
+    client.move(
+        remote_path_from=os.path.join(storage_path, doctype, old_name),
+        remote_path_to  =os.path.join(storage_path, doctype, new_name)
+    )
+    client.move(
+        remote_path_from=os.path.join(restricted_storage_path, doctype, old_name),
+        remote_path_to  =os.path.join(restricted_storage_path, doctype, new_name)
+    )
+    
+    return
     
 def get_storage_path(doctype, name, restricted=False):
     storage_folder = get_base_path(restricted)
@@ -196,3 +222,15 @@ def after_insert_handler(doc, event):
     if doc.doctype in ["Item", "Customer", "Supplier"]:
         create_folder(doc.doctype, doc.name)
     return
+
+"""
+This is the event handler to capture rename events. It will trigger a rename of the folder
+
+Make sure to update hooks.py and include doctype
+"""
+def after_rename_handler(doc, event, *args, **kwargs):
+    old_name, new_name, merge = args
+    if doc.doctype in ["Item", "Customer", "Supplier"]:
+        move_folder(doc.doctype, old_name, new_name)
+    return
+    
