@@ -1,4 +1,4 @@
-// Copyright (c) 2021-2023, libracore AG and contributors
+// Copyright (c) 2021-2025, libracore AG and contributors
 // For license information, please see license.txt
 // Common functions
 
@@ -33,4 +33,50 @@ function create_menu(endpoint, title, account) {
         frappe.set_route("Form", "Stock Entry", target);
     });
     menu_entry_parent.append(menu_entry);
+}
+
+// this function will cache the nextcloud path and create a "Cloud" button
+function add_nextcloud_button(frm) {
+    frappe.call({
+        "method": "frappe.client.get",
+        "args": {
+            "doctype": "SEG Settings",
+            "name": "SEG Settings"
+        },
+        "callback": function(response) {
+            let settings = response.message;
+            if (settings.nextcloud_enabled) {
+                if (frappe.user.has_role("Accounts Manager")) {
+                    // elevated cloud menu
+                    locals.cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.storage_folder
+                        + "/" + frm.doc.doctype
+                        + "/" + (frm.doc.name.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Gemeinsam"), function() {
+                        window.open(locals.cloud_url, '_blank').focus();
+                    }, __("Cloud"));
+
+                    locals.restricted_cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.restricted_storage_folder
+                        + "/" + frm.doc.doctype
+                        + "/" + (frm.doc.name.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Eingeschränkt"), function() {
+                        window.open(locals.restricted_cloud_url, '_blank').focus();
+                    }, __("Cloud"));
+                } else {
+                    // simple cloud menu
+                    locals.cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.storage_folder
+                        + "/" + frm.doc.doctype
+                        + "/" + (frm.doc.name.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Cloud"), function() {
+                        window.open(locals.cloud_url, '_blank').focus();
+                    }).addClass("btn-primary");
+                }
+            }
+        }
+    });
 }
