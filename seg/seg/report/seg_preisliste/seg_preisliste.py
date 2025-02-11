@@ -93,11 +93,15 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
     
     if product_category:
         target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Category"}, "rule_priority")
+        frappe.log_error(target_prio, "target_prio Pro Cat")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_category}, fields=['name'])
-    if product_group:
+    if product_subcategory:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Subcategory"}, "rule_priority")
+        matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_subcategory}, fields=['name'])
+    elif product_group:
         target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Group"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_group}, fields=['name'])
-    if item_group:
+    elif item_group:
         target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Item Group"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': item_group}, fields=['name'])
     elif item_code:
@@ -106,7 +110,7 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
     else:
         target_prio = frappe.get_value("Item Group Priority", {'rule_type': "General"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio}, fields=['name'])
-        
+    frappe.log_error(matches, "matches")
     if not target_prio:
         frappe.throw("Please define priority in SEG Settings")
     elif cint(target_prio) > 20:
