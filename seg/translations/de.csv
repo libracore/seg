@@ -6,3 +6,6 @@ DocType: Sales Order,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Item,French Attributes,Französische Attribute
+Page: SEG Preisliste,Product Category,Produktkategorie
+Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
+Page: SEG Preisliste,Product Group,Produktgruppe

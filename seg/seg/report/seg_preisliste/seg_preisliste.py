@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from seg.seg.pricing_rule_validation import validate_pricing_rule
+from frappe.utils.data import cint
+
 
 def execute(filters=None):
     columns = get_columns()
@@ -86,17 +88,34 @@ def get_data(filters):
     return data
 
 @frappe.whitelist()
-def create_pricing_rule(customer, discount_percentage, item_group=None, item_code=None, ignore_permissions=False):
+def create_pricing_rule(customer, discount_percentage, product_category=None, product_subcategory=None, product_group=None, item_group=None, item_code=None, ignore_permissions=False):
     # check if a similar set exists already
-    target_prio = "1"
-    if item_group:
-        target_prio = "2"
+    
+    if product_category:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Category"}, "rule_priority")
+        matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_category}, fields=['name'])
+    elif product_subcategory:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Subcategory"}, "rule_priority")
+        matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_subcategory}, fields=['name'])
+    elif product_group:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Group"}, "rule_priority")
+        matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_group}, fields=['name'])
+    elif item_group:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Item Group"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': item_group}, fields=['name'])
     elif item_code:
-        target_prio = "3"
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Item"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_code': item_code}, fields=['name'])
     else:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "General"}, "rule_priority")
+        frappe.log_error(target_prio, "target_prio General")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio}, fields=['name'])
+    
+    if not target_prio:
+        frappe.throw("Please define priority in SEG Settings")
+    elif cint(target_prio) > 20:
+        frappe.throw("Priority can not be higher than 20, please check SEG Settings")
+    
     if matches and len(matches) > 0:
         # update discount of existing rule
         pricing_rule = frappe.get_doc("Pricing Rule", matches[0]['name'])
@@ -114,12 +133,12 @@ def create_pricing_rule(customer, discount_percentage, item_group=None, item_cod
             'priority': target_prio,
             'price_or_product_discount': 'Price'
          })
-        if item_group:
-            pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=item_group, d=discount_percentage)).replace(",", "")
+        if product_category or product_subcategory or product_group or item_group:
+            pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=product_category or product_subcategory or product_group or item_group, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
-            pricing_rule.item_group = item_group
+            pricing_rule.item_group = product_category or product_subcategory or product_group or item_group
             pricing_rule.append("item_groups", {
-                'item_group': item_group
+                'item_group': product_category or product_subcategory or product_group or item_group
             })
         elif item_code:
             pricing_rule.title = ("{c} {i} ({d})".format(c=customer, i=item_code, d=discount_percentage)).replace(",", "")
