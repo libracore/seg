@@ -30,7 +30,7 @@ function add_pricing_rule() {
       'title': __('Preisregel erstellen'),
       'fields': [
         {'fieldname': 'customer', 'fieldtype': 'Link', 'label': __('Customer'), 'options': 'Customer', 'reqd': 1, 'default': frappe.query_report.filters[0].value},
-        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktunterkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein'},
+        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktunterkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein','onchange': function() { clear_fields() } },
         {'fieldname': 'product_category', 'fieldtype': 'Link', 'label': __('Product Category'), 'options': 'Item Group', 'get_query': get_product_categories(), 'depends_on': 'eval:doc.type=="Produktkategorie"'},
         {'fieldname': 'product_subcategory', 'fieldtype': 'Link', 'label': __('Product Subcategory'), 'options': 'Item Group', 'get_query': get_product_subcategories(), 'depends_on': 'eval:doc.type=="Produktunterkategorie"'},
         {'fieldname': 'product_group', 'fieldtype': 'Link', 'label': __('Product Group'), 'options': 'Item Group', 'get_query': get_product_groups(), 'depends_on': 'eval:doc.type=="Produktgruppe"'},
@@ -63,6 +63,14 @@ function add_pricing_rule() {
       'primary_action_label': __('Erstellen')
     });
     d.show();
+    
+    function clear_fields() {
+    d.set_value('product_category', null);
+    d.set_value('product_subcategory', null);
+    d.set_value('product_group', null);
+    d.set_value('item_group', null);
+    d.set_value('item', null);
+}
 }
 
 function get_product_categories() {
