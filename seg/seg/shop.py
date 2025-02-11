@@ -352,10 +352,22 @@ def get_item_details(item_code=None, language="de"):
         web_specs = frappe.db.sql("""
             SELECT
                 `label{lang}` AS `label`,
-                `description{lang}` AS `description`
+                `description{lang}` AS `description`,
+                `idx`,
+                1 AS `source`
             FROM `tabItem Website Specification`
             WHERE `parent` = "{item_code}"
-            ORDER BY `idx` ASC;
+            
+            UNION
+            
+            SELECT
+                `custom_label{lang}` AS `label`,
+                `custom_description{lang}` AS `description`,
+                `idx`,
+                2 AS `source`
+            FROM `tabItem Custom Website Specification`
+            WHERE `parent` = "{item_code}"
+            ORDER BY `source` ASC, `idx` ASC;
         """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['website_specification'] = web_specs
         
@@ -411,6 +423,14 @@ def get_item_details(item_code=None, language="de"):
                     `label{lang}` AS `label`,
                     `description{lang}` AS `description`
                 FROM `tabItem Website Specification`
+                WHERE `parent` = "{item_code}"
+                
+                UNION
+                
+                SELECT
+                    `custom_label{lang}` AS `label`,
+                    `custom_description{lang}` AS `description`
+                FROM `tabItem Custom Website Specification`
                 WHERE `parent` = "{item_code}";
             """.format(item_code=v['item_code'], lang = "_fr" if language == "fr" else ""), as_dict=True)
             v['website_specification'] = web_specs  
