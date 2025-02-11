@@ -242,7 +242,7 @@
    "modified_by": "Administrator",
    "name": "Item Group-item_group_type",
    "no_copy": 0,
-   "options": "Item Group\nProduct Group\nProduct Category",
+   "options": "Item Group\nProduct Group\nProduct Subcategory\nProduct Category",
    "owner": "Administrator",
    "parent": null,
    "parentfield": null,
