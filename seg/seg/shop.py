@@ -318,7 +318,8 @@ def get_item_details(item_code=None, language="de"):
             `tabItem`.`item_code` AS `item_code`,
             `tabItem`.`item_name{lang}` AS `item_name`,
             `tabItem`.`description{lang}` AS `description`,
-            `tabItem`.`{desc}` AS `web_long_description`,
+            IF(`tabItem`.`set_custom_website_description` = 1, `tabItem`.`{cust_desc}`, `tabItem`.`{desc}`) AS `web_long_description`,
+            # ~ `tabItem`.`{desc}` AS `web_long_description`,
             `tabItem`.`website_content` AS `website_content`,
             `tabItem`.`has_variants` AS `has_variants`,
             `tabItem`.`image` AS `image`,
@@ -338,7 +339,7 @@ def get_item_details(item_code=None, language="de"):
             `tabUOM` ON `tabUOM`.`name` = `tabItem`.`stock_uom`
         WHERE `tabItem`.`item_code` = "{item_code}"
           AND (`tabItem`.`show_in_website` = 1 OR `tabItem`.`show_variant_in_website`);
-    """.format(item_code=item_code, lang = "_fr" if language == "fr" else "", desc= "website_description_fr" if language == "fr" else "web_long_description", uom = "`tabUOM`.`uom_name_fr`" if language == "fr" else "`tabItem`.`stock_uom`"), as_dict=True)
+    """.format(item_code=item_code, lang = "_fr" if language == "fr" else "", desc= "website_description_fr" if language == "fr" else "web_long_description", cust_desc= "custom_website_description_fr" if language == "fr" else "custom_web_long_description", uom = "`tabUOM`.`uom_name_fr`" if language == "fr" else "`tabItem`.`stock_uom`"), as_dict=True)
     if len(item_details) > 0:
         more_images = frappe.db.sql("""
             SELECT
