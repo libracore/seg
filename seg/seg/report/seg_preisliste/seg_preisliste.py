@@ -88,23 +88,23 @@ def get_data(filters):
     return data
 
 @frappe.whitelist()
-def create_pricing_rule(customer, discount_percentage, product_category=None, product_group=None, item_group=None, item_code=None, ignore_permissions=False):
+def create_pricing_rule(customer, discount_percentage, product_category=None, product_subcategory=None, product_group=None, item_group=None, item_code=None, ignore_permissions=False):
     # check if a similar set exists already
-    target_prio = "1"
-    frappe.log_error(product_category, "product_category")
+    
     if product_category:
-        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Product Category"}, "group_priority")
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Category"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_category}, fields=['name'])
     if product_group:
-        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Product Group"}, "group_priority")
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Product Group"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': product_group}, fields=['name'])
     if item_group:
-        target_prio = frappe.get_value("Item Group Priority", {'item_group_type': "Item Group"}, "group_priority")
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Item Group"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_group': item_group}, fields=['name'])
     elif item_code:
-        target_prio = "5"
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "Item"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_code': item_code}, fields=['name'])
     else:
+        target_prio = frappe.get_value("Item Group Priority", {'rule_type': "General"}, "rule_priority")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio}, fields=['name'])
         
     if not target_prio:
@@ -129,12 +129,12 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
             'priority': target_prio,
             'price_or_product_discount': 'Price'
          })
-        if product_category or product_group or item_group:
-            pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=product_category or product_group or item_group, d=discount_percentage)).replace(",", "")
+        if product_category or product_subcategory or product_group or item_group:
+            pricing_rule.title = ("{c} {g} ({d})".format(c=customer, g=product_category or product_subcategory or product_group or item_group, d=discount_percentage)).replace(",", "")
             pricing_rule.apply_on = "Item Group"
-            pricing_rule.item_group = product_category or product_group or item_group
+            pricing_rule.item_group = product_category or product_subcategory or product_group or item_group
             pricing_rule.append("item_groups", {
-                'item_group': product_category or product_group or item_group
+                'item_group': product_category or product_subcategory or product_group or item_group
             })
         elif item_code:
             pricing_rule.title = ("{c} {i} ({d})".format(c=customer, i=item_code, d=discount_percentage)).replace(",", "")

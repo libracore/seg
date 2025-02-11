@@ -30,8 +30,9 @@ function add_pricing_rule() {
       'title': __('Preisregel erstellen'),
       'fields': [
         {'fieldname': 'customer', 'fieldtype': 'Link', 'label': __('Customer'), 'options': 'Customer', 'reqd': 1, 'default': frappe.query_report.filters[0].value},
-        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein'},
+        {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktunterkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein'},
         {'fieldname': 'product_category', 'fieldtype': 'Link', 'label': __('Product Category'), 'options': 'Item Group', 'get_query': get_product_categories(), 'depends_on': 'eval:doc.type=="Produktkategorie"'},
+        {'fieldname': 'product_subcategory', 'fieldtype': 'Link', 'label': __('Product Subcategory'), 'options': 'Item Group', 'get_query': get_product_subcategories(), 'depends_on': 'eval:doc.type=="Produktunterkategorie"'},
         {'fieldname': 'product_group', 'fieldtype': 'Link', 'label': __('Product Group'), 'options': 'Item Group', 'get_query': get_product_groups(), 'depends_on': 'eval:doc.type=="Produktgruppe"'},
         {'fieldname': 'item_group', 'fieldtype': 'Link', 'label': __('Item Group'), 'options': 'Item Group', 'get_query': get_item_groups(), 'depends_on': 'eval:doc.type=="Artikelgruppe"'},
         {'fieldname': 'item', 'fieldtype': 'Link', 'label': __('Item'), 'options': 'Item', 'depends_on': 'eval:doc.type=="Artikel"'},
@@ -46,6 +47,7 @@ function add_pricing_rule() {
                   'customer': values.customer,
                   'discount_percentage': values.discount_percent,
                   'product_category': values.product_category,
+                  'product_subcategory': values.product_subcategory,
                   'product_group': values.product_group,
                   'item_group': values.item_group,
                   'item_code': values.item
@@ -67,6 +69,14 @@ function get_product_categories() {
     return {
         filters: [
             ['item_group_type', "=", "Product Category"]
+        ]
+    };
+}
+
+function get_product_subcategories() {
+    return {
+        filters: [
+            ['item_group_type', "=", "Product Subcategory"]
         ]
     };
 }
