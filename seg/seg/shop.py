@@ -319,7 +319,6 @@ def get_item_details(item_code=None, language="de"):
             `tabItem`.`item_name{lang}` AS `item_name`,
             `tabItem`.`description{lang}` AS `description`,
             IF(`tabItem`.`set_custom_website_description` = 1, `tabItem`.`{cust_desc}`, `tabItem`.`{desc}`) AS `web_long_description`,
-            # ~ `tabItem`.`{desc}` AS `web_long_description`,
             `tabItem`.`website_content` AS `website_content`,
             `tabItem`.`has_variants` AS `has_variants`,
             `tabItem`.`image` AS `image`,
