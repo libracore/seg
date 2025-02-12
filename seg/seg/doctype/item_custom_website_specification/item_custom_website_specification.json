@@ -1,0 +1,54 @@
+{
+ "creation": "2025-02-11 14:46:23.674007",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "custom_label",
+  "custom_description",
+  "column_break_3",
+  "custom_label_fr",
+  "custom_description_fr"
+ ],
+ "fields": [
+  {
+   "fieldname": "custom_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "fieldname": "custom_description",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "Description"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "custom_label_fr",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label FR"
+  },
+  {
+   "fieldname": "custom_description_fr",
+   "fieldtype": "Text Editor",
+   "in_list_view": 1,
+   "label": "Description FR"
+  }
+ ],
+ "istable": 1,
+ "modified": "2025-02-11 14:47:55.591813",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Item Custom Website Specification",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
