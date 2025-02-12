@@ -125,17 +125,13 @@ def move_folder(doctype, old_name, new_name):
     old_name = old_name.replace("/", "_")
     new_name = new_name.replace("/", "_")
     
-    storage_path = get_storage_path(doctype, name, restricted=False)
-    restricted_storage_path = get_storage_path(doctype, name, restricted=True)
+    storage_path_old = get_storage_path(doctype, old_name, restricted=False)
+    storage_path_new = get_storage_path(doctype, new_name, restricted=False)
+    restricted_storage_path_old = get_storage_path(doctype, old_name, restricted=True)
+    restricted_storage_path_new = get_storage_path(doctype, new_name, restricted=True)
     
-    client.move(
-        remote_path_from=os.path.join(storage_path, doctype, old_name),
-        remote_path_to  =os.path.join(storage_path, doctype, new_name)
-    )
-    client.move(
-        remote_path_from=os.path.join(restricted_storage_path, doctype, old_name),
-        remote_path_to  =os.path.join(restricted_storage_path, doctype, new_name)
-    )
+    client.move(storage_path_old, storage_path_new)
+    client.move(restricted_storage_path_old, restricted_storage_path_new)
     
     return
     
