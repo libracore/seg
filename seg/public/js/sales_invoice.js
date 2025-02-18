@@ -117,32 +117,6 @@ function check_cash_discount(frm) {
     });
 }
 
-function custom_mail_dialog(frm) {
-    frappe.call({
-        'method': 'seg.seg.utils.get_email_recipient_and_message',
-        'args': {
-            'customer': frm.doc.customer,
-            'doctype': cur_frm.doc.doctype
-        },
-        'callback': function(response) {
-            var recipient = response.message.recipient || cur_frm.doc.contact_email;
-            var message = response.message.message
-            new frappe.views.CommunicationComposer({
-                doc: {
-                    doctype: cur_frm.doc.doctype,
-                    name: cur_frm.doc.name
-                },
-                subject: "Rechnung " + cur_frm.doc.name,
-                //~ cc:  cc,
-                //~ bcc: bcc,
-                recipients: recipient,
-                attach_document_print: true,
-                message: message
-            });
-        }
-    });
-}
-
 function check_email_invoice(frm) {
     if (frm.doc.customer) {
         frappe.call({

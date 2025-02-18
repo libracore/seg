@@ -189,13 +189,24 @@ def check_cash_discount(customer):
     return cash_discount
     
 @frappe.whitelist()
-def get_email_recipient_and_message(customer, doctype):
-    recipient = frappe.db.get_value("Customer", customer, "preferred_invoice_email")
-
-    html = frappe.db.get_value("Email Template", doctype, "response")
+def get_email_recipient_and_message(doc):
+    doc = json.loads(doc)
+    
+    #get recipient
+    recipient = None
+    if doc.get('doctype') == "Sales Invoice":
+        recipient = frappe.db.get_value("Customer", doc.get('customer'), "preferred_invoice_email")
+    
+    #get subject
+    subject = "{0}: {1}".format(map_doctype(doc.get('doctype')), doc.get('name'))
+    
+    #get message
+    html = None
+    html = frappe.db.get_value("Email Template", doc.get('doctype'), "response")
     
     return {
         'recipient': recipient,
+        'subject': subject,
         'message': html
         }
         
@@ -260,3 +271,14 @@ def set_french_attributes(self, event):
     self.reload()
     
     return
+
+def map_doctype(doctype):
+       mapper = {
+           'Quotation': "Angebot",
+           'Sales Order': "Auftragsbestätigung",
+           'Delivery Note': "Lieferschein",
+           'Sales Invoice': "Rechnung",
+           'Payment Reminder': "Mahnung",
+           'Purchase Order': "Bestellung"
+       }
+       return mapper[doctype]
