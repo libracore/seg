@@ -1,5 +1,9 @@
+// Copyright (c) 2025, libracore AG and contributors
+// For license information, please see license.txt
+
 frappe.ui.form.on('Delivery Note', {
     refresh(frm) {
+        display_purchase_price_field(frm);
         frm.add_custom_button(__("Umlagern"), function() {
             move_stock(frm);
         });
@@ -32,6 +36,13 @@ frappe.ui.form.on('Delivery Note', {
         check_pick_up(frm);
     }
 })
+
+//~ frappe.ui.form.on('Delivery Note Item', {
+    //~ item_code(frm, cdt, cdn) {
+        //~ display_pruchase_price_field(frm, cdt, cdn);
+    //~ }
+//~ })
+
 
 function modify_item_rate(frm) {
     frm.doc.items.forEach(function (item) {
@@ -186,4 +197,27 @@ function check_pick_up(frm) {
     } else {
         cur_frm.set_value("picked_up" , 0)
     }
+}
+
+function display_purchase_price_field(frm) {
+    frappe.call({
+        'method': 'frappe.client.get',
+        'args': {
+            'doctype': "SEG Settings",
+            'name': "SEG Settings"
+        },
+        'callback': function(response) {
+            if (response.message) {
+               cur_frm.fields_dict['items'].grid.grid_rows.forEach((grid_row)=> {
+                    grid_row.docfields.forEach((df)=>{
+                        if (df.fieldname == "purchase_price") {
+                            df.depends_on = `eval:doc.item_code == "${response.message.free_text_item}"`;
+                            df.reqd = 1;
+                        }
+                    });
+                });
+                cur_frm.refresh_field('items');
+            }
+        }
+    });
 }
