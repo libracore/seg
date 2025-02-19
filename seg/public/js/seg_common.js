@@ -80,3 +80,29 @@ function add_nextcloud_button(frm) {
         }
     });
 }
+
+function custom_mail_dialog(frm) {
+    frappe.call({
+        'method': 'seg.seg.utils.get_email_recipient_and_message',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            var recipient = response.message.recipient || cur_frm.doc.contact_email;
+            var subject = response.message.subject
+            var message = response.message.message
+            new frappe.views.CommunicationComposer({
+                doc: {
+                    doctype: cur_frm.doc.doctype,
+                    name: cur_frm.doc.name
+                },
+                subject: subject,
+                //~ cc:  cc,
+                //~ bcc: bcc,
+                recipients: recipient,
+                attach_document_print: true,
+                message: message
+            });
+        }
+    });
+}
