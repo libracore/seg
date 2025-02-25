@@ -15,7 +15,11 @@
   "col_nextcloud",
   "storage_folder",
   "restricted_storage_folder",
-  "nextcloud_enabled"
+  "nextcloud_enabled",
+  "email_template_section",
+  "dn_email_template",
+  "pr_email_template",
+  "rp_email_template"
  ],
  "fields": [
   {
@@ -79,10 +83,33 @@
    "fieldname": "restricted_storage_folder",
    "fieldtype": "Data",
    "label": "Restricted Storage Folder"
+  },
+  {
+   "fieldname": "email_template_section",
+   "fieldtype": "Section Break",
+   "label": "E-Mail Templates"
+  },
+  {
+   "fieldname": "dn_email_template",
+   "fieldtype": "Link",
+   "label": "Delivery Note Template",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "pr_email_template",
+   "fieldtype": "Link",
+   "label": "Payment Reminder",
+   "options": "Email Template"
+  },
+  {
+   "fieldname": "rp_email_template",
+   "fieldtype": "Link",
+   "label": "Reminder of Payment",
+   "options": "Email Template"
   }
  ],
  "issingle": 1,
- "modified": "2025-02-11 16:26:45.681687",
+ "modified": "2025-02-25 12:21:08.321171",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

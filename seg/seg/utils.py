@@ -194,15 +194,33 @@ def get_email_recipient_and_message(doc):
     
     #get recipient
     recipient = None
-    if doc.get('doctype') == "Sales Invoice":
+    if doc.get('doctype') == "Sales Invoice" or doc.get('doctype') == "Payment Reminder":
         recipient = frappe.db.get_value("Customer", doc.get('customer'), "preferred_invoice_email")
     
     #get subject
-    subject = "{0}: {1}".format(map_doctype(doc.get('doctype')), doc.get('name'))
+    if doc.get('doctype') == "Payment Reminder":
+        if doc.get('highest_level') > 1:
+            subject = "Mahnung: {0}".format(doc.get('name'))
+        else:
+            subject = "Zahlungserinnerung: {0}".format(doc.get('name'))
+    elif doc.get('doctype') == "Delivery Note":
+        subject = "Auftragsbestätigung: {0}".format(doc.get('name'))
+    else:
+        subject = "{0}: {1}".format(map_doctype(doc.get('doctype')), doc.get('name'))
     
     #get message
     html = None
-    html = frappe.db.get_value("Email Template", doc.get('doctype'), "response")
+    if doc.get('doctype') == "Delivery Note":
+        template = frappe.get_value("SEG Settings", "SEG Settings", "dn_email_template")
+        html = frappe.db.get_value("Email Template", template, "response")
+    elif doc.get('doctype') == "Payment Reminder":
+        if doc.get('highest_level') > 1:
+            template = frappe.get_value("SEG Settings", "SEG Settings", "pr_email_template")
+        else:
+            template = frappe.get_value("SEG Settings", "SEG Settings", "rp_email_template")
+        html = frappe.db.get_value("Email Template", template, "response")
+    else:
+        html = frappe.db.get_value("Email Template", doc.get('doctype'), "response")
     
     return {
         'recipient': recipient,
