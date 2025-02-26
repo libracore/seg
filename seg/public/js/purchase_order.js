@@ -67,7 +67,6 @@ function set_taxes_template(frm) {
             },
             'callback': function(response) {
                 if (response.message) {
-                    console.log(response.message);
                     cur_frm.set_value("taxes_and_charges", response.message);
                 } else {
                     cur_frm.set_value("taxes_and_charges", null);
