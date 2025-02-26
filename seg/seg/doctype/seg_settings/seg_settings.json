@@ -16,6 +16,9 @@
   "storage_folder",
   "restricted_storage_folder",
   "nextcloud_enabled",
+  "purchase_taxes_section",
+  "switzerland_purchase_taxes",
+  "foreign_purchase_taxes",
   "email_template_section",
   "dn_email_template",
   "pr_email_template",
@@ -85,6 +88,23 @@
    "label": "Restricted Storage Folder"
   },
   {
+   "fieldname": "purchase_taxes_section",
+   "fieldtype": "Section Break",
+   "label": "Purchase Taxes"
+  },
+  {
+   "fieldname": "switzerland_purchase_taxes",
+   "fieldtype": "Link",
+   "label": "Switzerland",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
+   "fieldname": "foreign_purchase_taxes",
+   "fieldtype": "Link",
+   "label": "Foreign countries",
+   "options": "Purchase Taxes and Charges Template"
+  },
+  {
    "fieldname": "email_template_section",
    "fieldtype": "Section Break",
    "label": "E-Mail Templates"
@@ -109,7 +129,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2025-02-25 12:21:08.321171",
+ "modified": "2025-02-26 11:00:00.143462",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",
