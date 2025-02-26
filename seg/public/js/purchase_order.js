@@ -3,6 +3,11 @@
 
 frappe.ui.form.on('Purchase Order',  {
     refresh: function(frm) {
+        //Set Taxes template
+        if (frm.doc.__islocal) {
+            set_taxes_template(frm);
+        }
+        
         if (frm.doc.docstatus == 1) {
             // custom mail dialog (prevent duplicate icons on creation)
             if (document.getElementsByClassName("fa-envelope-o").length === 0) {
@@ -14,6 +19,7 @@ frappe.ui.form.on('Purchase Order',  {
             }
         }
         
+        //Filter drop Ship Reference
        frm.set_query('drop_ship_reference', function() {
             return {
                 filters: {
@@ -24,6 +30,9 @@ frappe.ui.form.on('Purchase Order',  {
     },
     drop_ship_reference: function(frm) {
         set_drop_ship_address(frm);
+    },
+    supplier: function(frm) {
+        set_taxes_template(frm);
     }
 });
 
@@ -48,3 +57,26 @@ function set_drop_ship_address(frm) {
         cur_frm.set_value("drop_ship_customer", null);
     }
 }
+
+function set_taxes_template(frm) {
+    if (frm.doc.supplier) {
+        frappe.call({
+            'method': 'seg.seg.purchasing.get_taxes_template',
+            'args': {
+                'supplier': frm.doc.supplier
+            },
+            'callback': function(response) {
+                if (response.message) {
+                    console.log(response.message);
+                    cur_frm.set_value("taxes_and_charges", response.message);
+                } else {
+                    cur_frm.set_value("taxes_and_charges", null);
+                }
+            }
+        });
+    } else {
+        cur_frm.set_value("taxes_and_charges", null);
+    }
+}
+
+

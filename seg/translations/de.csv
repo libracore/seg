@@ -15,3 +15,6 @@ DocType: Purchase Order,Drop Ship Reference,Referenz Direktlieferung
 DocType: Purchase Order,Drop Ship Customer,Kunde Direktlieferung
 DocType: Purchase Order,Drop Ship Address,Adresse Direktlieferung
 DocType: Purchase Order,Requested delivery date,Gewünschtes Lieferdatum
+DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
+DocType: SEG Settings,Switzerland,Schweiz
+DocType: SEG Settings,Foreign countries,Ausland
