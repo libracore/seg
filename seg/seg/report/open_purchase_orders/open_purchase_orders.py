@@ -37,5 +37,4 @@ def get_data(filters):
                                 {condition}
                             ORDER BY `schedule_date` DESC;""".format(condition=condition), as_dict=True)
     
-    frappe.log_error(data, "data")
     return data
