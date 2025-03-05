@@ -80,6 +80,12 @@ def get_data():
                        "description": _("Purchase Invoice")
                    },
                    {
+                       "type": "report",
+                       "name": "Open Purchase Orders",
+                       "label": _("Open Purchase Orders"),
+                       "is_query_report": True
+                   },
+                   {
                        "type": "doctype",
                        "name": "Payment Proposal",
                        "label": _("Payment Proposal"),
