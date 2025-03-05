@@ -14,6 +14,7 @@ from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
 from erpnextswiss.erpnextswiss.datatrans import get_payment_status
 from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
+from frappe.core.doctype.communication.email import make
 
 PREPAID = "N20"
 
@@ -987,6 +988,8 @@ def create_user(api_key, email, password, company_name, first_name,
             })
             contact.save(ignore_permissions=True)
         frappe.db.commit()
+        #send Information to SEG, that a new user has been registered
+        send_info_mail(company_name, first_name, last_name)
         return {'status': 'success'}
     else:
         return {'status': 'Authentication failed'}
@@ -1133,3 +1136,21 @@ def get_payment_method(transaction_id):
         else:
             return None
         return payment_method
+
+def send_info_mail(company_name=None, first_name=None, last_name=None):
+    #Get Recipient
+    recipient = frappe.get_value("SEG Settings", "SEG Settings", "new_webshop_user_email")
+    if recipient:
+        #Create Message
+        message = "Guten Tag,<br><br>ein neuer Benutzer hat sich im Webshop registriert:<br><br>Firma: {0}<br><br>Name: {1} {2}".format(company_name or "n/a", first_name or "-", last_name or "-")
+        
+        #Send E-Mail
+        make(
+             recipients = recipient,
+             sender = "info@seg.swiss",
+             subject = "Neuer Webshop Benutzer",
+             content = message,
+             send_email = True
+        )
+        
+    return

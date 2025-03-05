@@ -22,7 +22,9 @@
   "email_template_section",
   "dn_email_template",
   "pr_email_template",
-  "rp_email_template"
+  "rp_email_template",
+  "reminder_section",
+  "new_webshop_user_email"
  ],
  "fields": [
   {
@@ -126,10 +128,23 @@
    "fieldtype": "Link",
    "label": "Reminder of Payment",
    "options": "Email Template"
+  },
+  {
+   "fieldname": "reminder_section",
+   "fieldtype": "Section Break",
+   "label": "Reminders"
+  },
+  {
+   "fieldname": "new_webshop_user_email",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "New Webshop User E-Mail",
+   "options": "User",
+   "reqd": 1
   }
  ],
  "issingle": 1,
- "modified": "2025-02-26 11:00:00.143462",
+ "modified": "2025-03-05 15:23:06.039208",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",
