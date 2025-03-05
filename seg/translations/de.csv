@@ -6,6 +6,7 @@ DocType: Sales Order,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Item,French Attributes,Französische Attribute
+DocType: Item,Shipping Unit,Versandeinheit
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe
@@ -15,6 +16,7 @@ DocType: Purchase Order,Drop Ship Reference,Referenz Direktlieferung
 DocType: Purchase Order,Drop Ship Customer,Kunde Direktlieferung
 DocType: Purchase Order,Drop Ship Address,Adresse Direktlieferung
 DocType: Purchase Order,Requested delivery date,Gewünschtes Lieferdatum
+DocType: Purchase Order,Order quantities,Bestellmengen
 DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
 DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
