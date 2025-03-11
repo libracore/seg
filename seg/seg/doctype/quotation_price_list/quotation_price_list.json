@@ -9,6 +9,7 @@
   "column_break_3",
   "customer",
   "customer_name",
+  "user",
   "contact",
   "contact_display",
   "template_section",
@@ -76,9 +77,16 @@
    "fieldtype": "Table",
    "label": "Items",
    "options": "Quotation Price List Items"
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "User",
+   "read_only": 1
   }
  ],
- "modified": "2025-03-11 10:54:25.233655",
+ "modified": "2025-03-11 20:28:53.331997",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List",

@@ -83,20 +83,21 @@ function set_items(frm) {
             'doc': frm.doc
         },
         'callback': function(response) {
+            console.log(response.message);
             if (response.message.something_to_import) {
                 //create new items
-                for (let i = 0; response.message.new_items.length; i++) {
+                for (let i = 0; i < response.message.new_items.length; i++) {
                     var child = cur_frm.add_child('items');
                     frappe.model.set_value(child.doctype, child.name, 'item_code', response.message.new_items[i].item_code);
                     frappe.model.set_value(child.doctype, child.name, 'item_price', response.message.new_items[i].item_price);
                 }
                 
                 //mark imported templates
-                for (let j = 0; response.message.imported_templates.length; j++) {
+                for (let j = 0; j < response.message.imported_templates.length; j++) {
                     frappe.model.set_value("Quotation Price List Templates", response.message.imported_templates[j], "items_set", 1);
                 }
             } else {
-                show_alert('Keine neuen Artikel importiert', 3);
+                frappe.show_alert('Keine neuen Artikel importiert', 3);
             }
         }
     });
