@@ -21,6 +21,12 @@ def get_data():
                    },
                    {
                        "type": "doctype",
+                       "name": "Quotation Price List",
+                       "label": _("Quotation Price List"),
+                       "description": _("Quotation Price List")
+                   },
+                   {
+                       "type": "doctype",
                        "name": "Sales Order",
                        "label": _("Sales Order"),
                        "description": _("Sales Order")
