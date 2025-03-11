@@ -33,10 +33,14 @@ frappe.ui.form.on('Quotation Price List', {
             };
         };
     },
+    before_save: function(frm) {
+        set_items(frm);
+    },
     contact: function(frm) {
         display_contact(frm);
     },
     customer: function(frm) {
+        //Remove Contact and Customer Name if Customer is changed
         cur_frm.set_value("contact", null);
         if (!frm.doc.customer) {
             cur_frm.set_value("customer_name", null);
@@ -70,4 +74,30 @@ function display_contact(frm) {
    } else {
        cur_frm.set_value("contact_display", null);
     }
+}
+
+function set_items(frm) {
+    frappe.call({
+        'method': 'seg.seg.doctype.quotation_price_list.quotation_price_list.get_new_items',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message.something_to_import) {
+                //create new items
+                for (let i = 0; response.message.new_items.length; i++) {
+                    var child = cur_frm.add_child('items');
+                    frappe.model.set_value(child.doctype, child.name, 'item_code', response.message.new_items[i].item_code);
+                    frappe.model.set_value(child.doctype, child.name, 'item_price', response.message.new_items[i].item_price);
+                }
+                
+                //mark imported templates
+                for (let j = 0; response.message.imported_templates.length; j++) {
+                    frappe.model.set_value("Quotation Price List Templates", response.message.imported_templates[j], "items_set", 1);
+                }
+            } else {
+                show_alert('Keine neuen Artikel importiert', 3);
+            }
+        }
+    });
 }
