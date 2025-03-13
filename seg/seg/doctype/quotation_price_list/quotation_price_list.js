@@ -1,6 +1,6 @@
 // Copyright (c) 2025, libracore AG and contributors
 // For license information, please see license.txt
-//~ let updating_fields = false;
+let updating_fields = false;
 
 frappe.ui.form.on('Quotation Price List', {
     refresh: function(frm) {
@@ -119,25 +119,27 @@ function set_items(frm) {
 }
 
 function recalculate_prices(row, trigger) {
-    //~ if (updating_fields) return;
-    //Calculate Item Price
-    updating_fields = true
-    if (trigger == "item_price") {
-        let discount = 100 - (row.item_price * 100 / row.price_list_rate)
-        frappe.model.set_value(row.doctype, row.name, "discount", discount);
-        if (row.kg_price) {
-            calculate_kg_and_l(row);
+    console.log(updating_fields);
+    if (!updating_fields) {
+        //Calculate Item Price
+        updating_fields = true
+        if (trigger == "item_price") {
+            let discount = 100 - (row.item_price * 100 / row.price_list_rate)
+            frappe.model.set_value(row.doctype, row.name, "discount", discount);
+            if (row.kg_price) {
+                calculate_kg_and_l(row);
+            }
         }
-    }
-    
-    if (trigger == "discount") {
-        let item_price = row.item_price * row.discount / 100
-        frappe.model.set_value(row.doctype, row.name, "item_price", item_price);
-        if (row.kg_price) {
-            calculate_kg_and_l(row);
+        
+        if (trigger == "discount") {
+            let item_price = row.item_price * row.discount / 100
+            frappe.model.set_value(row.doctype, row.name, "item_price", item_price);
+            if (row.kg_price) {
+                calculate_kg_and_l(row);
+            }
         }
+        updating_fields = false
     }
-    //~ updating_fields = false
 }
 
 function calculate_kg_and_l(row) {
