@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 import json
 from seg.seg.shop import get_recursive_item_groups
+import re
 
 class QuotationPriceList(Document):
 	pass
@@ -31,7 +32,8 @@ def get_new_items(doc):
             if is_template:
                 items = frappe.db.sql("""
                                         SELECT
-                                            `item_code`
+                                            `item_code`,
+                                            `variant_of`
                                         FROM
                                             `tabItem`
                                         WHERE
@@ -40,7 +42,7 @@ def get_new_items(doc):
                                             `disabled` = 0""".format(template=template.get('item_code')), as_dict=True)
             #if it is a single item, just add this item
             else:
-                items = [{'item_code': template.get('item_code')}]
+                items = [{'item_code': template.get('item_code'), 'variant_of': template.get('name')}]
         
         #get price for each item, add item and releated price to new items
         if len(items) > 0:
@@ -49,7 +51,8 @@ def get_new_items(doc):
                 for price in prices:
                     if item.get('item_code') == price.get('item_code'):
                         item_price = price.get('discounted_rate')
-                new_items.append({'item_code': item.get('item_code'), 'item_price': item_price})
+                        price_list_rate = price.get('price_list_rate')
+                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l')})
             
             #add template to imported templates and set flag for JS
             imported_templates.append(template.get('name'))
@@ -109,3 +112,51 @@ def get_prices(item_code, customer):
     """.format(customer=customer, item_code=item_code, item_groups=", ".join('"{w}"'.format(w=w) for w in item_groups), lang = "")
     data = frappe.db.sql(sql_query, as_dict=True)
     return data
+
+@frappe.whitelist()
+def get_kg_and_l_price(row):
+    row = json.loads(row)
+    
+    #get item Attribute
+    item_attribute = frappe.db.sql("""
+                                    SELECT
+                                        `attribute_value`
+                                    FROM
+                                        `tabItem Variant Attribute`
+                                    WHERE
+                                        `attribute` = "Gebinde"
+                                    AND
+                                        `parent` = '{item}'""".format(item=row.get('item_code')), as_dict=True)
+                                        
+    if len(item_attribute) > 0:
+        item_attribute_value = item_attribute[0].get('attribute_value')
+    else:
+        frappe.throw("Kein Gebinde Attribut in Artikel {0} gefunden!".format(row.get('item_code')))
+        
+    #get unit of Attribute (kg or l)
+    qty, unit = extract_unit(item_attribute[0].get('attribute_value'))
+    
+    if not qty or not unit:
+        frappe.throw("Gebinde Attribut von Artikel {0} konnte nicht gelesen werden! Bitte Attribut überprüfen.".format(row.get('item_code')))
+        
+    #Calculate kg and Liter prices
+    density = frappe.get_value("Item", row.get('item_code'), "density")
+    if unit == "L":
+        liter_price = row.get('item_price') / qty
+        kg_price = liter_price / density
+    elif unit == "KG":
+        kg_price = row.get('item_price') / qty
+        liter_price = kg_price * density
+    else:
+        frappe.throw("Gebinde Attribut von Artikel {0} konnte nicht gelesen werden! Bitte Attribut überprüfen.".format(row.get('item_code')))
+        
+    #Return Prices
+    return {'liter_price': liter_price, 'kg_price': kg_price}
+
+def extract_unit(s):
+    match = re.match(r"^(\d+(\.\d+)?)(KG|L)", s, re.IGNORECASE)
+    if match:
+        qty = float(match.group(1))
+        unit = match.group(3).upper()
+        return qty, unit
+    return None, None

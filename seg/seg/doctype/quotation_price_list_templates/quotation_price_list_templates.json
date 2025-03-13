@@ -7,6 +7,7 @@
   "item_code",
   "column_break_2",
   "item_name",
+  "calculate_kg_and_l",
   "items_set",
   "section_break_5",
   "description"
@@ -29,7 +30,8 @@
    "fieldname": "item_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Item Name"
+   "label": "Item Name",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -48,10 +50,18 @@
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "label": "Description"
+  },
+  {
+   "default": "0",
+   "fetch_from": "item_code.calculate_kg_and_l",
+   "fieldname": "calculate_kg_and_l",
+   "fieldtype": "Check",
+   "label": "Calculate kg and l Prices",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2025-03-11 10:43:29.799135",
+ "modified": "2025-03-13 16:40:33.510039",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List Templates",

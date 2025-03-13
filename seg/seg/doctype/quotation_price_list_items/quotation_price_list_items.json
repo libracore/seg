@@ -12,11 +12,13 @@
   "variant",
   "variant_of",
   "price_section",
+  "price_list_rate",
   "item_price",
   "item_price_l",
   "item_price_kg",
   "column_break_10",
-  "kg_price"
+  "kg_price",
+  "discount"
  ],
  "fields": [
   {
@@ -53,7 +55,6 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval: doc.kg_price == 0;",
    "fieldname": "item_price",
    "fieldtype": "Currency",
    "in_list_view": 1,
@@ -63,13 +64,15 @@
    "depends_on": "eval: doc.kg_price;",
    "fieldname": "item_price_l",
    "fieldtype": "Currency",
-   "label": "Price per Liter"
+   "label": "Price per Liter",
+   "read_only": 1
   },
   {
    "depends_on": "eval: doc.kg_price;",
    "fieldname": "item_price_kg",
    "fieldtype": "Currency",
-   "label": "Price per kg"
+   "label": "Price per kg",
+   "read_only": 1
   },
   {
    "fieldname": "variant",
@@ -98,10 +101,21 @@
    "fieldtype": "Data",
    "label": "Packaging Type",
    "read_only": 1
+  },
+  {
+   "fieldname": "price_list_rate",
+   "fieldtype": "Currency",
+   "label": "Price List Rate",
+   "read_only": 1
+  },
+  {
+   "fieldname": "discount",
+   "fieldtype": "Percent",
+   "label": "Discount"
   }
  ],
  "istable": 1,
- "modified": "2025-03-11 12:09:04.790045",
+ "modified": "2025-03-13 16:40:59.028879",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List Items",

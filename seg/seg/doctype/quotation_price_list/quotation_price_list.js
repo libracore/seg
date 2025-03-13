@@ -1,5 +1,6 @@
 // Copyright (c) 2025, libracore AG and contributors
 // For license information, please see license.txt
+//~ let updating_fields = false;
 
 frappe.ui.form.on('Quotation Price List', {
     refresh: function(frm) {
@@ -48,6 +49,17 @@ frappe.ui.form.on('Quotation Price List', {
     }
 });
 
+frappe.ui.form.on('Quotation Price List Items', {
+    item_price(frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        recalculate_prices(row, "item_price");
+    },
+    discount(frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        recalculate_prices(row, "discount");
+    }
+});
+
 function display_contact(frm) {
     if (frm.doc.contact) {
        frappe.call({
@@ -88,8 +100,11 @@ function set_items(frm) {
                 //create new items
                 for (let i = 0; i < response.message.new_items.length; i++) {
                     var child = cur_frm.add_child('items');
+                    frappe.model.set_value(child.doctype, child.name, 'price_list_rate', response.message.new_items[i].price_list_rate);
                     frappe.model.set_value(child.doctype, child.name, 'item_code', response.message.new_items[i].item_code);
+                    frappe.model.set_value(child.doctype, child.name, 'variant_of', response.message.new_items[i].variant_of);
                     frappe.model.set_value(child.doctype, child.name, 'item_price', response.message.new_items[i].item_price);
+                    frappe.model.set_value(child.doctype, child.name, 'kg_price', response.message.new_items[i].kg_price);
                 }
                 
                 //mark imported templates
@@ -98,6 +113,43 @@ function set_items(frm) {
                 }
             } else {
                 frappe.show_alert('Keine neuen Artikel importiert', 3);
+            }
+        }
+    });
+}
+
+function recalculate_prices(row, trigger) {
+    //~ if (updating_fields) return;
+    //Calculate Item Price
+    updating_fields = true
+    if (trigger == "item_price") {
+        let discount = 100 - (row.item_price * 100 / row.price_list_rate)
+        frappe.model.set_value(row.doctype, row.name, "discount", discount);
+        if (row.kg_price) {
+            calculate_kg_and_l(row);
+        }
+    }
+    
+    if (trigger == "discount") {
+        let item_price = row.item_price * row.discount / 100
+        frappe.model.set_value(row.doctype, row.name, "item_price", item_price);
+        if (row.kg_price) {
+            calculate_kg_and_l(row);
+        }
+    }
+    //~ updating_fields = false
+}
+
+function calculate_kg_and_l(row) {
+    frappe.call({
+        'method': 'seg.seg.doctype.quotation_price_list.quotation_price_list.get_kg_and_l_price',
+        'args': {
+            'row': row
+        },
+        'callback': function(response) {
+            if (response.message) {
+                frappe.model.set_value(row.doctype, row.name, "item_price_l", response.message.liter_price);
+                frappe.model.set_value(row.doctype, row.name, "item_price_kg", response.message.kg_price);
             }
         }
     });
