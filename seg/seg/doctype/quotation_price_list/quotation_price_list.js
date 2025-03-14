@@ -7,6 +7,8 @@ frappe.ui.form.on('Quotation Price List', {
         //Autoset Sales Person
         if (cur_frm.doc.__islocal) {
             cur_frm.set_value("sales_person", frappe.session.user);
+        } else {
+            cur_frm.set_df_property('customer','read_only', true);
         }
         //Filter Sales Person
         frm.set_query('sales_person', function() {
@@ -33,6 +35,32 @@ frappe.ui.form.on('Quotation Price List', {
                 }
             };
         };
+        
+        //Filter Addresses
+       frm.set_query('customer_address', function() {
+            return {
+                filters: {
+                    'link_name': frm.doc.customer
+                }
+            };
+        });
+        
+       frm.set_query('shipping_address_name', function() {
+            return {
+                filters: {
+                    'link_name': frm.doc.customer
+                }
+            };
+        });
+        
+        //Filter Customers
+       frm.set_query('customer', function() {
+            return {
+                filters: {
+                    'customer_group': frm.doc.customer_group
+                }
+            };
+        });
     },
     before_save: function(frm) {
         set_items(frm);
@@ -41,11 +69,25 @@ frappe.ui.form.on('Quotation Price List', {
         display_contact(frm);
     },
     customer: function(frm) {
-        //Remove Contact and Customer Name if Customer is changed
+        //Remove Contact, Addresses and Customer Name if Customer is changed
+        cur_frm.set_value("customer_address", null);
+        cur_frm.set_value("shipping_address_name", null);
         cur_frm.set_value("contact", null);
         if (!frm.doc.customer) {
             cur_frm.set_value("customer_name", null);
+        } else {
+            //Set Primary Address
+            set_address(frm);
         }
+    },
+    customer_address: function(frm) {
+        display_address(frm.doc.customer_address, "address_display");
+    },
+    shipping_address_name: function(frm) {
+        display_address(frm.doc.shipping_address_name, "shipping_address");
+    },
+    sales_person: function(frm) {
+        set_customer_group(frm.doc.sales_person);
     }
 });
 
@@ -95,7 +137,6 @@ function set_items(frm) {
             'doc': frm.doc
         },
         'callback': function(response) {
-            console.log(response.message);
             if (response.message.something_to_import) {
                 //create new items
                 for (let i = 0; i < response.message.new_items.length; i++) {
@@ -108,7 +149,9 @@ function set_items(frm) {
                     frappe.model.set_value(child.doctype, child.name, 'discount', response.message.new_items[i].discount);
                     frappe.model.set_value(child.doctype, child.name, 'variant', response.message.new_items[i].variant);
                     let row = frappe.get_doc(child.doctype, child.name);
-                    calculate_kg_and_l(row)
+                    if (row.kg_price) {
+                        calculate_kg_and_l(row);
+                    }
                 }
                 
                 //mark imported templates
@@ -161,4 +204,63 @@ function calculate_kg_and_l(row) {
             }
         }
     });
+}
+
+function display_address(address, target_field) {
+    if (address) {
+        frappe.call({
+            method: 'frappe.contacts.doctype.address.address.get_address_display',
+            args: {
+                address_dict: address
+            },
+            callback: function(response) {
+                if (response.message) {
+                    cur_frm.set_value(target_field, response.message);
+                }
+            }
+        });
+    } else {
+       cur_frm.set_value(target_field, null);
+    }
+}
+
+function set_address(frm) {
+    frappe.call({
+        method: "frappe.client.get_list",
+        args: {
+            doctype: "Address",
+            filters: {
+                link_doctype: "Customer",
+                link_name: cur_frm.doc.customer,
+                address_type: "Billing",
+                is_primary_address: 1
+            },
+            fields: ["name"]
+        },
+        callback: function(response) {
+            if (response.message.length > 0) {
+                cur_frm.set_value("customer_address", response.message[0].name);
+            }
+        }
+    });
+}
+
+function set_customer_group(sales_person) {
+    if (sales_person) {
+        frappe.call({
+            'method': 'seg.seg.doctype.quotation_price_list.quotation_price_list.get_customer_group',
+            'args': {
+                'user': sales_person
+            },
+            'callback': function(response) {
+                if (response.message) {
+                    cur_frm.set_value("customer_group", response.message);
+                } else {
+                    cur_frm.set_value("customer_group", null);
+                }
+            }
+        });
+    } else {
+        cur_frm.set_value("customer_group", null);
+    }
 }

@@ -1,16 +1,21 @@
 {
- "autoname": "QPR-.#####",
+ "autoname": "PL-.#####",
  "creation": "2025-03-11 09:14:26.887487",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "sales_person",
+  "customer_group",
   "language",
   "column_break_3",
   "customer",
   "customer_name",
   "user",
+  "customer_address",
+  "address_display",
+  "shipping_address_name",
+  "shipping_address",
   "contact",
   "contact_display",
   "template_section",
@@ -93,9 +98,41 @@
    "fieldtype": "Link",
    "label": "Language",
    "options": "Language"
+  },
+  {
+   "depends_on": "eval: doc.customer;",
+   "fieldname": "customer_address",
+   "fieldtype": "Link",
+   "label": "Customer Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "address_display",
+   "fieldtype": "Small Text",
+   "label": "Address",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval: doc.customer;",
+   "fieldname": "shipping_address_name",
+   "fieldtype": "Link",
+   "label": "Shipping Address",
+   "options": "Address"
+  },
+  {
+   "fieldname": "shipping_address",
+   "fieldtype": "Small Text",
+   "label": "Shipping Address",
+   "read_only": 1
+  },
+  {
+   "fieldname": "customer_group",
+   "fieldtype": "Data",
+   "label": "Customer Group",
+   "read_only": 1
   }
  ],
- "modified": "2025-03-13 15:10:09.924328",
+ "modified": "2025-03-14 15:08:10.086668",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List",

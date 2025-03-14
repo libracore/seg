@@ -47,8 +47,7 @@ def get_new_items(doc):
                                             `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
             #if it is a single item, just add this item
             else:
-                items = [{'item_code': template.get('item_code'), 'variant_of': template.get('name')}]
-        frappe.log_error(items, "items")
+                items = [{'item_code': template.get('item_code'), 'variant_of': template.get('item_code')}]
         #get price for each item, add item and releated price to new items
         if len(items) > 0:
             for item in items:
@@ -166,3 +165,10 @@ def extract_unit(s):
         unit = match.group(3).upper()
         return qty, unit
     return None, None
+
+@frappe.whitelist()
+def get_customer_group(user):
+    first_name = frappe.get_value("User", user, "first_name")
+    customer_group = None
+    customer_group = frappe.get_value("Customer Group", first_name, "name")
+    return customer_group
