@@ -10,6 +10,9 @@ frappe.ui.form.on('Item',  {
             
             add_nextcloud_button(frm);
         }
+        
+        //Set Options for Main Variant Attribute (Quotation Price List)
+        set_main_attribute_options(frm);
     },
     packaging_type: function(frm) {
         set_french_packaging_type(frm);
@@ -37,3 +40,18 @@ function set_french_packaging_type(frm) {
         cur_frm.set_value("packaging_type_fr", "Palette");
     }
 }
+
+function set_main_attribute_options(frm) {
+    if (frm.doc.attributes && frm.doc.attributes) {
+        var options = [];
+        for (i=0; i < frm.doc.attributes.length; i++) {
+            if (frm.doc.attributes[i].attribute) {
+                options.push(frm.doc.attributes[i].attribute);
+            }
+        }
+        var options_string = options.join("\n");
+        frm.set_df_property('main_variant_attribute', 'options', options_string);
+        frm.set_df_property('main_variant_attribute', 'hidden', false);
+    }
+}
+

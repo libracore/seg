@@ -32,18 +32,23 @@ def get_new_items(doc):
             if is_template:
                 items = frappe.db.sql("""
                                         SELECT
-                                            `item_code`,
-                                            `variant_of`
+                                            `tabItem`.`item_code`,
+                                            `tabItem`.`variant_of`,
+                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`
                                         FROM
                                             `tabItem`
+                                        LEFT JOIN
+                                            `tabItem Variant Attribute` ON `tabItem Variant Attribute`.`parent` = `tabItem`.`name`
                                         WHERE
-                                            `variant_of` = '{template}'
+                                            `tabItem`.`variant_of` = '{template}'
                                         AND
-                                            `disabled` = 0""".format(template=template.get('item_code')), as_dict=True)
+                                            `tabItem`.`disabled` = 0
+                                        GROUP BY
+                                            `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
             #if it is a single item, just add this item
             else:
                 items = [{'item_code': template.get('item_code'), 'variant_of': template.get('name')}]
-        
+        frappe.log_error(items, "items")
         #get price for each item, add item and releated price to new items
         if len(items) > 0:
             for item in items:
@@ -52,7 +57,8 @@ def get_new_items(doc):
                     if item.get('item_code') == price.get('item_code'):
                         item_price = price.get('discounted_rate')
                         price_list_rate = price.get('price_list_rate')
-                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l')})
+                        discount = price.get('discount_percentage')
+                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value')})
             
             #add template to imported templates and set flag for JS
             imported_templates.append(template.get('name'))

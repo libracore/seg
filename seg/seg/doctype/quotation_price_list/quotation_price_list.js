@@ -105,6 +105,10 @@ function set_items(frm) {
                     frappe.model.set_value(child.doctype, child.name, 'variant_of', response.message.new_items[i].variant_of);
                     frappe.model.set_value(child.doctype, child.name, 'item_price', response.message.new_items[i].item_price);
                     frappe.model.set_value(child.doctype, child.name, 'kg_price', response.message.new_items[i].kg_price);
+                    frappe.model.set_value(child.doctype, child.name, 'discount', response.message.new_items[i].discount);
+                    frappe.model.set_value(child.doctype, child.name, 'variant', response.message.new_items[i].variant);
+                    let row = frappe.get_doc(child.doctype, child.name);
+                    calculate_kg_and_l(row)
                 }
                 
                 //mark imported templates
@@ -119,26 +123,28 @@ function set_items(frm) {
 }
 
 function recalculate_prices(row, trigger) {
-    console.log(updating_fields);
     if (!updating_fields) {
         //Calculate Item Price
         updating_fields = true
         if (trigger == "item_price") {
             let discount = 100 - (row.item_price * 100 / row.price_list_rate)
-            frappe.model.set_value(row.doctype, row.name, "discount", discount);
+            frappe.model.set_value(row.doctype, row.name, "discount", discount).then(() => {
+                updating_fields = false
+            });
             if (row.kg_price) {
                 calculate_kg_and_l(row);
             }
         }
         
         if (trigger == "discount") {
-            let item_price = row.item_price * row.discount / 100
-            frappe.model.set_value(row.doctype, row.name, "item_price", item_price);
+            let item_price = row.price_list_rate - (row.price_list_rate * row.discount / 100)
+            frappe.model.set_value(row.doctype, row.name, "item_price", item_price).then(() => {
+                updating_fields = false
+            });
             if (row.kg_price) {
                 calculate_kg_and_l(row);
             }
         }
-        updating_fields = false
     }
 }
 
