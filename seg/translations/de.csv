@@ -20,3 +20,4 @@ DocType: Purchase Order,Order quantities,Bestellmengen
 DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
 DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
+DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
