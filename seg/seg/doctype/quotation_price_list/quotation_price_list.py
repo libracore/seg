@@ -43,6 +43,8 @@ def get_new_items(doc):
                                             `tabItem`.`variant_of` = '{template}'
                                         AND
                                             `tabItem`.`disabled` = 0
+                                        AND
+                                            `tabItem`.`exclude_from_quotation_price_list` = 0
                                         GROUP BY
                                             `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
             #if it is a single item, just add this item
