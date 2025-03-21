@@ -10,10 +10,11 @@ frappe.ui.form.on('Item',  {
             
             add_nextcloud_button(frm);
         }
-        
-        //Set Options for Main Variant Attribute (Quotation Price List)
-        set_main_attribute_options(frm);
+    },
+    packaging_type: function(frm) {
+        set_french_packaging_type(frm);
     }
+
 });
 
 function set_french_attributes(frm) {
