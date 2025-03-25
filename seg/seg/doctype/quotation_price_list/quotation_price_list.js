@@ -275,10 +275,7 @@ function set_customer_group(sales_person) {
 }
 
 function remove_items(frm, template) {
-    console.log("Start");
-    console.log(frm.doc.items.length);
-    for (let i = frm.doc.items.length -1; i <= 0; i--) {
-        console.log(i);
+    for (let i = frm.doc.items.length -1; i >= 0; i--) {
         if (frm.doc.items[i].variant_of == template) {
             console.log(frm.doc.items[i].idx);
             let items_row = frm.doc.items[i];

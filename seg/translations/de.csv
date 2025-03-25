@@ -7,6 +7,8 @@ DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Item,French Attributes,Französische Attribute
 DocType: Item,Shipping Unit,Versandeinheit
+DocType: Item,Calculate kg and l Prices,Liter und kg Preise berechnen
+DocType: Item,Exclude from Quotation Price List,Aus Angebots-Preislisten ausschliessen
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe
@@ -21,3 +23,4 @@ DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
 DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
 DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
+DocType: Quotation Price List,Templates,Artikelvorlagen
