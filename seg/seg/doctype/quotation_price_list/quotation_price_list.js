@@ -91,6 +91,15 @@ frappe.ui.form.on('Quotation Price List', {
     }
 });
 
+frappe.ui.form.on('Quotation Price List Templates', {
+    before_templates_remove(frm, cdt, cdn) {
+        let template_row = frappe.get_doc(cdt, cdn);
+        //Remove Items releated to template
+        remove_items(frm, template_row.item_code);
+        frm.refresh_field('items');
+    }
+});
+
 frappe.ui.form.on('Quotation Price List Items', {
     item_price(frm, cdt, cdn) {
         let row = frappe.get_doc(cdt, cdn);
@@ -262,5 +271,14 @@ function set_customer_group(sales_person) {
         });
     } else {
         cur_frm.set_value("customer_group", null);
+    }
+}
+
+function remove_items(frm, template) {
+    for (let i = frm.doc.items.length -1; i >= 0; i--) {
+        if (frm.doc.items[i].variant_of == template) {
+            let items_row = frm.doc.items[i];
+            frm.doc.items.splice(i, 1);
+        }
     }
 }
