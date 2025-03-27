@@ -9,6 +9,7 @@ DocType: Item,French Attributes,Französische Attribute
 DocType: Item,Shipping Unit,Versandeinheit
 DocType: Item,Calculate kg and l Prices,Liter und kg Preise berechnen
 DocType: Item,Exclude from Quotation Price List,Aus Angebots-Preislisten ausschliessen
+DocType: Item,Order recommendation supplier,Bestellempfehlung Lieferant
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe
