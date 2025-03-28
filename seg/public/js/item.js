@@ -17,6 +17,12 @@ frappe.ui.form.on('Item',  {
 
 });
 
+frappe.ui.form.on('Item Reorder',  {
+    reorder_levels_add: function(frm, cdt, cdn) {
+        frappe.model.set_value(cdt, cdn, "warehouse_reorder_qty", frm.doc.order_recommendation_supplier);
+    }
+});
+
 function set_french_attributes(frm) {
     frappe.call({
         'method': 'seg.seg.utils.set_french_attributes',
