@@ -17,7 +17,7 @@ def get_columns():
     return [
         {"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 85},
         {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 150},
-        {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group",  "width": 150},
+        {"label": _("Supplier"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group",  "width": 150},
         {"label": _("Stock UOM"), "fieldname": "stock_uom", "fieldtype": "Link", "width": 80, "options": "UOM"},
         {"label": _("Stock in SKU"), "fieldname": "stock_in_sku", "fieldtype": "Float", "width": 80},   
         {"label": _("Ordered Qty"), "fieldname": "ordered_qty", "fieldtype": "Float", "width": 80},
