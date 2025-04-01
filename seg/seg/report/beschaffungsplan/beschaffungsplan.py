@@ -5,6 +5,7 @@
 from __future__ import unicode_literals
 from datetime import datetime, timedelta
 import frappe
+from frappe.utils import date_diff
 from frappe import _
 
 def execute(filters=None):
@@ -16,8 +17,8 @@ def execute(filters=None):
 def get_columns():
     return [
         {"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 85},
-        {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 150},
-        {"label": _("Supplier"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group",  "width": 150},
+        {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 180},
+        {"label": _("Default Supplier"), "fieldname": "default_supplier", "fieldtype": "Link", "options": "Supplier",  "width": 120},
         {"label": _("Stock UOM"), "fieldname": "stock_uom", "fieldtype": "Link", "width": 80, "options": "UOM"},
         {"label": _("Stock in SKU"), "fieldname": "stock_in_sku", "fieldtype": "Float", "width": 80},   
         {"label": _("Ordered Qty"), "fieldname": "ordered_qty", "fieldtype": "Float", "width": 80},
@@ -36,35 +37,62 @@ def get_data(filters):
         SELECT
             `tabItem`.`item_code` AS `item_code`,
             `tabItem`.`item_name` AS `item_name`,
-            `tabItem`.`item_group` AS `item_group`,
+            `tabItem`.`default_supplier` AS `default_supplier`,
             `tabItem`.`stock_uom` AS `stock_uom`,
             SUM(`tabBin`.`actual_qty`) AS `stock_in_sku`,
             SUM(`tabBin`.`ordered_qty`) AS `ordered_qty`,
             `tabItem`.`lead_time_days` AS `lead_time_days`,
-            (SELECT SUM(`tabDelivery Note Item`.`qty`) / 180
+            (SELECT SUM(`tabDelivery Note Item`.`qty`)
              FROM `tabDelivery Note Item`
              LEFT JOIN `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
              WHERE `tabDelivery Note Item`.`item_code` = `tabItem`.`item_code`
                    AND `tabDelivery Note Item`.`docstatus` = 1
-                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 180 DAY) AND CURDATE()
-            ) AS `avg_consumption_per_day`,
-            0 AS `days_until_stock_ends`
+                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE()
+            ) AS `dn_consumption`,
+            (SELECT SUM(`tabStock Entry Detail`.`qty`)
+             FROM `tabStock Entry Detail`
+             LEFT JOIN `tabStock Entry` ON `tabStock Entry`.`name` = `tabStock Entry Detail`.`parent`
+             WHERE `tabStock Entry Detail`.`item_code` = `tabItem`.`item_code`
+                   AND `tabStock Entry Detail`.`docstatus` = 1
+                   AND `tabStock Entry`.`stock_entry_type` = 'Material Issue'
+                   AND `tabStock Entry`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE()
+            ) AS `se_consumption`,
+            0 AS `avg_consumption_per_day`,
+            0 AS `days_until_stock_ends`,
+            `tabItem`.`creation` AS `date_created`
         FROM `tabItem`
         LEFT JOIN `tabBin` ON `tabBin`.`item_code` = `tabItem`.`item_code`
         LEFT JOIN `tabUOM Conversion Detail` ON `tabUOM Conversion Detail`.`parent` = `tabItem`.`name`
         WHERE 
-            `tabItem`.`item_group` LIKE "{item_group}"
+            `tabItem`.`is_purchase_item` = 1
             AND `tabItem`.`is_stock_item` = 1
             AND `tabItem`.`disabled` = 0
+            AND `tabItem`.`has_variants` = 0
         GROUP BY `tabItem`.`item_code`
         ORDER BY `days_until_stock_ends` DESC
         """.format(item_group=filters['item_group'])
     data = frappe.db.sql(sql_query, as_dict=True)
     
+    today_str = frappe.utils.data.today()
+    today = frappe.utils.get_datetime(today_str)
+    one_year_ago = frappe.utils.add_days(today, -360)
     for row in data:
+        if not row['dn_consumption']:
+            row['dn_consumption'] = 0
+        if not row['se_consumption']:
+            row['se_consumption'] = 0
+        frappe.log_error(row['dn_consumption'], "dn")
+        frappe.log_error(row['se_consumption'], "se")
+        if row['date_created'] < one_year_ago:
+            avg_consumption = (row['dn_consumption'] or 0 + row['se_consumption'] or 0) / 360
+        else:
+            avg_consumption = (row['dn_consumption'] or 0 + row['se_consumption'] or 0) / date_diff(today, row['date_created'])
+        
+        row['avg_consumption_per_day'] = avg_consumption
+            
         if row['avg_consumption_per_day']:
-            days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / row['avg_consumption_per_day'], 2)
-            row['days_until_stock_ends'] = frappe.utils.data.add_to_date(date=frappe.utils.data.today(), days=days_until_stock_ends, as_string=True)
+            days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / avg_consumption, 2)
+            row['days_until_stock_ends'] = frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True)
         else:
             row['days_until_stock_ends'] = ""
     
