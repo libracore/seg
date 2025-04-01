@@ -25,13 +25,10 @@ def get_columns():
         {"label": _("Lead Time in Days"), "fieldname": "lead_time_days", "fieldtype": "int", "width": 100},
         {"label": _("Avg Consumption"), "fieldname": "avg_consumption_per_day", "fieldtype": "Float", "width": 100},
         {"label": _("Stock End Date"), "fieldname": "days_until_stock_ends", "fieldtype": "Data", "width": 100},
+        {"label": _("To Order"), "fieldname": "to_order", "fieldtype": "Check", "width": 50}
     ]
 
 def get_data(filters):
-    # prepare filters
-    if not 'item_group' in filters:
-        filters['item_group'] = "%"
-        
     # fetch data
     sql_query = """
         SELECT
@@ -39,6 +36,7 @@ def get_data(filters):
             `tabItem`.`item_name` AS `item_name`,
             `tabItem`.`default_supplier` AS `default_supplier`,
             `tabItem`.`stock_uom` AS `stock_uom`,
+            `tabItem`.`modified` AS `modified`,
             SUM(`tabBin`.`actual_qty`) AS `stock_in_sku`,
             SUM(`tabBin`.`ordered_qty`) AS `ordered_qty`,
             `tabItem`.`lead_time_days` AS `lead_time_days`,
@@ -69,8 +67,8 @@ def get_data(filters):
             AND `tabItem`.`disabled` = 0
             AND `tabItem`.`has_variants` = 0
         GROUP BY `tabItem`.`item_code`
-        ORDER BY `days_until_stock_ends` DESC
-        """.format(item_group=filters['item_group'])
+        ORDER BY `modified` DESC
+        """
     data = frappe.db.sql(sql_query, as_dict=True)
     
     today_str = frappe.utils.data.today()
@@ -81,20 +79,29 @@ def get_data(filters):
             row['dn_consumption'] = 0
         if not row['se_consumption']:
             row['se_consumption'] = 0
-        frappe.log_error(row['dn_consumption'], "dn")
-        frappe.log_error(row['se_consumption'], "se")
         if row['date_created'] < one_year_ago:
-            avg_consumption = (row['dn_consumption'] or 0 + row['se_consumption'] or 0) / 360
+            avg_consumption = (row['dn_consumption'] + row['se_consumption']) / 360
+            if row['item_code'] == "0000-1-59251":
+                frappe.log_error(row['dn_consumption'], "row['dn_consumption']")
+                frappe.log_error(row['se_consumption'], "row['se_consumption']")
+                frappe.log_error(avg_consumption, "old")
         else:
             avg_consumption = (row['dn_consumption'] or 0 + row['se_consumption'] or 0) / date_diff(today, row['date_created'])
-        
+            if row['item_code'] == "0000-1-59251":
+                frappe.log_error(avg_consumption, "new")
         row['avg_consumption_per_day'] = avg_consumption
             
         if row['avg_consumption_per_day']:
             days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / avg_consumption, 2)
-            row['days_until_stock_ends'] = frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True)
+            if days_until_stock_ends < 1:
+                color = "red"
+            elif days_until_stock_ends <= row['lead_time_days']:
+                color = "orange"
+            else:
+                color = "green"
+            row['days_until_stock_ends'] = "<span style='color: {0};'>{1}</span>".format(color, frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True))
         else:
             row['days_until_stock_ends'] = ""
-    
+    frappe.log_error(data, "data")
     return data
 
