@@ -71,37 +71,44 @@ def get_data(filters):
         """
     data = frappe.db.sql(sql_query, as_dict=True)
     
+    #prepare and calculate data for report
     today_str = frappe.utils.data.today()
     today = frappe.utils.get_datetime(today_str)
     one_year_ago = frappe.utils.add_days(today, -360)
     for row in data:
+        #Avoid Nonetypes and calculate average consumption
         if not row['dn_consumption']:
             row['dn_consumption'] = 0
         if not row['se_consumption']:
             row['se_consumption'] = 0
+        if not row['stock_in_sku']:
+            row['stock_in_sku'] = 0
+        if not row['ordered_qty']:
+            row['ordered_qty'] = 0
         if row['date_created'] < one_year_ago:
             avg_consumption = (row['dn_consumption'] + row['se_consumption']) / 360
-            if row['item_code'] == "0000-1-59251":
-                frappe.log_error(row['dn_consumption'], "row['dn_consumption']")
-                frappe.log_error(row['se_consumption'], "row['se_consumption']")
-                frappe.log_error(avg_consumption, "old")
         else:
-            avg_consumption = (row['dn_consumption'] or 0 + row['se_consumption'] or 0) / date_diff(today, row['date_created'])
-            if row['item_code'] == "0000-1-59251":
-                frappe.log_error(avg_consumption, "new")
+            item_age = date_diff(today, row['date_created'])
+            if not item_age:
+                item_age = 1
+            avg_consumption = (row['dn_consumption'] + row['se_consumption']) / item_age
         row['avg_consumption_per_day'] = avg_consumption
-            
+        
+        #Calculate End of Stock Date and give Color (Red if Stock is out, orange if Stock runs out within Leadtime, else green)
         if row['avg_consumption_per_day']:
             days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / avg_consumption, 2)
             if days_until_stock_ends < 1:
                 color = "red"
+                row['to_order'] = 1
             elif days_until_stock_ends <= row['lead_time_days']:
                 color = "orange"
+                row['to_order'] = 1
             else:
                 color = "green"
+                row['to_order'] = 0
             row['days_until_stock_ends'] = "<span style='color: {0};'>{1}</span>".format(color, frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True))
         else:
             row['days_until_stock_ends'] = ""
-    frappe.log_error(data, "data")
+    
     return data
 

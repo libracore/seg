@@ -65,7 +65,7 @@ function set_french_packaging_type(frm) {
 
 function set_default_supplier(frm) {
     var default_supplier = false
-    if (frm.doc.supplier_items.length > 0) {
+    if (frm.doc.supplier_items && frm.doc.supplier_items.length > 0) {
         default_supplier = frm.doc.supplier_items[0].supplier;
     }
     
