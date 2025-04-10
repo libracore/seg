@@ -37,7 +37,6 @@ def get_data(filters, supplier=None):
     today = frappe.utils.get_datetime(today_str)
     one_year_ago = frappe.utils.add_days(today, -360)
     days_until_filter = 0
-    frappe.log_error(filters, "filters")
     if 'days_until_stock_ends' in filters:
         days_until_filter =  date_diff(datetime.strptime(filters.days_until_stock_ends, "%Y-%m-%d").date(), today)
     # fetch data
@@ -142,7 +141,6 @@ def create_purchase_order(supplier, filters):
     items = []
     for item in data:
         item_doc = frappe.get_doc("Item", item.get('item_code'))
-        frappe.log_error(item_doc.description, "item_doc.description")
         items.append({
             'reference_doctype': "Purchase Order Item",
             'item_code': item.get('item_code'),
