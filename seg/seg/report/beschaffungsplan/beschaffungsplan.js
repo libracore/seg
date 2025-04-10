@@ -4,12 +4,11 @@
 
 frappe.query_reports["Beschaffungsplan"] = {
     "filters": [
-        //~ {
-            //~ "fieldname":"item_group",
-            //~ "label": __("Item group"),
-            //~ "fieldtype": "Link",
-            //~ "options": "Item Group",
-        //~ }
+        {
+            "fieldname":"days_until_stock_ends",
+            "label": __("Stock End Date"),
+            "fieldtype": "Date"
+        }
     ]
     //~ "formatter": function(value, row, column, data, default_formatter) {
         //~ value = default_formatter(value, row, column, data);

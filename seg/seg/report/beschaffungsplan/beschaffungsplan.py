@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import frappe
 from frappe.utils import date_diff
 from frappe import _
+import re
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
@@ -16,7 +17,8 @@ def execute(filters=None):
 
 def get_columns():
     return [
-        {"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 85},
+        {"label": _("Item Code"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 200},
+        {"label": _("Item Code"), "fieldname": "item_code_data", "fieldtype": "Data", "width": 100},
         {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 180},
         {"label": _("Default Supplier"), "fieldname": "default_supplier", "fieldtype": "Link", "options": "Supplier",  "width": 120},
         {"label": _("Stock UOM"), "fieldname": "stock_uom", "fieldtype": "Link", "width": 80, "options": "UOM"},
@@ -29,6 +31,12 @@ def get_columns():
     ]
 
 def get_data(filters):
+    today_str = frappe.utils.data.today()
+    today = frappe.utils.get_datetime(today_str)
+    one_year_ago = frappe.utils.add_days(today, -360)
+    days_until_filter = 0
+    if filters.days_until_stock_ends:
+        days_until_filter =  date_diff(datetime.strptime(filters.days_until_stock_ends, "%Y-%m-%d").date(), today)
     # fetch data
     sql_query = """
         SELECT
@@ -72,10 +80,9 @@ def get_data(filters):
     data = frappe.db.sql(sql_query, as_dict=True)
     
     #prepare and calculate data for report
-    today_str = frappe.utils.data.today()
-    today = frappe.utils.get_datetime(today_str)
-    one_year_ago = frappe.utils.add_days(today, -360)
     for row in data:
+        #Set Item Code Data Field
+        row['item_code_data'] = row['item_code']
         #Avoid Nonetypes and calculate average consumption
         if not row['dn_consumption']:
             row['dn_consumption'] = 0
@@ -97,18 +104,23 @@ def get_data(filters):
         #Calculate End of Stock Date and give Color (Red if Stock is out, orange if Stock runs out within Leadtime, else green)
         if row['avg_consumption_per_day']:
             days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / avg_consumption, 2)
-            if days_until_stock_ends < 1:
-                color = "red"
-                row['to_order'] = 1
-            elif days_until_stock_ends <= row['lead_time_days']:
-                color = "orange"
-                row['to_order'] = 1
+            if not filters.days_until_stock_ends or days_until_stock_ends < days_until_filter:
+                if days_until_stock_ends < 1:
+                    color = "red"
+                    row['to_order'] = 1
+                elif days_until_stock_ends <= row['lead_time_days']:
+                    color = "orange"
+                    row['to_order'] = 1
+                else:
+                    color = "green"
+                    row['to_order'] = 0
+                row['days_until_stock_ends'] = "<span style='color: {0};'>{1}</span>".format(color, frappe.format_value(frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True), {"fieldtype": "Date"}))
             else:
-                color = "green"
-                row['to_order'] = 0
-            row['days_until_stock_ends'] = "<span style='color: {0};'>{1}</span>".format(color, frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True))
+                row['days_until_stock_ends'] = ""
         else:
             row['days_until_stock_ends'] = ""
+    #filter entry if filter is set
+    if filters.days_until_stock_ends:
+        data = [d for d in data if not (d["days_until_stock_ends"] == "")]
     
     return data
-
