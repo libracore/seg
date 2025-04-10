@@ -184,11 +184,12 @@ function updateLSVA(totalWeight) {
     var taxes = cur_frm.doc.taxes;
     if (taxes.length > 0) {
         taxes.forEach(function(entry) {
-        /* enter LSVA target account here */
-        if (entry.account_head.startsWith("2209 ")) {
-            frappe.model.set_value("Sales Taxes and Charges", 
-            entry.name, 'tax_amount', taxAmount);
-        } 
+            /* enter LSVA target account here */
+            if (entry.account_head.startsWith("2209 ")) {
+                console.log(taxAmount);
+                frappe.model.set_value("Sales Taxes and Charges", 
+                entry.name, 'tax_amount', taxAmount);
+            }
         });
     }
 }

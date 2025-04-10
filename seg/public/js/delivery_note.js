@@ -43,6 +43,8 @@ frappe.ui.form.on('Delivery Note', {
         }
     },
     before_save: function(frm) {
+        //Update VOC
+        update_voc(frm);
         // calculate wir amount from percent
         update_wir(frm);
         //calculate the wir_percent and wir_amount for each item
