@@ -8,6 +8,8 @@ import frappe
 from frappe.utils import date_diff
 from frappe import _
 import re
+import json
+from seg.seg.purchasing import get_taxes_template
 
 def execute(filters=None):
     filters = frappe._dict(filters or {})
@@ -30,12 +32,13 @@ def get_columns():
         {"label": _("To Order"), "fieldname": "to_order", "fieldtype": "Check", "width": 50}
     ]
 
-def get_data(filters):
+def get_data(filters, supplier=None):
     today_str = frappe.utils.data.today()
     today = frappe.utils.get_datetime(today_str)
     one_year_ago = frappe.utils.add_days(today, -360)
     days_until_filter = 0
-    if filters.days_until_stock_ends:
+    frappe.log_error(filters, "filters")
+    if 'days_until_stock_ends' in filters:
         days_until_filter =  date_diff(datetime.strptime(filters.days_until_stock_ends, "%Y-%m-%d").date(), today)
     # fetch data
     sql_query = """
@@ -104,7 +107,7 @@ def get_data(filters):
         #Calculate End of Stock Date and give Color (Red if Stock is out, orange if Stock runs out within Leadtime, else green)
         if row['avg_consumption_per_day']:
             days_until_stock_ends = round((row['stock_in_sku'] + row['ordered_qty']) / avg_consumption, 2)
-            if not filters.days_until_stock_ends or days_until_stock_ends < days_until_filter:
+            if 'days_until_stock_ends' not in filters or days_until_stock_ends < days_until_filter:
                 if days_until_stock_ends < 1:
                     color = "red"
                     row['to_order'] = 1
@@ -119,8 +122,68 @@ def get_data(filters):
                 row['days_until_stock_ends'] = ""
         else:
             row['days_until_stock_ends'] = ""
-    #filter entry if filter is set
-    if filters.days_until_stock_ends:
-        data = [d for d in data if not (d["days_until_stock_ends"] == "")]
+    #filter entries if filter is set
+    if supplier or 'days_until_stock_ends' in filters:
+        data = [d for d in data if not (d['days_until_stock_ends'] == "")]
+        
+    #filter entries for supplier, for creating purchase order
+    if supplier:
+        data = [d for d in data if (d['default_supplier'] == supplier)]
     
     return data
+
+@frappe.whitelist()
+def create_purchase_order(supplier, filters):
+    filters = json.loads(filters)
+    #get report data
+    data = get_data(filters, supplier)
+    
+    #Create items
+    items = []
+    for item in data:
+        item_doc = frappe.get_doc("Item", item.get('item_code'))
+        frappe.log_error(item_doc.description, "item_doc.description")
+        items.append({
+            'reference_doctype': "Purchase Order Item",
+            'item_code': item.get('item_code'),
+            'description': item_doc.description or "-",
+            'qty': item_doc.order_recommendation_supplier or 1
+        })
+    
+    #create taxes
+    tax_template_name = get_taxes_template(supplier)
+    tax_template = frappe.get_doc("Purchase Taxes and Charges Template", tax_template_name)
+    
+    taxes_entry = [{
+        'reference_doctype': 'Purchase Taxes and Charges',
+        'charge_type': tax_template.taxes[0].get('charge_type'),
+        'account_head': tax_template.taxes[0].get('account_head'),
+        'description': tax_template.taxes[0].get('description'),
+        'rate': tax_template.taxes[0].get('rate')
+    }]
+
+    
+    #get shipping address
+    shipping_address = None
+    shipping = frappe.get_list("Address", 
+        filters={'is_your_company_address': 1, 'is_shipping_address': 1}, 
+        fields=["name"],
+        limit=1
+    )
+    if len(shipping) > 0:
+        shipping_address = shipping[0].get('name')
+        
+    #Create Purchase Order
+    po_doc = frappe.get_doc({
+        'doctype': "Purchase Order",
+        'supplier': supplier,
+        'items': items,
+        'shipping_address': shipping_address,
+        'taxes_and_charges': tax_template_name,
+        'taxes': taxes_entry
+    })
+    
+    po_doc.save()
+    frappe.db.commit()
+    
+    return po_doc.get('name')
