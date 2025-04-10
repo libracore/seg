@@ -37,7 +37,6 @@ frappe.ui.form.on('Quotation',  {
         if (frm.doc.picked_up == 1) {
             frm.doc.taxes.forEach(function(entry) {
                if (entry.account_head == "2209 Geschuldete LSVA - SEG") {
-                   console.log(entry.name);
                    frappe.model.set_value("Sales Taxes and Charges", entry.name, 'tax_amount', 0);
                } 
             });

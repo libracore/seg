@@ -186,7 +186,6 @@ function updateLSVA(totalWeight) {
         taxes.forEach(function(entry) {
             /* enter LSVA target account here */
             if (entry.account_head.startsWith("2209 ")) {
-                console.log(taxAmount);
                 frappe.model.set_value("Sales Taxes and Charges", 
                 entry.name, 'tax_amount', taxAmount);
             }
