@@ -1,4 +1,4 @@
-# Copyright (c) 2023, libracore AG and contributors
+# Copyright (c) 2025, libracore AG and contributors
 # For license information, please see license.txt
 
 
@@ -38,7 +38,7 @@ def get_data(filters, supplier=None):
     one_year_ago = frappe.utils.add_days(today, -360)
     days_until_filter = 0
     if 'days_until_stock_ends' in filters:
-        days_until_filter =  date_diff(datetime.strptime(filters.days_until_stock_ends, "%Y-%m-%d").date(), today)
+        days_until_filter =  date_diff(datetime.strptime(filters.get("days_until_stock_ends"), "%Y-%m-%d").date(), today)
     # fetch data
     sql_query = """
         SELECT
@@ -119,15 +119,17 @@ def get_data(filters, supplier=None):
                 row['days_until_stock_ends'] = "<span style='color: {0};'>{1}</span>".format(color, frappe.format_value(frappe.utils.data.add_to_date(date=today_str, days=days_until_stock_ends, as_string=True), {"fieldtype": "Date"}))
             else:
                 row['days_until_stock_ends'] = ""
+                row['to_order'] = 0
         else:
             row['days_until_stock_ends'] = ""
-    #filter entries if filter is set
-    if supplier or 'days_until_stock_ends' in filters:
+            row['to_order'] = 0
+    #filter entries if filter or supplier(for purchase order) is set
+    if supplier and 'days_until_stock_ends' in filters:
+        data = [d for d in data if (d['default_supplier'] == supplier and not d['days_until_stock_ends'] == "")]
+    elif supplier and not 'days_until_stock_ends' in filters:
+        data = [d for d in data if (d['to_order'] == 1 and d['default_supplier'] == supplier)]
+    elif 'days_until_stock_ends' in filters and not supplier:
         data = [d for d in data if not (d['days_until_stock_ends'] == "")]
-        
-    #filter entries for supplier, for creating purchase order
-    if supplier:
-        data = [d for d in data if (d['default_supplier'] == supplier)]
     
     return data
 
@@ -175,6 +177,7 @@ def create_purchase_order(supplier, filters):
     po_doc = frappe.get_doc({
         'doctype': "Purchase Order",
         'supplier': supplier,
+        'schedule_date': frappe.utils.add_days(datetime.today(), 14),
         'items': items,
         'shipping_address': shipping_address,
         'taxes_and_charges': tax_template_name,

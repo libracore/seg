@@ -23,6 +23,7 @@ function create_purchase_order(report) {
         {'fieldname': 'supplier', 'fieldtype': 'Link', 'options': 'Supplier', 'label': __('Supplier'), 'reqd': 1}  
     ],
     function(values){
+        frappe.dom.freeze('Bitte warten, die Bestellung erzeugt...');
         frappe.call({
             'method': 'seg.seg.report.beschaffungsplan.beschaffungsplan.create_purchase_order',
             'args': {
@@ -30,6 +31,7 @@ function create_purchase_order(report) {
                 'filters': filters
             },
             'callback': function(response) {
+                frappe.dom.unfreeze();
                 if (response.message) {
                     frappe.set_route("Form", "Purchase Order", response.message);
                 } else {
