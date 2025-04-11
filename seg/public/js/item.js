@@ -11,10 +11,13 @@ frappe.ui.form.on('Item',  {
             add_nextcloud_button(frm);
         }
     },
+    before_save: function(frm) {
+        //Set default supplier (first from supplier_items List)
+        set_default_supplier(frm);
+    },
     packaging_type: function(frm) {
         set_french_packaging_type(frm);
     }
-
 });
 
 frappe.ui.form.on('Item Reorder',  {
@@ -60,3 +63,15 @@ function set_french_packaging_type(frm) {
     //~ }
 //~ }
 
+function set_default_supplier(frm) {
+    var default_supplier = false
+    if (frm.doc.supplier_items && frm.doc.supplier_items.length > 0) {
+        default_supplier = frm.doc.supplier_items[0].supplier;
+    }
+    
+    if (default_supplier && default_supplier != frm.doc.default_supplier) {
+        cur_frm.set_value("default_supplier", default_supplier);
+    } else if (frm.doc.default_supplier && !default_supplier) {
+        cur_frm.set_value("default_supplier", null);
+    }
+}

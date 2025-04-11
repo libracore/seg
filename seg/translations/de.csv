@@ -10,6 +10,7 @@ DocType: Item,Shipping Unit,Versandeinheit
 DocType: Item,Calculate kg and l Prices,Liter und kg Preise berechnen
 DocType: Item,Exclude from Quotation Price List,Aus Angebots-Preislisten ausschliessen
 DocType: Item,Order recommendation supplier,Bestellempfehlung Lieferant
+DocType: Item,Default Supplier,Hauptlieferant
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe
@@ -25,3 +26,7 @@ DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
 DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
 DocType: Quotation Price List,Templates,Artikelvorlagen
+Report: Beschaffungsplan,Lead Time in Days,Leadtime in Tagen
+Report: Beschaffungsplan,Avg Consumption,Durchschnittlicher Verbrauch
+Report: Beschaffungsplan,To Order,Zu bestellen
+Report: Beschaffungsplan,Create Purchase Order,Bestellung erstellen
