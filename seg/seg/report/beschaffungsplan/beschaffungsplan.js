@@ -11,7 +11,7 @@ frappe.query_reports["Beschaffungsplan"] = {
         }
     ],
     onload: function(report) {
-        report.page.add_inner_button(__('Create Purchase Order'), function () {
+        report.page.add_inner_button(__("Create Purchase Order"), function () {
             create_purchase_order(report);
         });
     }
