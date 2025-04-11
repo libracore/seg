@@ -1,6 +1,7 @@
 // Copyright (c) 2025, libracore AG and contributors
 // For license information, please see license.txt
 
+var flag = 0;
 frappe.ui.form.on('Delivery Note', {
     refresh(frm) {
         display_purchase_price_field(frm);
@@ -15,9 +16,13 @@ frappe.ui.form.on('Delivery Note', {
         if (frm.doc.is_return === 1) {
 			remind_of_discount(frm);
 		}
-        //Set picked up uf customer is marked as "always picks up"
+        //Set picked up if customer is marked as "always picks up"
         if (cur_frm.doc.__islocal) {
-            check_pick_up(frm);
+            if (frm.doc.customer) {
+                check_pick_up(frm.doc.customer);
+            } else {
+                cur_frm.set_value("picked_up" , 0)
+            }
         }
         
         if (frm.doc.docstatus == 1) {
@@ -31,8 +36,17 @@ frappe.ui.form.on('Delivery Note', {
             }
         }
     
+        if ((frm.doc.docstatus === 1) && (cur_frm.attachments.get_attachments().length === 0)) {
+            frm.add_custom_button(__("PDF"), function() {
+                attach_pdf(frm);
+            });
+        }
     },
     before_save: function(frm) {
+        //Update VOC
+        update_voc(frm);
+        // calculate wir amount from percent
+        update_wir(frm);
         //calculate the wir_percent and wir_amount for each item
         if (frm.doc.wir_percent > 0) {
             update_wir_for_each_item(frm);
@@ -45,8 +59,43 @@ frappe.ui.form.on('Delivery Note', {
         } 
     },
     customer: function(frm) {
-        check_pick_up(frm);
+        if (frm.doc.customer) {
+            check_pick_up(frm.doc.customer);
+        } else {
+            cur_frm.set_value("picked_up" , 0)
+        }
+    },
+    validate: function(frm) {
+      // write delivery reference into the items to trace them later
+        // loop through items
+        frm.doc.items.forEach(function(entry) {
+            frappe.model.set_value("Delivery Note Item", entry.name, 'delivery_reference', frm.doc.name);
+            frappe.model.set_value("Delivery Note Item", entry.name, 'picked_up', frm.doc.picked_up);
+        });
+	
+        if (frm.doc.picked_up == 1) {
+            frm.doc.taxes.forEach(function(entry) {
+                if (entry.account_head == "2209 Geschuldete LSVA - SEG") {
+                    frappe.model.set_value("Sales Taxes and Charges", entry.name, 'tax_amount', 0);
+                } 
+            });
+        } else {
+            getTotalWeight();
+        }
+      
+    },
+    wir_percent: function(frm) {
+        update_wir(frm);
+    },
+    on_submit: function(frm) {
+        attach_pdf(frm);
     }
+    /*onload: function(frm) {
+        if (flag === 0) {
+            cur_frm.set_value("ignore_pricing_rule", 0);
+            flag = 1;
+        }
+    },*/
 })
 
 //~ frappe.ui.form.on('Delivery Note Item', {
@@ -190,27 +239,6 @@ function remind_of_discount(frm) {
     });
 }
 
-function check_pick_up(frm) {
-    if (frm.doc.customer) {
-        frappe.call({
-            'method': "frappe.client.get",
-            'args': {
-                'doctype': "Customer",
-                'name': frm.doc.customer
-            },
-            'callback': function(response) {
-                if (response.message.always_pick_up) {
-                    cur_frm.set_value("picked_up" , 1);
-                } else {
-                    cur_frm.set_value("picked_up" , 0);
-                }
-            }
-        });
-    } else {
-        cur_frm.set_value("picked_up" , 0)
-    }
-}
-
 function display_purchase_price_field(frm) {
     frappe.call({
         'method': 'frappe.client.get',
@@ -230,6 +258,42 @@ function display_purchase_price_field(frm) {
                 });
                 cur_frm.refresh_field('items');
             }
+        }
+    });
+}
+
+// mutation observer for item changes
+var totalObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+ 	    getTotalWeight();
+    });
+});
+var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+var options = {
+    attributes: true,
+    characterData: true
+};
+totalObserver.observe(target, options);
+
+function update_wir(frm) {
+    if (frm.doc.wir_percent > 0) {
+        cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+    }
+}
+
+function attach_pdf(frm) {
+    frappe.call({
+        'method': 'erpnextswiss.erpnextswiss.attach_pdf.attach_pdf',
+        'args': {
+            'doctype': frm.doc.doctype,
+            'docname': frm.doc.name,
+            'print_format': "Lieferschein",
+            'background': 0,
+            'hashname': 1,
+            'is_private': 0
+        },
+        'callback': function(response) {
+            cur_frm.reload_doc();
         }
     });
 }

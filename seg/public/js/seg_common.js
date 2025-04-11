@@ -106,3 +106,89 @@ function custom_mail_dialog(frm) {
         }
     });
 }
+
+function check_pick_up(customer) {
+    frappe.call({
+        'method': "frappe.client.get",
+        'args': {
+            'doctype': "Customer",
+            'name': customer
+        },
+        'callback': function(response) {
+            if (response.message.always_pick_up) {
+                cur_frm.set_value("picked_up" , 1);
+            } else {
+                cur_frm.set_value("picked_up" , 0);
+            }
+        }
+    });
+}
+
+function update_voc(frm) {
+    /* enter LSVA tax rate here */
+    var voc_amount = 0;
+    frm.doc.items.forEach(function(item) {
+        if (item.voc) {
+            voc_amount += item.qty * item.voc;
+        } 
+    });
+    
+    var taxes = cur_frm.doc.taxes;
+    if (taxes.length > 0) {
+        taxes.forEach(function(entry) {
+            /* enter VOC target account here */
+            if (entry.account_head.startsWith("2208 ")) {
+                frappe.model.set_value("Sales Taxes and Charges", 
+                entry.name, 'tax_amount', voc_amount);
+            } 
+        });
+    }
+}
+
+// trigger to calculate total weight
+function getTotalWeight() {
+    if ((cur_frm.doc.docstatus === 0) && (cur_frm.doc.items)) {
+        var item_codes = [];
+        var qtys = [];
+        cur_frm.doc.items.forEach(function(entry) {
+            if (entry.item_code !== null) {
+                item_codes.push(entry.item_code);
+                qtys.push(entry.qty);
+            } 
+        });
+        frappe.call({
+            'method': 'seg.seg.utils.get_total_weight',
+            'args': { 
+                'items': item_codes,
+                'qtys': qtys 
+            },
+            'async': false,
+            'callback': function(r) {
+                if (!r.exc) {
+                    updateWeight(r.message.total_weight);
+                    updateLSVA(r.message.total_weight);
+                }
+            }
+        });
+    }
+}
+
+function updateWeight(totalWeight) {
+    cur_frm.set_value("total_weight", totalWeight);
+}
+
+function updateLSVA(totalWeight) {
+    /* enter LSVA tax rate here */
+    //var taxAmount = totalWeight * 0.07;
+    var taxAmount = (Math.round(9 * totalWeight / 10)) / 10;        /* 2023-03-22 updated from 7 to 9 by request Anna */
+    var taxes = cur_frm.doc.taxes;
+    if (taxes.length > 0) {
+        taxes.forEach(function(entry) {
+            /* enter LSVA target account here */
+            if (entry.account_head.startsWith("2209 ")) {
+                frappe.model.set_value("Sales Taxes and Charges", 
+                entry.name, 'tax_amount', taxAmount);
+            }
+        });
+    }
+}

@@ -8,7 +8,14 @@ frappe.ui.form.on('Sales Invoice',  {
         check_email_invoice(frm);
     },
     before_save: function(frm) {
-        update_discout(frm)
+        if (frm.doc.is_return === 0) {
+            // update VOC
+            update_voc(frm);
+            // update wir_discount
+            update_wir_discount(frm);
+        }
+        
+        update_discout(frm);
         if ((frm.doc.is_return === 1) && (frm.doc.wir_amount > 0)) {
             update_wir_for_sinv_return(frm);
         }
@@ -19,8 +26,30 @@ frappe.ui.form.on('Sales Invoice',  {
             // do not remind 20 days
             cur_frm.set_value("exclude_from_payment_reminder_until",frappe.datetime.add_days(frm.doc.due_date, 20));
         }
+        
+        if ((!frm.doc.esr_reference) && (!frm.doc.__islocal)) {
+            var number_part = frm.doc.name.split("-")[1];       // take number part as reference
+            var pattern = "0000000000000000000000000" + number_part;
+            pattern = "6532805" + pattern.substr(pattern.length - 19);      // 26 digits: ident + 19 digits
+            var esr_reference = get_esr_code(pattern);
+            cur_frm.set_value("esr_reference", esr_reference);
+        }
+        
+        //Update Weight and LSVA
+        get_total_weight();
     },
     refresh: function(frm) {
+        if ((frm.doc.__islocal) && (frm.doc.is_return === 0)) {
+            // apply tax template
+            cur_frm.set_value("taxes_and_charges", "MwSt, LSVA und VOC 2024 - SEG");
+        }
+        
+        if ((frm.doc.docstatus === 1) && (cur_frm.attachments.get_attachments().length === 0)) {
+            frm.add_custom_button(__("PDF"), function() {
+                attach_pdf(frm);
+            });
+        }
+        
         if (frm.doc.__islocal) {
             set_naming_series(frm);
         }
@@ -43,8 +72,24 @@ frappe.ui.form.on('Sales Invoice',  {
         if (frm.doc.__islocal) {
             set_naming_series(frm);
         }
+    },
+    on_submit: function(frm) {
+        attach_pdf(frm);
     }
 });
+
+// mutation observer for item changes
+var totalObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        getTotalWeight();
+    });
+});
+var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+var options = {
+    attributes: true,
+    characterData: true
+};
+totalObserver.observe(target, options);
 
 function check_customer_mahnsperre(frm) {
     frappe.call({
@@ -134,4 +179,66 @@ function check_email_invoice(frm) {
             }
         });
     }
+}
+
+function attach_pdf(frm) {
+    frappe.call({
+        'method': 'erpnextswiss.erpnextswiss.attach_pdf.attach_pdf',
+        'args': {
+            'doctype': frm.doc.doctype,
+            'docname': frm.doc.name,
+            'print_format': "Monatsrechnung",
+            'background': 0,
+            'hashname': 1,
+            'is_private': 0
+        },
+        'callback': function(response) {
+            cur_frm.reload_doc();
+        }
+    });
+}
+
+function get_total_weight() {
+    if ((cur_frm.doc.docstatus === 0) && (cur_frm.doc.items)) {
+        var item_codes = [];
+        var qtys = [];
+        cur_frm.doc.items.forEach(function(entry) {
+            if ((entry.item_code !== null) && (entry.picked_up !== 1)) {
+                item_codes.push(entry.item_code);
+                qtys.push(entry.qty);
+            } 
+        });
+        frappe.call({
+            'method': 'seg.seg.utils.get_total_weight',
+            'args': { 
+                'items': item_codes,
+                'qtys': qtys 
+            },
+            'async': false,
+            'callback': function(r) {
+                if (!r.exc) {
+                    updateWeight(r.message.total_weight);
+                    updateLSVA(r.message.total_weight);
+                }
+            }
+        });
+    }
+}
+
+function update_wir_discount(frm) {
+    var discount = 0;
+    var wir = 0;
+    var processed_dn = [];
+    if (frm.doc.items.length > 0) {
+        frm.doc.items.forEach(function(item) {
+            // only add each DN once
+            if (!(processed_dn.includes(item.delivery_note))) {
+                
+                processed_dn.push(item.delivery_note);
+                discount += item.dn_discount_amount || 0;
+                wir += item.dn_wir || 0;
+            }
+        });
+    }
+    cur_frm.set_value("wir_amount", wir);
 }
