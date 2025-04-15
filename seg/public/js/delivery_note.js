@@ -23,6 +23,8 @@ frappe.ui.form.on('Delivery Note', {
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
+        } else {
+            add_dn_nextcloud_button(frm);
         }
         
         if (frm.doc.docstatus == 1) {
@@ -295,5 +297,12 @@ function attach_pdf(frm) {
         'callback': function(response) {
             cur_frm.reload_doc();
         }
+    });
+}
+
+function add_dn_nextcloud_button(frm) {
+    frappe.model.with_doc("Customer", frm.doc.customer, function() {
+        let customer_frm = frappe.get_doc("Customer", frm.doc.customer);
+        add_nextcloud_button(customer_frm); // <-- jetzt passt's
     });
 }
