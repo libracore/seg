@@ -300,9 +300,49 @@ function attach_pdf(frm) {
     });
 }
 
+// this function will cache the nextcloud path and create a "Cloud" button
 function add_dn_nextcloud_button(frm) {
-    frappe.model.with_doc("Customer", frm.doc.customer, function() {
-        let customer_frm = frappe.get_doc("Customer", frm.doc.customer);
-        add_nextcloud_button(customer_frm); // <-- jetzt passt's
+    frappe.call({
+        "method": "frappe.client.get",
+        "args": {
+            "doctype": "SEG Settings",
+            "name": "SEG Settings"
+        },
+        "callback": function(response) {
+            let settings = response.message;
+            if (settings.nextcloud_enabled) {
+                if (frappe.user.has_role("Accounts Manager")) {
+                    // elevated cloud menu
+                    locals.cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.storage_folder
+                        + "/" + "Customer"
+                        + "/" + (frm.doc.customer.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Gemeinsam"), function() {
+                        window.open(locals.cloud_url, '_blank').focus();
+                    }, __("Cloud"));
+
+                    locals.restricted_cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.restricted_storage_folder
+                        + "/" + "Customer"
+                        + "/" + (frm.doc.customer.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Eingeschränkt"), function() {
+                        window.open(locals.restricted_cloud_url, '_blank').focus();
+                    }, __("Cloud"));
+                } else {
+                    // simple cloud menu
+                    locals.cloud_url = settings.cloud_hostname 
+                        + "/apps/files/?dir=/" 
+                        + settings.storage_folder
+                        + "/" + "Customer"
+                        + "/" + (frm.doc.customer.replaceAll("/", "_"));
+                    frm.add_custom_button(__("Cloud"), function() {
+                        window.open(locals.cloud_url, '_blank').focus();
+                    }).addClass("btn-primary");
+                }
+            }
+        }
     });
 }
+
