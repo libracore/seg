@@ -58,3 +58,22 @@ def update_default_supplier():
             frappe.log_error(str(e), "Fehler beim der Standardlieferantenaktualisierung")
             
     return
+
+
+#Set Default Supplier when Item Price is saved
+def set_price_supplier(self, event):
+    self.default_supplier = frappe.get_value("Item", self.get('item_code'), "default_supplier")
+
+#Update Prices when Default Supplier in Item has changed
+def set_supplier_on_prices(self, event):
+    old_doc = frappe.get_doc("Item", self.get('name'))
+    if self.get('default_supplier') != old_doc.get('default_supplier'):
+        update_items_prices = frappe.db.sql("""
+                                            UPDATE
+                                                `tabItem Price`
+                                            SET
+                                                `default_supplier` = '{supplier}'
+                                            WHERE
+                                                `item_code` = '{item}'""".format(supplier=self.get('default_supplier'), item=self.get('name')), as_dict=True)
+        frappe.db.commit()
+    return
