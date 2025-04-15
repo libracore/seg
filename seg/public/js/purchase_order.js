@@ -54,6 +54,8 @@ function set_drop_ship_address(frm) {
                 }
             }
         });
+        //Set Items from Drop Ship Delivery Note
+        set_dn_items(frm.doc.drop_ship_reference);
     } else {
         cur_frm.set_value("drop_ship_address", null);
         cur_frm.set_value("drop_ship_address_display", null);
@@ -96,4 +98,25 @@ function validate_order_recommendation(frm) {
     }
 }
 
-
+function set_dn_items(delivery_note) {
+    frappe.call({
+        'method': "frappe.client.get",
+        'args': {
+            'doctype': "Delivery Note",
+            'name': delivery_note
+        },
+        'callback': function(response) {
+            if (response.message) {
+                cur_frm.clear_table("items");
+                let dn_items = response.message.items;
+                for (let i = 0; i < dn_items.length; i++) {
+                    var child = cur_frm.add_child('items');
+                    frappe.model.set_value(child.doctype, child.name, 'item_code', dn_items[i].item_code);
+                    frappe.model.set_value(child.doctype, child.name, 'qty', dn_items[i].qty);
+                }
+                cur_frm.refresh_field("items");
+                frappe.show_alert("Artikel aus Lieferschein wurden übernommen", 5);
+            }
+        }
+    });
+}
