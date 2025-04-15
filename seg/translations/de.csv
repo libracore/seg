@@ -27,6 +27,7 @@ DocType: SEG Settings,Foreign countries,Ausland
 DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
 DocType: Quotation Price List,Templates,Artikelvorlagen
 Report: Beschaffungsplan,Lead Time in Days,Leadtime in Tagen
-Report: Beschaffungsplan,Avg Consumption,Durchschnittlicher Verbrauch
+Report: Beschaffungsplan,Avg Consumption per Day,Verbrauch pro Tag
 Report: Beschaffungsplan,To Order,Zu bestellen
 Report: Beschaffungsplan,Create Purchase Order,Bestellung erstellen
+Report: Beschaffungsplan,Stock in SKU,Lagerbestand
