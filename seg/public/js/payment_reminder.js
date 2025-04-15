@@ -27,6 +27,8 @@ frappe.ui.form.on('Payment Reminder Invoice',  {
         }
         if (new_amount > 0) {
             cur_frm.set_value("total_before_charge", new_amount);
+        } else {
+            cur_frm.set_value("total_before_charge", 0);
         }
     }
 });
