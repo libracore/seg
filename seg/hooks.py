@@ -117,11 +117,15 @@ doc_events = {
             "seg.seg.utils.set_french_attributes", 
             "seg.seg.nextcloud.after_insert_handler"
         ],
-        "after_rename": "seg.seg.nextcloud.after_rename_handler"
+        "after_rename": "seg.seg.nextcloud.after_rename_handler",
+        "before_save": "seg.seg.purchasing.set_supplier_on_prices"
     },
     "Supplier": {
         "after_insert": "seg.seg.nextcloud.after_insert_handler",
         "after_rename": "seg.seg.nextcloud.after_rename_handler"
+    },
+    "Item Price": {
+        "before_save": "seg.seg.purchasing.set_price_supplier"
     }
 }
 
