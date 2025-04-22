@@ -84,17 +84,19 @@ function set_taxes_template(frm) {
 }
 
 function validate_order_recommendation(frm) {
-    let affected_items = false;
-    let message = "Folgende Artikelmenge liegen unter der Bestellempfehlung des Lieferanten:<br>"
-    for (let i = 0; i < frm.doc.items.length; i++) {
-        if (frm.doc.items[i].order_recommendation_supplier && frm.doc.items[i].order_recommendation_supplier > 0 && frm.doc.items[i].qty < frm.doc.items[i].order_recommendation_supplier) {
-            message = message + "<br>" + frm.doc.items[i].item_code + ": " + frm.doc.items[i].item_name + " (Zeile " + frm.doc.items[i].idx + ")";
-            affected_items = true
+    if (!frm.doc.is_drop_ship) {
+        let affected_items = false;
+        let message = "Folgende Artikelmenge liegen unter der Bestellempfehlung des Lieferanten:<br>"
+        for (let i = 0; i < frm.doc.items.length; i++) {
+            if (frm.doc.items[i].order_recommendation_supplier && frm.doc.items[i].order_recommendation_supplier > 0 && frm.doc.items[i].qty < frm.doc.items[i].order_recommendation_supplier) {
+                message = message + "<br>" + frm.doc.items[i].item_code + ": " + frm.doc.items[i].item_name + " (Zeile " + frm.doc.items[i].idx + ")";
+                affected_items = true
+            }
         }
-    }
-    
-    if (affected_items) {
-        frappe.msgprint(message, "Bestellempfehlung Lieferant");
+        
+        if (affected_items) {
+            frappe.msgprint(message, "Bestellempfehlung Lieferant");
+        }
     }
 }
 
