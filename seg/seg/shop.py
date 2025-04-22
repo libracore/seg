@@ -392,7 +392,7 @@ def get_item_details(item_code=None, language="de"):
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
               AND `tabItem`.`show_variant_in_website` = 1
-            ORDER BY `tabItem`.`weightage` DESC;
+            ORDER BY `tabItem`.`variant_priority` DESC;
         """.format(item_code=item_code), as_dict=True)
         for v in variants:
             variant_attributes = frappe.db.sql("""
