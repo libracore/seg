@@ -64,7 +64,6 @@ frappe.ui.form.on('Delivery Note', {
     customer: function(frm) {
         if (frm.doc.customer) {
             check_pick_up(frm.doc.customer);
-            console.log(frm.doc.customer);
             display_dn_note(frm.doc.customer);
         } else {
             cur_frm.set_value("picked_up" , 0)
