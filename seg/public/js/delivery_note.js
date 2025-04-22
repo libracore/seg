@@ -20,6 +20,7 @@ frappe.ui.form.on('Delivery Note', {
         if (cur_frm.doc.__islocal) {
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
+                //~ display_dn_note(frm.doc.customer);
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
@@ -63,6 +64,7 @@ frappe.ui.form.on('Delivery Note', {
     customer: function(frm) {
         if (frm.doc.customer) {
             check_pick_up(frm.doc.customer);
+            display_dn_note(frm.doc.customer);
         } else {
             cur_frm.set_value("picked_up" , 0)
         }
@@ -346,3 +348,26 @@ function add_dn_nextcloud_button(frm) {
     });
 }
 
+function display_dn_note(customer) {
+    frappe.call({
+        'method': "frappe.client.get_list",
+        'args':{
+            'doctype': "Customer",
+            'filters': [
+                ["name","IN", [cur_frm.doc.customer]]
+            ],
+            'fields': ["leave_delivery_note_note", "delivery_note_note"]
+        },
+        'callback': function (r) {
+            var customer = r.message[0];
+            
+            if (customer.leave_delivery_note_note === 1) {
+                frappe.msgprint({
+                    title: __('Auf diesem Kunden ist ein Vermerk hinterlegt:'),
+                    indicator: 'red',
+                    message: __(` &nbsp;  &nbsp; ${ customer.delivery_note_note }`)
+                });
+            }
+        }
+    });
+}
