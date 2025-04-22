@@ -1,2 +1,3 @@
 seg.patches.set_french_packaging_type.set_french_packaging_type
 seg.patches.v0_5_1.v0_5_1
+seg.patches.v0_6_0.item_price_supplier
