@@ -9,6 +9,7 @@ frappe.ui.form.on('Item',  {
             });
             
             add_nextcloud_button(frm);
+            set_description_properties(frm);
         }
     },
     before_save: function(frm) {
@@ -73,5 +74,12 @@ function set_default_supplier(frm) {
         cur_frm.set_value("default_supplier", default_supplier);
     } else if (frm.doc.default_supplier && !default_supplier) {
         cur_frm.set_value("default_supplier", null);
+    }
+}
+
+function set_description_properties(frm) {
+    if (frm.doc.variant_of) {
+         cur_frm.set_df_property('web_long_description', 'read_only', 1);
+         cur_frm.set_df_property('website_description_fr', 'read_only', 1);
     }
 }
