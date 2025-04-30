@@ -66,6 +66,22 @@ frappe.ui.form.on('Sales Invoice',  {
                 $(target).parent().parent().remove();   // remove Menu > Email
             }
         }
+        
+        if (cur_frm.doc.is_return&&cur_frm.doc.docstatus == 1&&cur_frm.doc.outstanding_amount!=0) {
+            frm.add_custom_button(__("Verbuchbares Guthaben"), function() {
+                frappe.call({
+                    method: "seg.seg.utils.create_advance_je",
+                    args: {
+                        sinv: cur_frm.doc.name
+                    },
+                    callback: function (r) {
+                        cur_frm.reload_doc();
+                        frappe.msgprint("Die Gutschrift wurde als Anzahlung für künftige Rechnungen hinterlegt.");
+                    }
+                })
+            }, __("Create"));
+        }
+        
         check_email_invoice(frm);
     },
     is_return: function(frm) {

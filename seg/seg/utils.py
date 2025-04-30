@@ -300,3 +300,29 @@ def map_doctype(doctype):
            'Purchase Order': "Bestellung"
        }
        return mapper[doctype]
+
+@frappe.whitelist()
+def create_advance_je(sinv):
+    sinv = frappe.get_doc("Sales Invoice", sinv)
+    je = frappe.get_doc({
+        'doctype': 'Journal Entry',
+        'posting_date': frappe.utils.today(),
+        'accounts': [
+            {
+                'account': sinv.debit_to,
+                'party_type': 'Customer',
+                'party': sinv.customer,
+                'reference_type': 'Sales Invoice',
+                'reference_name': sinv.name,
+                'debit_in_account_currency': sinv.outstanding_amount * -1
+            },
+            {
+                'account': sinv.debit_to,
+                'party_type': 'Customer',
+                'party': sinv.customer,
+                'credit_in_account_currency': sinv.outstanding_amount * -1,
+                'is_advance': 'Yes'
+            }
+        ]
+    }).insert()
+    je.submit()
