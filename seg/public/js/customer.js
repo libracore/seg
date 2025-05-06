@@ -1,6 +1,14 @@
 // Copyright (c) 2025, libracore AG and contributors
 // For license information, please see license.txt
 
+//extend Dashboard
+cur_frm.dashboard.add_transactions([
+	{
+		'label': 'Pre Sales',
+		'items': ['Quotation Price List']
+	}
+]);
+
 frappe.ui.form.on('Customer',  {
     refresh: function(frm) {
         display_email_invoice(frm);
