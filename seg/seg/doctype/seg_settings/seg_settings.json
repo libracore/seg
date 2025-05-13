@@ -24,7 +24,9 @@
   "pr_email_template",
   "rp_email_template",
   "reminder_section",
-  "new_webshop_user_email"
+  "new_webshop_user_email",
+  "column_break_22",
+  "email_error_information"
  ],
  "fields": [
   {
@@ -141,10 +143,21 @@
    "label": "New Webshop User E-Mail",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_22",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "email_error_information",
+   "fieldtype": "Link",
+   "label": "Information for E-Mail Errors",
+   "options": "User",
+   "reqd": 1
   }
  ],
  "issingle": 1,
- "modified": "2025-03-05 15:23:06.039208",
+ "modified": "2025-05-13 14:41:54.472777",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",
