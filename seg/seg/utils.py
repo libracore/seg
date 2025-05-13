@@ -9,6 +9,7 @@ from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
 from frappe.utils import cint
 from frappe.core.doctype.communication.email import make
+from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
 
 naming_patterns = {
     'Address': {
@@ -374,3 +375,27 @@ def send_email(recipient, message):
          content = message,
          send_email = True
     )
+
+@frappe.whitelist()
+def check_advances(doc, include_unallocated=True):
+    doc = json.loads(doc)
+    
+    party_account = doc.get('debit_to')
+    party_type = "Customer"
+    party = doc.get('customer')
+    amount_field = "credit_in_account_currency"
+    order_field = "sales_order"
+    order_doctype = "Sales Order"
+    
+    order_list = list(set([d.get(order_field)
+        for d in doc.get("items") if d.get(order_field)]))
+        
+    journal_entries = get_advance_journal_entries(party_type, party, party_account,
+        amount_field, order_doctype, order_list, include_unallocated)
+
+    payment_entries = get_advance_payment_entries(party_type, party, party_account,
+        order_doctype, order_list, include_unallocated)
+
+    res = journal_entries + payment_entries
+
+    return res
