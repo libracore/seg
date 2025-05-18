@@ -8,6 +8,8 @@ import six
 from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
 from frappe.utils import cint
+from frappe.core.doctype.communication.email import make
+from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
 
 naming_patterns = {
     'Address': {
@@ -326,3 +328,74 @@ def create_advance_je(sinv):
         ]
     }).insert()
     je.submit()
+
+def email_errors():
+    #get unsent emails
+    emails = frappe.db.sql("""
+                            SELECT
+                                `reference_name`,
+                                `status`,
+                                `sender`
+                            FROM
+                                `tabEmail Queue`
+                            WHERE
+                                `status` != 'Sent'
+                            AND
+                                `modified` >= NOW() - INTERVAL 1 DAY
+                            ORDER BY
+                                `sender` ASC;""", as_dict=True)
+                                
+    sender = "Anyone"
+    for email in emails:
+        if email.get('sender') != sender:
+            #Send E-Mail from Last Recipient
+            if not sender == "Anyone":
+                send_email(recipient, message)
+            #Prepare Recipient and Message:
+            split_sender = email.get('sender').split()
+            if split_sender[0] == "SEG":
+                recipient = frappe.get_value("SEG Settings", "SEG Settings", "email_error_information")
+                print(recipient)
+                message = "Guten Tag,<br><br>Folgende E-Mails von SEG AG wurden nicht erfolgreich gesendet bitte prüfe den Status:<br>".format(split_sender[0])
+            else:
+                recipient = frappe.get_value("User", {'first_name': split_sender[0], 'last_name': split_sender[1]}, "email")
+                message = "Hallo {0},<br><br>Folgende E-Mails von dir wurden nicht erfolgreich gesendet bitte prüfe den Status:<br>".format(split_sender[0])
+        message += "<br>-Referenz: {0}, Aktueller Status: {1}".format(email.get('reference_name'), email.get('status'))
+        sender = email.get('sender')
+    send_email(recipient, message)
+    
+    return
+
+def send_email(recipient, message):
+    make(
+         recipients = recipient,
+         sender = "info@seg.swiss",
+         cc = "ivan.lochbihler@libracore.com",
+         subject = "Fehler beim E-Mail versenden",
+         content = message,
+         send_email = True
+    )
+
+@frappe.whitelist()
+def check_advances(doc, include_unallocated=True):
+    doc = json.loads(doc)
+    
+    party_account = doc.get('debit_to')
+    party_type = "Customer"
+    party = doc.get('customer')
+    amount_field = "credit_in_account_currency"
+    order_field = "sales_order"
+    order_doctype = "Sales Order"
+    
+    order_list = list(set([d.get(order_field)
+        for d in doc.get("items") if d.get(order_field)]))
+        
+    journal_entries = get_advance_journal_entries(party_type, party, party_account,
+        amount_field, order_doctype, order_list, include_unallocated)
+
+    payment_entries = get_advance_payment_entries(party_type, party, party_account,
+        order_doctype, order_list, include_unallocated)
+
+    res = journal_entries + payment_entries
+
+    return res

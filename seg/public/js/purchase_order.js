@@ -8,7 +8,7 @@ frappe.ui.form.on('Purchase Order',  {
             set_taxes_template(frm);
         }
         
-        if (frm.doc.docstatus == 1) {
+        if (frm.doc.docstatus < 2) {
             // custom mail dialog (prevent duplicate icons on creation)
             if (document.getElementsByClassName("fa-envelope-o").length === 0) {
                 cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {

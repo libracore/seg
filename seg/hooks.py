@@ -138,7 +138,8 @@ scheduler_events = {
 #   ],
     "daily": [
         "seg.seg.utils.convert_credits_to_advances",
-        "seg.seg.purchasing.update_default_supplier"
+        "seg.seg.purchasing.update_default_supplier",
+        "seg.seg.utils.email_errors"
     ]
 #   "hourly": [
 #       "seg.tasks.hourly"

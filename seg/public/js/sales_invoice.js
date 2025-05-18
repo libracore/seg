@@ -82,6 +82,10 @@ frappe.ui.form.on('Sales Invoice',  {
             }, __("Create"));
         }
         
+        if (frm.doc.docstatus < 1 && frm.doc.is_return == 0) {
+            check_advances(frm);
+        }
+        
         check_email_invoice(frm);
     },
     is_return: function(frm) {
@@ -257,4 +261,18 @@ function update_wir_discount(frm) {
         });
     }
     cur_frm.set_value("wir_amount", wir);
+}
+
+function check_advances(frm) {
+    frappe.call({
+        'method': 'seg.seg.utils.check_advances',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message.length > 0) {
+                cur_frm.dashboard.add_comment( "<p style='color: green;'>Es sind Anzahlungen oder Kredite verfügbar für diesen Kunden!</p>", 'red', true);
+            }
+        }
+    });
 }
