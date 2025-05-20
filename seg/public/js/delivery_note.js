@@ -389,7 +389,6 @@ function update_barcodes(frm) {
         'callback': function(response) {
             if (response.message) {
                 let new_barcodes = response.message;
-                console.log(new_barcodes);
                 let removed_barcodes = "";
                 for (let i = 0; i < new_barcodes.length; i++) {
                     if (!new_barcodes[i].barcode) {
