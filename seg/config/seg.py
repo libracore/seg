@@ -217,6 +217,13 @@ def get_data():
                         "doctype": "Item",
                         "is_query_report": True
                     },
+                    {
+                        "type": "report",
+                        "name": "Item Sales Analytics",
+                        "label": _("Item Sales Analytics"),
+                        "doctype": "Item",
+                        "is_query_report": True
+                    }
             ]
         },
         {
