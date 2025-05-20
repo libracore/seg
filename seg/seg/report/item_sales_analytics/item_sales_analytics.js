@@ -17,10 +17,16 @@ frappe.query_reports["Item Sales Analytics"] = {
             "default": frappe.datetime.get_today()
         },
         {
-            "fieldname":"based on",
-            "label": __("Based on"),
+            "fieldname":"based_on",
+            "label": __("Based On"),
             "fieldtype": "Select",
             "options": "Default Supplier\nItem Group"
+        },
+        {
+            "fieldname":"item_group",
+            "label": __("Item Group"),
+            "fieldtype": "Link",
+            "options": "Item Group"
         }
     ]
 };

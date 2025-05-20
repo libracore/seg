@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils import flt
 from frappe import _
+from seg.seg.shop import get_child_group
 
 def execute(filters=None):
     columns = get_columns()
@@ -27,7 +28,43 @@ def get_data(filters):
     #get all Delivery Note Item Entries within given Dates
     entries = get_dn_positions(from_date=filters.from_date, to_date=filters.to_date)
     
-    return entries
+    #Group by Default Suppliers
+    if filters.based_on == "Default Supplier":
+        #find suppliers
+        suppliers = []
+        for e in entries:
+            if e.get('default_supplier') not in suppliers:
+                suppliers.append(e.get('default_supplier'))
+    
+        # create grouped entries
+        output = []
+        for s in suppliers:
+            details = []
+            total_qty = 0
+            total_amount = 0
+            for e in entries:
+                if e.default_supplier == s:
+                    total_qty += e.total_qty or 0
+                    total_amount += e.total_amount or 0
+                    details.append(e)
+                    
+            # insert supplier row
+            output.append({
+                'default_supplier': s,
+                'total_qty': total_qty,
+                'total_amount': total_amount,
+                'indent': 0
+            })
+            for d in details:
+                output.append(d)
+        return output
+    elif filters.based_on == "Item Group":
+        if not filters.item_group:
+            frappe.throw("Bitte Artikelgruppe angeben")
+        item_groups = get_child_group(filters.item_group)
+        frappe.log_error(item_groups, "item_groups")
+    else:
+        return entries
 
 def get_dn_positions(from_date=None, to_date=None):
     if not from_date:
@@ -41,7 +78,8 @@ def get_dn_positions(from_date=None, to_date=None):
                                     SUM(`tabDelivery Note Item`.`amount`) AS `total_amount`,
                                     `tabItem`.`item_name` AS `item_name`,
                                     `tabItem`.`item_group` AS `item_group`,
-                                    `tabItem`.`default_supplier` AS `default_supplier`
+                                    `tabItem`.`default_supplier` AS `default_supplier`,
+                                    1 AS `indent`
                                 FROM
                                     `tabDelivery Note Item`
                                 LEFT JOIN
@@ -49,6 +87,8 @@ def get_dn_positions(from_date=None, to_date=None):
                                 WHERE
                                     `tabDelivery Note Item`.`docstatus` = 1
                                 GROUP BY
-                                    `tabDelivery Note Item`.`item_code`""", as_dict=True)
+                                    `item`
+                                ORDER BY
+                                    `total_amount` DESC""", as_dict=True)
                                 
     return positions
