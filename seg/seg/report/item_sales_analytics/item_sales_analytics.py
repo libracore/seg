@@ -55,16 +55,65 @@ def get_data(filters):
                 'total_amount': total_amount,
                 'indent': 0
             })
+            
+            #Insert Sub Entries
             for d in details:
                 output.append(d)
         return output
     elif filters.based_on == "Item Group":
+        #Check if Item Group is selected
         if not filters.item_group:
             frappe.throw("Bitte Artikelgruppe angeben")
-        item_groups = get_child_group(filters.item_group)
-        frappe.log_error(item_groups, "item_groups")
+        
+        #Check if given Group has Child Groups
+        has_child = frappe.get_value("Item Group", filters.item_group, "is_group")
+        
+        #Create List with Item Group and all Child Groups
+        group_list = []
+        
+        if has_child:
+            groups_to_check = []
+            group_list.append(filters.item_group)
+            groups_to_check.append(filters.item_group)
+            while len(groups_to_check) > 0:
+                child_groups, groups_to_check = get_child_groups(groups_to_check)
+                for child_group in child_groups:
+                    group_list.append(child_group)
+        else:
+            group_list.append(filters.item_group)
+        
+        #Create Output according to needed Item Groups
+        output = []
+        details = []
+        total_qty = 0
+        total_amount = 0
+        
+        for e in entries:
+            if e.get('item_group') in group_list:
+                total_qty += e.get('total_qty')
+                total_amount += e.get('total_amount')
+                details.append(e)
+                
+        # Insert Item Group Row
+        output.append({
+            'item_group': filters.item_group,
+            'total_qty': total_qty,
+            'total_amount': total_amount,
+            'indent': 0
+        })
+        
+        #Insert Sub Entries
+        for d in details:
+            output.append(d)
+        
+        return output
     else:
-        return entries
+        output = []
+        for e in entries:
+            e['indent'] = 0
+            output.append(e)
+            
+        return output
 
 def get_dn_positions(from_date=None, to_date=None):
     if not from_date:
@@ -84,11 +133,37 @@ def get_dn_positions(from_date=None, to_date=None):
                                     `tabDelivery Note Item`
                                 LEFT JOIN
                                     `tabItem` ON `tabItem`.`name` = `tabDelivery Note Item`.`item_code`
+                                LEFT JOIN
+                                    `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
                                 WHERE
                                     `tabDelivery Note Item`.`docstatus` = 1
+                                AND
+                                    DATE(`tabDelivery Note`.`posting_date`) BETWEEN "{from_date}" AND "{to_date}"
                                 GROUP BY
                                     `item`
                                 ORDER BY
-                                    `total_amount` DESC""", as_dict=True)
+                                    `total_amount` DESC;""".format(from_date=from_date, to_date=to_date), as_dict=True)
                                 
     return positions
+
+def get_child_groups(item_groups):
+    child_groups = []
+    groups_to_check = []
+    
+    for item_group in item_groups:
+        new_groups = frappe.db.sql("""
+                                    SELECT
+                                        `name`,
+                                        `is_group`
+                                    FROM
+                                        `tabItem Group`
+                                    WHERE
+                                        `parent_item_group` = '{group}';""".format(group=item_group), as_dict=True)
+                                        
+        if len(new_groups) > 0:
+            for new_group in new_groups:
+                child_groups.append(new_group.get('name'))
+                if new_group.get('is_group'):
+                    groups_to_check.append(new_group.get('name'))
+                    
+    return child_groups, groups_to_check

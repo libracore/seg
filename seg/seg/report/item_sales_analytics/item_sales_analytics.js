@@ -28,5 +28,6 @@ frappe.query_reports["Item Sales Analytics"] = {
             "fieldtype": "Link",
             "options": "Item Group"
         }
-    ]
+    ],
+    "initial_depth": 0
 };
