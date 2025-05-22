@@ -5,6 +5,14 @@ var flag = 0;
 frappe.ui.form.on('Delivery Note', {
     refresh(frm) {
         display_purchase_price_field(frm);
+        
+        if (frm.doc.docstatus == 0) {
+            frm.add_custom_button(__("Update Barcodes"), function() {
+                //Update Barcode, if they have changed in item meanwhile
+                update_barcodes(frm);
+            });
+        }
+        
         frm.add_custom_button(__("Umlagern"), function() {
             move_stock(frm);
         });
@@ -367,6 +375,32 @@ function display_dn_note(customer) {
                     indicator: 'red',
                     message: __(` &nbsp;  &nbsp; ${ customer.delivery_note_note }`)
                 });
+            }
+        }
+    });
+}
+
+function update_barcodes(frm) {
+    frappe.call({
+        'method': 'seg.seg.delivery.check_barcodes',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message) {
+                let new_barcodes = response.message;
+                let removed_barcodes = "";
+                for (let i = 0; i < new_barcodes.length; i++) {
+                    if (!new_barcodes[i].barcode) {
+                        removed_barcodes = removed_barcodes + "<br>" +  new_barcodes[i].item_code;
+                    } else {
+                        frappe.model.set_value("Delivery Note Item", new_barcodes[i].line_name, "barcode", new_barcodes[i].barcode);
+                    }
+                }
+                frappe.show_alert("Barcodes wurden aktualisiert", 3);
+                if (removed_barcodes.length > 0) {
+                    frappe.msgprint("Folgende Artikel müssen manuell bearbeitet werden, da der Barcode komplett entfernt wurde <br>" + removed_barcodes);
+                }
             }
         }
     });
