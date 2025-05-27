@@ -342,8 +342,11 @@ def email_errors():
                                 `status` != 'Sent'
                             AND
                                 `modified` >= NOW() - INTERVAL 1 DAY
+                            AND
+                                `creation` < NOW() - INTERVAL 10 MINUTE
                             ORDER BY
                                 `sender` ASC;""", as_dict=True)
+    frappe.log_error(emails, "email_errors")
                                 
     sender = "Anyone"
     for email in emails:
