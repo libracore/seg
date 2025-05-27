@@ -346,7 +346,6 @@ def email_errors():
                                 `creation` < NOW() - INTERVAL 10 MINUTE
                             ORDER BY
                                 `sender` ASC;""", as_dict=True)
-    frappe.log_error(emails, "email_errors")
                                 
     sender = "Anyone"
     for email in emails:
