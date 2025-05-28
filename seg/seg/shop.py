@@ -90,8 +90,9 @@ def get_prices(item_code=None, user=None, language="de"):
                    LIMIT 1) AS `pricing_rule`
                 FROM `tabItem`
                 LEFT JOIN `tabItem Group` ON `tabItem`.`item_group` = `tabItem Group`.`name`
-                WHERE `tabItem`.`item_code` = "{item_code}"
-                  OR `tabItem`.`variant_of` = "{item_code}"
+                WHERE (`tabItem`.`item_code` = "{item_code}"
+                  OR (`tabItem`.`variant_of` = "{item_code}" AND `tabItem`.`show_variant_in_website` = 1))
+                  AND `tabItem`.`disabled` = 0
                 ) AS `raw`
             LEFT JOIN `tabPricing Rule` AS `tPR` ON `tPR`.`name` = `raw`.`pricing_rule`
             LEFT JOIN `tabItem Variant Attribute` ON `raw`.`item_code` = `tabItem Variant Attribute`.`parent`
