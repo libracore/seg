@@ -126,6 +126,9 @@ doc_events = {
     },
     "Item Price": {
         "before_save": "seg.seg.purchasing.set_price_supplier"
+    },
+    "Communication": {
+        "after_insert": "seg.seg.utils.set_email_recipient"
     }
 }
 

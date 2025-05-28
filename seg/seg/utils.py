@@ -399,3 +399,16 @@ def check_advances(doc, include_unallocated=True):
     res = journal_entries + payment_entries
 
     return res
+
+#add e-mail recipients to content, to show in Document History
+def set_email_recipient(self, event):
+    if self.communication_medium == "Email":
+        recipients_cleaned = self.recipients[:-2] if self.recipients.endswith(", ") else self.recipients
+        additional_content = "<br><br>-> Gesendet an: {0}".format(recipients_cleaned)
+        if self.cc:
+            cc_cleaned = self.cc[:-2] if self.cc.endswith(", ") else self.cc
+            additional_content += " (cc: {0})".format(cc_cleaned)
+        self.content += additional_content
+        
+        self.save()
+    return
