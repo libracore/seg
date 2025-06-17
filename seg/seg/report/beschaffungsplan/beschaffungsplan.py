@@ -39,6 +39,9 @@ def get_data(filters, supplier=None):
     days_until_filter = 0
     if 'days_until_stock_ends' in filters:
         days_until_filter =  date_diff(datetime.strptime(filters.get("days_until_stock_ends"), "%Y-%m-%d").date(), today)
+    
+    #get restriced warehouse
+    restricted_warehouse = frappe.get_value("SEG Settings", "SEG Settings", "restricted_warehouse")
     # fetch data
     sql_query = """
         SELECT
@@ -76,9 +79,10 @@ def get_data(filters, supplier=None):
             AND `tabItem`.`is_stock_item` = 1
             AND `tabItem`.`disabled` = 0
             AND `tabItem`.`has_variants` = 0
+            AND `tabBin`.`warehouse` != '{restricted_warehouse}'
         GROUP BY `tabItem`.`item_code`
         ORDER BY `modified` DESC
-        """
+        """.format(restricted_warehouse=restricted_warehouse)
     data = frappe.db.sql(sql_query, as_dict=True)
     
     #prepare and calculate data for report
