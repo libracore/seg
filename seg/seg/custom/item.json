@@ -1677,7 +1677,7 @@
    "creation": "2025-04-22 17:00:30.576252",
    "default": "1",
    "depends_on": "eval: doc.variant_of;",
-   "description": null,
+   "description": "Changes the Order of Variants in a Template in the Webshop",
    "docstatus": 0,
    "dt": "Item",
    "fetch_from": null,
