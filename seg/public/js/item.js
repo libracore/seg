@@ -15,6 +15,7 @@ frappe.ui.form.on('Item',  {
     before_save: function(frm) {
         //Set default supplier (first from supplier_items List)
         set_default_supplier(frm);
+        check_default_variant(frm);
     },
     packaging_type: function(frm) {
         set_french_packaging_type(frm);
@@ -81,5 +82,26 @@ function set_description_properties(frm) {
     if (frm.doc.variant_of) {
          cur_frm.set_df_property('web_long_description', 'read_only', 1);
          cur_frm.set_df_property('website_description_fr', 'read_only', 1);
+    }
+}
+
+function check_default_variant(frm) {
+    if (frm.doc.default_variant) {
+        if (frm.doc.disabled) {
+            cur_frm.set_value("default_variant", 0);
+        } else {
+            frappe.call({
+                'method': 'seg.seg.utils.unset_default_variants',
+                'args': {
+                    'item_code': frm.doc.name,
+                    'template': frm.doc.variant_of
+                },
+                'callback': function(response) {
+                    if (response.message) {
+                        frappe.show_alert("Die bisherige Standardvariante wurde entfernt.", 5);
+                    }
+                }
+            });
+        }
     }
 }

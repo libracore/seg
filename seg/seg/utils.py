@@ -412,3 +412,25 @@ def set_email_recipient(self, event):
         
         self.save()
     return
+
+@frappe.whitelist()
+def unset_default_variants(item_code, template):
+    old_default = frappe.db.sql("""
+                                SELECT
+                                    `name`
+                                FROM
+                                    `tabItem`
+                                WHERE
+                                    `variant_of` = '{template}'
+                                AND
+                                    `name` != '{item}'
+                                AND
+                                    `default_variant` = 1""".format(template=template, item=item_code), as_dict=True)
+    
+    if len(old_default) > 0:
+        for item in old_default:
+            frappe.set_value("Item", item.get('name'), "default_variant", 0)
+        
+        return True
+    else:
+        return False
