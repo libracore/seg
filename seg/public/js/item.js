@@ -15,7 +15,13 @@ frappe.ui.form.on('Item',  {
     before_save: function(frm) {
         //Set default supplier (first from supplier_items List)
         set_default_supplier(frm);
+        //Remove existing default Variant if a new has been set or item has been disabled
         check_default_variant(frm);
+        //Remove show in Website if item is disabled
+        if (frm.doc.disabled) {
+            cur_frm.set_value("show_in_website", 0);
+            cur_frm.set_value("show_variant_in_website", 0);
+        }
     },
     packaging_type: function(frm) {
         set_french_packaging_type(frm);
@@ -89,6 +95,8 @@ function check_default_variant(frm) {
     if (frm.doc.default_variant) {
         if (frm.doc.disabled) {
             cur_frm.set_value("default_variant", 0);
+            cur_frm.set_value("show_in_website", 0);
+            cur_frm.set_value("show_variant_in_website", 0);
         } else {
             frappe.call({
                 'method': 'seg.seg.utils.unset_default_variants',
