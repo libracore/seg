@@ -95,8 +95,6 @@ function check_default_variant(frm) {
     if (frm.doc.default_variant) {
         if (frm.doc.disabled) {
             cur_frm.set_value("default_variant", 0);
-            cur_frm.set_value("show_in_website", 0);
-            cur_frm.set_value("show_variant_in_website", 0);
         } else {
             frappe.call({
                 'method': 'seg.seg.utils.unset_default_variants',
