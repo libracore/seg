@@ -6,6 +6,8 @@ frappe.ui.form.on('Contact',  {
     before_save: function(frm) {
         if (frm.doc.links && frm.doc.links.length > 0) {
             set_link_title_and_company(frm);
+        } else if (frm.doc.company_name) {
+            cur_frm.set_value("company_name", null);
         }
     }
 });
