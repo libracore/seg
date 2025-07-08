@@ -56,17 +56,19 @@ def get_data(filters, supplier=None):
             (SELECT SUM(`tabDelivery Note Item`.`qty`)
              FROM `tabDelivery Note Item`
              LEFT JOIN `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
-             WHERE `tabDelivery Note Item`.`item_code` = `tabItem`.`item_code`
+             WHERE (`tabDelivery Note Item`.`item_code` = `tabItem`.`item_code`
                    AND `tabDelivery Note Item`.`docstatus` = 1
-                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE()
+                   AND `tabDelivery Note`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE())
+                   OR `tabDelivery Note Item`.`item_code` IS NULL
             ) AS `dn_consumption`,
             (SELECT SUM(`tabStock Entry Detail`.`qty`)
              FROM `tabStock Entry Detail`
              LEFT JOIN `tabStock Entry` ON `tabStock Entry`.`name` = `tabStock Entry Detail`.`parent`
-             WHERE `tabStock Entry Detail`.`item_code` = `tabItem`.`item_code`
+             WHERE (`tabStock Entry Detail`.`item_code` = `tabItem`.`item_code`
                    AND `tabStock Entry Detail`.`docstatus` = 1
                    AND `tabStock Entry`.`stock_entry_type` = 'Material Issue'
-                   AND `tabStock Entry`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE()
+                   AND `tabStock Entry`.`posting_date` BETWEEN DATE_SUB(CURDATE(), INTERVAL 360 DAY) AND CURDATE())
+                   OR `tabStock Entry Detail`.`item_code` IS NULL
             ) AS `se_consumption`,
             0 AS `avg_consumption_per_day`,
             0 AS `days_until_stock_ends`,
@@ -79,12 +81,12 @@ def get_data(filters, supplier=None):
             AND `tabItem`.`is_stock_item` = 1
             AND `tabItem`.`disabled` = 0
             AND `tabItem`.`has_variants` = 0
-            AND `tabBin`.`warehouse` != '{restricted_warehouse}'
+            AND (`tabBin`.`warehouse` != '{restricted_warehouse}' OR `tabBin`.`warehouse` IS NULL)
         GROUP BY `tabItem`.`item_code`
         ORDER BY `modified` DESC
         """.format(restricted_warehouse=restricted_warehouse)
     data = frappe.db.sql(sql_query, as_dict=True)
-    
+    frappe.log_error(data, "data")
     #prepare and calculate data for report
     for row in data:
         #Set Item Code Data Field
