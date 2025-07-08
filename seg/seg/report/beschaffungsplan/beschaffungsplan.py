@@ -85,7 +85,7 @@ def get_data(filters, supplier=None):
         GROUP BY `tabItem`.`item_code`
         ORDER BY `modified` DESC
         """.format(restricted_warehouse=restricted_warehouse)
-    data = frappe.db.sql(sql_query, as_dict=True)
+    
     frappe.log_error(data, "data")
     #prepare and calculate data for report
     for row in data:
