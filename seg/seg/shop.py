@@ -389,7 +389,8 @@ def get_item_details(item_code=None, language="de"):
             SELECT 
                 `tabItem`.`item_code`,
                 `tabItem`.`verpackungseinheit` AS `packaging_unit`,
-                `tabItem`.`image`
+                `tabItem`.`image`,
+                `tabItem`.`default_variant`
             FROM `tabItem`
             WHERE `tabItem`.`variant_of` = "{item_code}"
               AND `tabItem`.`show_variant_in_website` = 1
