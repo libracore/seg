@@ -13,11 +13,6 @@ frappe.ui.form.on('Payment Reminder',  {
                 $(target).parent().parent().remove();   // remove Menu > Email
             }
         }
-    },
-    customer: function(frm) {
-        if (!frm.doc.__islocal) {
-            set_sales_person(frm);
-        }
     }
 });
 
@@ -37,23 +32,3 @@ frappe.ui.form.on('Payment Reminder Invoice',  {
         }
     }
 });
-
-function set_sales_person(frm) {
-    if (frm.doc.customer) {
-        frappe.call({
-            'method': "frappe.client.get",
-            'args': {
-                'doctype': "Customer",
-                'name': frm.doc.customer
-            },
-            'callback': function(response) {
-                var sales_person = response.message.customer_group;
-                if (sales_person) {
-                    frm.set_value("sales_person", sales_person);
-                }
-            }
-        });
-    } else {
-        frm.set_value("sales_person", null);
-    }
-}
