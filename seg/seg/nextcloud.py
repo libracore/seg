@@ -175,15 +175,16 @@ def upload_from_local_file(doctype, name, target, file_name):
     client = get_client()
     storage_path = get_storage_path(doctype, name)
     target_path = os.path.join(storage_path, target)
+    target_file = os.path.join(target_path, (file_name.split("/")[-1]).replace("&", "+"))
     
     #client.files.upload_stream(os.path.join(storage_path, target, file_name.split("/")[-1]), file_name)
     if client.check(os.path.join(storage_path, target)):
-        client.upload_sync(os.path.join(target_path, file_name.split("/")[-1]), file_name)
+        client.upload_sync(target_file, file_name)
     else:
         # try to create the requested folder
         try:
             create_path(client, target_path)
-            client.upload_sync(os.path.join(target_path, file_name.split("/")[-1]), file_name)
+            client.upload_sync(target_file, file_name)
         except:
             frappe.throw("Unable to upload {0} to {1}".format(file_name, target_path))
 
