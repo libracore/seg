@@ -27,6 +27,13 @@ frappe.ui.form.on('Purchase Order',  {
                 }
             };
         });
+        
+        if (frm.doc.currency != "CHF" && frm.doc.docstatus == 0) {
+            frm.add_custom_button(__("Add 1% to Rate"),  function(){
+                //Add 1% to Items Rate
+                add_currency_percent(frm);
+            });
+        }
     },
     validate: function(frm) {
         validate_order_recommendation(frm);
@@ -121,4 +128,11 @@ function set_dn_items(delivery_note) {
             }
         }
     });
+}
+
+function add_currency_percent(frm) {
+    for (let i = 0; i < frm.doc.items.length; i++) {
+        let new_rate = frm.doc.items[i].rate * 1.01;
+        frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", new_rate);
+    }
 }
