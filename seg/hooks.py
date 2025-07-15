@@ -130,6 +130,9 @@ doc_events = {
     },
     "Communication": {
         "after_insert": "seg.seg.utils.set_email_recipient"
+    },
+    "Payment Reminder": {
+        "after_insert": "seg.seg.utils.set_sales_person"
     }
 }
 

@@ -434,3 +434,8 @@ def unset_default_variants(item_code, template):
         return True
     else:
         return False
+
+def set_sales_person(self, event):
+    self.sales_person = frappe.get_value("Customer", self.customer, "customer_group")
+    self.save()
+    
