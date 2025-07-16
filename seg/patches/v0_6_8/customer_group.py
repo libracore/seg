@@ -6,14 +6,15 @@ def execute():
     
     payment_reminder = frappe.db.sql("""
                                 SELECT
-                                    `name`,
-                                    `customer`
+                                    `tabPayment Reminder`.`name` AS `name`,
+                                    `tabCustomer`.`customer_group` AS `customer_group`
                                 FROM
-                                    `tabPayment Reminder`""", as_dict=True)
+                                    `tabPayment Reminder`
+                                LEFT JOIN
+                                    `tabCustomer` ON `tabCustomer`.`name` = `tabPayment Reminder`.`customer` """, as_dict=True)
     
     for reminder in payment_reminder:
-        customer_group = frappe.get_value("Customer", reminder.get('customer'), "customer_group")
-        cust_group = frappe.db.set_value("Payment Reminder", reminder.get('name'), "customer_group", customer_group)
+        cust_group = frappe.db.set_value("Payment Reminder", reminder.get('name'), "customer_group", reminder.get('customer_group'))
     
     frappe.db.commit()
     return
