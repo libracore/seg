@@ -12,8 +12,8 @@ def execute():
                                     `tabPayment Reminder`""", as_dict=True)
     
     for reminder in payment_reminder:
-        sales_person = frappe.get_value("Customer", reminder.get('customer'), "customer_group")
-        sal_per = frappe.db.set_value("Payment Reminder", reminder.get('name'), "sales_person", sales_person)
+        customer_group = frappe.get_value("Customer", reminder.get('customer'), "customer_group")
+        cust_group = frappe.db.set_value("Payment Reminder", reminder.get('name'), "customer_group", customer_group)
     
     frappe.db.commit()
     return
