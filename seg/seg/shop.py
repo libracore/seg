@@ -989,9 +989,11 @@ def create_user(api_key, email, password, company_name, first_name,
         contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
         if contacts and len(contacts) > 0:
             contact = frappe.get_doc("Contact", contacts[0]['name'])
+            contact.company_name = new_customer.customer_name
             contact.append("links", {
                 'link_doctype': 'Customer',
-                'link_name': new_customer.name
+                'link_name': new_customer.name,
+                'link_title': new_customer.customer_name
             })
             contact.save(ignore_permissions=True)
         frappe.db.commit()
