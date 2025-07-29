@@ -469,7 +469,8 @@ def get_addresses():
             `tabAddress`.`country`,
             `tabAddress`.`is_primary_address`,
             `tabAddress`.`is_shipping_address`,
-            `tC1`.`link_name` AS `customer_name`
+            `tC1`.`link_name` AS `customer_name`,
+            `tC1`.`link_title` AS `customer_title`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
