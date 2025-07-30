@@ -469,7 +469,8 @@ def get_addresses():
             `tabAddress`.`country`,
             `tabAddress`.`is_primary_address`,
             `tabAddress`.`is_shipping_address`,
-            `tC1`.`link_name` AS `customer_name`
+            `tC1`.`link_name` AS `customer_name`,
+            `tC1`.`link_title` AS `customer_title`
         FROM `tabContact`
         JOIN `tabDynamic Link` AS `tC1` ON `tC1`.`parenttype` = "Contact" 
                                        AND `tC1`.`link_doctype` = "Customer" 
@@ -989,9 +990,11 @@ def create_user(api_key, email, password, company_name, first_name,
         contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
         if contacts and len(contacts) > 0:
             contact = frappe.get_doc("Contact", contacts[0]['name'])
+            contact.company_name = new_customer.customer_name
             contact.append("links", {
                 'link_doctype': 'Customer',
-                'link_name': new_customer.name
+                'link_name': new_customer.name,
+                'link_title': new_customer.customer_name
             })
             contact.save(ignore_permissions=True)
         frappe.db.commit()
