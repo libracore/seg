@@ -15,8 +15,8 @@ def execute(filters=None):
 
 def get_columns():
     columns = [
-        {"label": _("Item"), "fieldname": "item", "fieldtype": "Link", "options": "Item", "width": 300},
-        # ~ {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 150},
+        {"label": _("Item"), "fieldname": "item", "fieldtype": "Link", "options": "Item", "width": 50},
+        {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 200},
         {"label": _("Total Qty"), "fieldname": "total_qty", "fieldtype": "Float", "width": 80},
         {"label": _("Total Amount"), "fieldname": "total_amount", "fieldtype": "Currency", "width": 100},
         {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 120},
@@ -122,7 +122,7 @@ def get_dn_positions(from_date=None, to_date=None):
         to_date = "2099-12-31"
     
     positions = frappe.db.sql("""SELECT
-                                    `tabDelivery Note Item`.`item_code` AS `item`,
+                                    `tabItem`.`item_code` AS `item`,
                                     SUM(`tabDelivery Note Item`.`qty`) AS `total_qty`,
                                     SUM(`tabDelivery Note Item`.`amount`) AS `total_amount`,
                                     `tabItem`.`item_name` AS `item_name`,
