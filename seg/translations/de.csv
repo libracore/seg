@@ -2,6 +2,7 @@ DocType: Customer,Always pick up,Holt immer ab
 DocType: Customer,Allow Invoice,Rechnung erlauben
 DocType: Customer,Leave Delivery Note Note,Lieferscheinnotiz hinterlassen
 DocType: Customer,Delivery Note Note,Lieferscheinnotiz
+DocType: Customer,Has Custom Labels,Hat eigene Etiketten
 DocType: Webshop Settings,Shipping Item,Versandartikel
 DocType: Customer,Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail
 DocType: Sales Order,Payment Method,Zahlungsmethode
@@ -16,6 +17,7 @@ DocType: Item,Order recommendation supplier,Bestellempfehlung Lieferant
 DocType: Item,Default Supplier,Hauptlieferant
 DocType: Item,Changes the Order of Variants in a Template in the Webshop,Ändert die Reihenfolge der Varianten in einem Template im Webshop
 DocType: Item,The marked variant is highlighted in red in the webshop by default,Die markierte Variante wird im Webshop standardmässig in rot markiert
+DocType: Item,Show Carton Qty in Delivery Note,Menge pro Karton in Lieferschein anzeigen
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe
