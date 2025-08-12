@@ -103,6 +103,16 @@ function custom_mail_dialog(frm) {
                 attach_document_print: true,
                 message: message
             });
+            setTimeout(function () {
+                // attach VLA file
+                var checkboxes = $('input[type="checkbox"]');
+                for (var i = 0; i < checkboxes.length; i++) { 
+                    //~ if (checkboxes[i].labels[0].innerHTML.indexOf(".pdf") > 0
+                        console.log(checkboxes[i].labels[0]);
+                        checkboxes[i].checked = true;
+                    //~ }
+                }
+            }, 500);
         }
     });
 }
