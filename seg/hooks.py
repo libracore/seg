@@ -45,7 +45,16 @@ doctype_js = {
     "Payment Reminder" :"public/js/payment_reminder.js",
     "Contact" :"public/js/contact.js"
 }
-# doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
+
+doctype_list_js = {
+    "Quotation" : "public/js/quotation_list.js",
+    "Sales Order"   : "public/js/sales_order_list.js",
+    "Delivery Note" : "public/js/delivery_note_list.js",
+    "Sales Invoice" : "public/js/sales_invoice_list.js",
+    "Payment Reminder" :"public/js/payment_reminder_list.js",
+    "Purchase Order": "public/js/purchase_order_list.js",
+    "Purchase Invoice": "public/js/purchase_invoice_list.js"
+}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
 
