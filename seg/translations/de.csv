@@ -9,6 +9,7 @@ DocType: Sales Order,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Delivery Note,Update Barcodes,Barcodes aktualisieren
+DocType: Delivery Note,	In Commission,In Kommissionierung
 DocType: Item,French Attributes,Französische Attribute
 DocType: Item,Shipping Unit,Versandeinheit
 DocType: Item,Calculate kg and l Prices,Liter und kg Preise berechnen
