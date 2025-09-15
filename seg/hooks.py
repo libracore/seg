@@ -44,7 +44,8 @@ doctype_js = {
     "Quotation"     :"public/js/quotation.js",
     "Payment Reminder" :"public/js/payment_reminder.js",
     "Contact" :"public/js/contact.js",
-    "Currency" :"public/js/currency.js"
+    "Currency" :"public/js/currency.js",
+    "Purchase Reciept": "public/js/purchase_reciept.js"
 }
 
 doctype_list_js = {
