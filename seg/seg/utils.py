@@ -434,3 +434,28 @@ def unset_default_variants(item_code, template):
         return True
     else:
         return False
+
+@frappe.whitelist()
+def update_item_prices(currency, currency_exchange_fee):
+    currency_exchange_fee = float(currency_exchange_fee)
+    #Check if exchange Fee has been changed
+    old_fee = frappe.get_value("Currency", currency, "currency_exchange_fee")
+    
+    if old_fee != currency_exchange_fee:
+        #Update Item Prices
+        affected_prices = frappe.db.sql("""
+                        SELECT
+                            `name`
+                        FROM
+                            `tabItem Price`
+                        WHERE
+                            `currency` = %(currency)s;""", {'currency': currency}, as_dict=True)
+        
+        for affected_price in affected_prices:
+            price_doc = frappe.get_doc("Item Price", affected_price.get('name'))
+            price_doc.currency_exchange_fee = currency_exchange_fee
+            price_doc.save()
+
+def set_seg_price(self, event):
+    seg_price = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee) + self.freight_costs
+    self.seg_purchase_price = seg_price
