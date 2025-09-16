@@ -38,7 +38,6 @@ function set_seg_price(frm) {
 }
 
 function update_item_seg_price(frm) {
-    console.log("Hallo");
     frappe.call({
         'method': 'seg.seg.purchasing.update_item_seg_price',
         'args': {
