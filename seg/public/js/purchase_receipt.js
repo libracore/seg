@@ -8,6 +8,14 @@ frappe.ui.form.on('Purchase Receipt',  {
             //Set Freight costs, Currency exchange fees, SEG Purchase Price
             set_seg_price(frm);
         }
+    },
+    on_submit: function(frm) {
+        //Update SEG Price in all affected Items
+        update_item_seg_price(frm);
+    },
+    after_cancel: function(frm) {
+        //Update SEG Price in all affected Items
+        update_item_seg_price(frm);
     }
 });
 
@@ -25,6 +33,16 @@ function set_seg_price(frm) {
             } else {
                 frappe.show_alert({message:__("Fehler beim Laden der Frachtkosten und Währungsspesen"), indicator:'red'});
             }
+        }
+    });
+}
+
+function update_item_seg_price(frm) {
+    console.log("Hallo");
+    frappe.call({
+        'method': 'seg.seg.purchasing.update_item_seg_price',
+        'args': {
+            'items': frm.doc.items
         }
     });
 }

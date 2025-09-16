@@ -100,3 +100,32 @@ def get_updated_seg_prices(items, price_list):
             item['currency_exchange_fees'] = item_price_doc.get('currency_exchange_fee') or 0
             item['seg_purchase_price'] = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
     return items
+
+@frappe.whitelist()
+def update_item_seg_price(items):
+    items = json.loads(items)
+    for item in items:
+        #get purchase receipt items
+        receipt_info = frappe.db.sql("""
+                                    SELECT
+                                        `qty`,
+                                        `seg_purchase_price`
+                                    FROM
+                                        `tabPurchase Receipt Item`
+                                    WHERE
+                                        `docstatus` = 1
+                                    AND
+                                        `item_code` = %(item_code)s;""", {'item_code': item.get('item_code')}, as_dict=True)
+        #Set SEG Price in Item
+        seg_price = 0
+        total_qty = 0
+        total_price = 0
+        if len(receipt_info) > 0:
+            for receipt in receipt_info:
+                total_qty += receipt.get('qty')
+                total_price += receipt.get('seg_purchase_price') * receipt.get('qty')
+            seg_price = total_price / total_qty
+        frappe.log_error(seg_price, "seg_price")
+        frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", seg_price)
+    
+    return
