@@ -135,11 +135,8 @@ doc_events = {
         "after_rename": "seg.seg.nextcloud.after_rename_handler"
     },
     "Item Price": {
-        "before_save": [
-            "seg.seg.purchasing.set_price_supplier",
-            "seg.seg.utils.set_seg_price"
-        ],
-        "after_insert": "seg.seg.utils.set_exchange_fee"
+        "before_save": "seg.seg.purchasing.set_price_supplier",
+        "validate": "seg.seg.utils.set_seg_price"
     },
     "Communication": {
         "after_insert": "seg.seg.utils.set_email_recipient"

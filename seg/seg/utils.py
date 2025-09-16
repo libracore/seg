@@ -453,9 +453,21 @@ def update_item_prices(currency, currency_exchange_fee):
         
         for affected_price in affected_prices:
             price_doc = frappe.get_doc("Item Price", affected_price.get('name'))
+            frappe.log_error(currency_exchange_fee, "currency_exchange_fee")
             price_doc.currency_exchange_fee = currency_exchange_fee
-            price_doc.save()
+            frappe.db.set_value("Item Price", price_doc.get('name'), "currency_exchange_fee", currency_exchange_fee)
+            #recalculate SEG Price
+            new_seg_price = price_doc.price_list_rate + (price_doc.price_list_rate / 100 * currency_exchange_fee) + price_doc.freight_costs
+            frappe.db.set_value("Item Price", price_doc.get('name'), "seg_purchase_price", new_seg_price)
 
 def set_seg_price(self, event):
+    frappe.log_error(self.as_dict(), "self")
+    #get exchance fee and set freight costs
+    if self.is_new():
+        frappe.log_error("is_new", "is_new")
+        self.freight_costs = 0
+        self.currency_exchange_fee = frappe.get_value("Currency", self.get('currency'), "currency_exchange_fee")
+    #calculate seg price
+    frappe.log_error(self.currency_exchange_fee, "self.currency_exchange_fee")
     seg_price = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee) + self.freight_costs
     self.seg_purchase_price = seg_price
