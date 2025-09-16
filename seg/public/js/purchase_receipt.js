@@ -15,11 +15,16 @@ function set_seg_price(frm) {
     frappe.call({
         'method': 'seg.seg.purchasing.get_updated_seg_prices',
         'args': {
-            'items': frm.doc.items
+            'items': frm.doc.items,
+            'price_list': frm.doc.buying_price_list
         },
         'callback': function(response) {
-            cur_frm.doc.items = response.message;
-            cur_frm.save()
+            if (response.message) {
+                cur_frm.doc.items = response.message;
+                cur_frm.save()
+            } else {
+                frappe.show_alert({message:__("Fehler beim Laden der Frachtkosten und Währungsspesen"), indicator:'red'});
+            }
         }
     });
 }

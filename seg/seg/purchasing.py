@@ -81,8 +81,22 @@ def set_supplier_on_prices(self, event):
     return
 
 @frappe.whitelist()
-def get_updated_seg_prices(items):
+def get_updated_seg_prices(items, price_list):
     items = json.loads(items)
     for item in items:
-        item['freight_costs'] = 10
+        item_price = frappe.get_all(
+            "Item Price",
+            filters={
+                        'item_code': item.get('item_code'),
+                        'price_list': price_list,
+                        'supplier': ""},
+            fields=["name"]
+            )
+
+        
+        if len(item_price) > 0:
+            item_price_doc = frappe.get_doc("Item Price", item_price[0])
+            item['freight_costs'] = item_price_doc.get('freight_costs') or 0
+            item['currency_exchange_fees'] = item_price_doc.get('currency_exchange_fee') or 0
+            item['seg_purchase_price'] = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
     return items
