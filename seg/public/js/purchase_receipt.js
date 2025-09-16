@@ -1,0 +1,25 @@
+// Copyright (c) 2025, libracore AG and contributors
+// For license information, please see license.txt
+
+frappe.ui.form.on('Purchase Receipt',  {
+    onload: function(frm) {
+        //Set Taxes template
+        if (frm.doc.__islocal) {
+            //Set Freight costs, Currency exchange fees, SEG Purchase Price
+            set_seg_price(frm);
+        }
+    }
+});
+
+function set_seg_price(frm) {
+    frappe.call({
+        'method': 'seg.seg.purchasing.get_updated_seg_prices',
+        'args': {
+            'items': frm.doc.items
+        },
+        'callback': function(response) {
+            cur_frm.doc.items = response.message;
+            cur_frm.save()
+        }
+    });
+}

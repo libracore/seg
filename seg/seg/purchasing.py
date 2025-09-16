@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
+import json
 
 @frappe.whitelist()
 def get_taxes_template(supplier):
@@ -78,3 +79,10 @@ def set_supplier_on_prices(self, event):
                                                     `item_code` = '{item}'""".format(supplier=self.get('default_supplier'), item=self.get('name')), as_dict=True)
             frappe.db.commit()
     return
+
+@frappe.whitelist()
+def get_updated_seg_prices(items):
+    items = json.loads(items)
+    for item in items:
+        item['freight_costs'] = 10
+    return items
