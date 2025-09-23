@@ -172,7 +172,7 @@
    "description": null,
    "docstatus": 0,
    "dt": "Item Price",
-   "fetch_from": null,
+   "fetch_from": "currency.currency_exchange_fee",
    "fetch_if_empty": 0,
    "fieldname": "currency_exchange_fee",
    "fieldtype": "Percent",

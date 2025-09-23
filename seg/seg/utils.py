@@ -458,6 +458,7 @@ def update_item_prices(currency, currency_exchange_fee):
             #recalculate SEG Price
             new_seg_price = price_doc.price_list_rate + (price_doc.price_list_rate / 100 * currency_exchange_fee) + price_doc.freight_costs
             frappe.db.set_value("Item Price", price_doc.get('name'), "seg_purchase_price", new_seg_price)
+        frappe.db.commit()
 
 def set_seg_price(self, event):
     #get exchance fee and set freight costs
