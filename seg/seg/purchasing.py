@@ -122,9 +122,8 @@ def update_item_seg_price(items):
         total_price = 0
         if len(receipt_info) > 0:
             for receipt in receipt_info:
-                if receipt.get('seg_purchase_price'):
-                    total_qty += receipt.get('qty')
-                    total_price += receipt.get('seg_purchase_price') * receipt.get('qty')
+                total_qty += receipt.get('qty')
+                total_price += receipt.get('seg_purchase_price') * receipt.get('qty')
             seg_price = total_price / total_qty
         frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", seg_price)
     
