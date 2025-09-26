@@ -94,7 +94,8 @@ frappe.ui.form.on('Delivery Note', {
         } else {
             getTotalWeight();
         }
-      
+        
+        check_alternative_items(frm);
     },
     wir_percent: function(frm) {
         update_wir(frm);
@@ -402,6 +403,16 @@ function update_barcodes(frm) {
                     frappe.msgprint("Folgende Artikel müssen manuell bearbeitet werden, da der Barcode komplett entfernt wurde <br>" + removed_barcodes);
                 }
             }
+        }
+    });
+}
+
+//Check if purchase Items have an alternative, otherwise show pop-up
+function check_alternative_items(frm) {
+    frappe.call({
+        'method': 'seg.seg.delivery.check_alternative_items',
+        'args': {
+            'items': frm.doc.items
         }
     });
 }
