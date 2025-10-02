@@ -11,11 +11,15 @@ frappe.ui.form.on('Purchase Receipt',  {
     },
     on_submit: function(frm) {
         //Update SEG Price in all affected Items
-        update_item_seg_price(frm, "submit");
+        if (!frm.doc.exclude_from_seg_price) {
+            update_item_seg_price(frm, "submit");
+        }
     },
     after_cancel: function(frm) {
         //Update SEG Price in all affected Items
-        update_item_seg_price(frm, "cancel");
+        if (!frm.doc.exclude_from_seg_price) {
+            update_item_seg_price(frm, "cancel");
+        }
     }
 });
 
