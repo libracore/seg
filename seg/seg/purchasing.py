@@ -102,30 +102,35 @@ def get_updated_seg_prices(items, price_list):
     return items
 
 @frappe.whitelist()
-def update_item_seg_price(items):
+def update_item_seg_price(items, event):
     items = json.loads(items)
+    restricted_warehouse = frappe.get_value("SEG Settings", "SEG Settings", "restricted_warehouse")
     for item in items:
-        #get purchase receipt items
-        receipt_info = frappe.db.sql("""
+        #Get Actual values
+        old_seg_price = frappe.get_value("Item", item.get('item_code'), "seg_purchase_price")
+        old_qty = 0
+        if old_seg_price > 0:
+            stock_qty = frappe.db.sql("""
                                     SELECT
-                                        `qty`,
-                                        `seg_purchase_price`
+                                        SUM(`actual_qty`) AS `actual_qty`
                                     FROM
-                                        `tabPurchase Receipt Item`
+                                        `tabBin`
                                     WHERE
-                                        `docstatus` = 1
+                                        `warehouse` != %(warehouse)s
                                     AND
-                                        `item_code` = %(item_code)s;""", {'item_code': item.get('item_code')}, as_dict=True)
-        #Set SEG Price in Item
-        seg_price = 0
-        total_qty = 0
-        total_price = 0
-        if len(receipt_info) > 0:
-            for receipt in receipt_info:
-                total_qty += receipt.get('qty')
-                total_price += receipt.get('seg_purchase_price') * receipt.get('qty')
-            seg_price = total_price / total_qty
-        frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", seg_price)
+                                        `item_code` = %(item)s;""", {'warehouse': restricted_warehouse, 'item': item.get('item_code')}, as_dict=True)
+            
+            if len(stock_qty) > 0:
+                new_qty = stock_qty[0].actual_qty
+        #Calculate new SEG Price according "Moving Average"
+        if event == "submit":
+            old_qty = new_qty - item.get('qty')
+            new_seg_price = ((old_qty * old_seg_price) + (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
+        else:
+            old_qty = new_qty + item.get('qty')
+            new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
     frappe.db.commit()
     
     return
