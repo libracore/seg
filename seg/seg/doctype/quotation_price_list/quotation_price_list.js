@@ -157,6 +157,7 @@ function set_items(frm) {
                     frappe.model.set_value(child.doctype, child.name, 'kg_price', response.message.new_items[i].kg_price);
                     frappe.model.set_value(child.doctype, child.name, 'discount', response.message.new_items[i].discount);
                     frappe.model.set_value(child.doctype, child.name, 'variant', response.message.new_items[i].variant);
+                    frappe.model.set_value(child.doctype, child.name, 'variant_fr', response.message.new_items[i].variant_fr);
                     let row = frappe.get_doc(child.doctype, child.name);
                     if (row.kg_price) {
                         calculate_kg_and_l(row);

@@ -34,7 +34,8 @@ def get_new_items(doc):
                                         SELECT
                                             `tabItem`.`item_code`,
                                             `tabItem`.`variant_of`,
-                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`
+                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`,
+                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr` SEPARATOR ', ') AS `attribute_value_fr`
                                         FROM
                                             `tabItem`
                                         LEFT JOIN
@@ -59,7 +60,7 @@ def get_new_items(doc):
                         item_price = price.get('discounted_rate')
                         price_list_rate = price.get('price_list_rate')
                         discount = price.get('discount_percentage')
-                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value')})
+                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
             
             #add template to imported templates and set flag for JS
             imported_templates.append(template.get('name'))
