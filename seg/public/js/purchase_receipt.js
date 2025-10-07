@@ -5,7 +5,6 @@ frappe.ui.form.on('Purchase Receipt',  {
     onload: function(frm) {
         if (frm.doc.__islocal && frm.doc.items[0].item_code) {
             //Set Freight costs, Currency exchange fees, SEG Purchase Price
-            console.log("peace");
             set_seg_price(frm);
         }
     },

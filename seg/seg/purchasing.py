@@ -107,30 +107,20 @@ def update_item_seg_price(items, event):
     restricted_warehouse = frappe.get_value("SEG Settings", "SEG Settings", "restricted_warehouse")
     for item in items:
         #Get Actual values
-        old_seg_price = frappe.get_value("Item", item.get('item_code'), "seg_purchase_price")
-        old_qty = 0
-        if old_seg_price > 0:
-            stock_qty = frappe.db.sql("""
-                                    SELECT
-                                        SUM(`actual_qty`) AS `actual_qty`
-                                    FROM
-                                        `tabBin`
-                                    WHERE
-                                        `warehouse` != %(warehouse)s
-                                    AND
-                                        `item_code` = %(item)s;""", {'warehouse': restricted_warehouse, 'item': item.get('item_code')}, as_dict=True)
-            
-            if len(stock_qty) > 0:
-                new_qty = stock_qty[0].actual_qty
+        item_doc = frappe.get_doc("Item", item.get('item_code'))
+        old_seg_price = item_doc.get('seg_purchase_price')
+        old_qty = item_doc.get('considered_qty')
+        
         #Calculate new SEG Price according "Moving Average"
         if event == "submit":
-            old_qty = new_qty - item.get('qty')
+            new_qty = old_qty + item.get('qty')
             new_seg_price = ((old_qty * old_seg_price) + (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
             frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
         else:
-            old_qty = new_qty + item.get('qty')
+            new_qty = old_qty - item.get('qty')
             new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
             frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
+        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty)
     frappe.db.commit()
     
     return
