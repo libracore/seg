@@ -104,7 +104,6 @@ def get_updated_seg_prices(items, price_list):
 @frappe.whitelist()
 def update_item_seg_price(items, event):
     items = json.loads(items)
-    restricted_warehouse = frappe.get_value("SEG Settings", "SEG Settings", "restricted_warehouse")
     for item in items:
         #Get Actual values
         item_doc = frappe.get_doc("Item", item.get('item_code'))
