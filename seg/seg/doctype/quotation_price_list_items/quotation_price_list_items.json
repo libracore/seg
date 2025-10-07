@@ -10,6 +10,7 @@
   "min_order_qty",
   "packaging_type",
   "variant",
+  "variant_fr",
   "variant_of",
   "price_section",
   "price_list_rate",
@@ -112,10 +113,16 @@
    "fieldname": "discount",
    "fieldtype": "Percent",
    "label": "Discount"
+  },
+  {
+   "fieldname": "variant_fr",
+   "fieldtype": "Data",
+   "label": "Variant FR",
+   "read_only": 1
   }
  ],
  "istable": 1,
- "modified": "2025-03-20 14:58:01.868146",
+ "modified": "2025-10-07 09:38:19.439798",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List Items",
