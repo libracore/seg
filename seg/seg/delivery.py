@@ -31,15 +31,17 @@ def check_alternative_items(items):
     affected_items = []
     for item in items:
         is_purchase_item = frappe.get_value("Item", item.get('item_code'), "is_purchase_item")
-        if is_purchase_item:
+        if not is_purchase_item:
             alternative_items = frappe.get_all("Item Alternative", filters=[["item_code", "=", item.get('item_code')]])
-            if not alternative_items:
+            if alternative_items:
+                affected_items.append(item.get('item_code'))
+            else:
                 alternative_items = frappe.get_all("Item Alternative", filters=[["alternative_item_code", "=", item.get('item_code')], ["two_way", "=", 1]])
-                if not alternative_items:
+                if alternative_items:
                     affected_items.append(item.get('item_code'))
     
     if len(affected_items) > 0:
-        message = "Folgende Artikel haben keine Alternative hinterlegt:<br>"
+        message = "Achtung Artikelalternative buchen bei Artikel:<br>"
         for affected_item in affected_items:
             message += "<br><a href='desk#Form/Item/{item_code}' target='_blank'>{item_code}</a>".format(item_code=affected_item)
         frappe.msgprint(message, "Achtung")
