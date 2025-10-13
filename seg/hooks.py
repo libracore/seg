@@ -43,7 +43,9 @@ doctype_js = {
     "Purchase Order": "public/js/purchase_order.js",
     "Quotation"     :"public/js/quotation.js",
     "Payment Reminder" :"public/js/payment_reminder.js",
-    "Contact" :"public/js/contact.js"
+    "Contact" :"public/js/contact.js",
+    "Currency" :"public/js/currency.js",
+    "Purchase Receipt": "public/js/purchase_receipt.js"
 }
 
 doctype_list_js = {
@@ -133,7 +135,8 @@ doc_events = {
         "after_rename": "seg.seg.nextcloud.after_rename_handler"
     },
     "Item Price": {
-        "before_save": "seg.seg.purchasing.set_price_supplier"
+        "before_save": "seg.seg.purchasing.set_price_supplier",
+        "validate": "seg.seg.utils.set_seg_price"
     },
     "Communication": {
         "after_insert": "seg.seg.utils.set_email_recipient"

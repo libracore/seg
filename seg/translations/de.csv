@@ -19,6 +19,9 @@ DocType: Item,Default Supplier,Hauptlieferant
 DocType: Item,Changes the Order of Variants in a Template in the Webshop,Ändert die Reihenfolge der Varianten in einem Template im Webshop
 DocType: Item,The marked variant is highlighted in red in the webshop by default,Die markierte Variante wird im Webshop standardmässig in rot markiert
 DocType: Item,Show Carton Qty in Delivery Note,Menge pro Karton in Lieferschein anzeigen
+DocType: Item Price,Freight costs,Frachtkosten
+DocType: Item Price,Currency exchange fees,Währungsspesen
+DocType: Item Price,SEG Purchase Price,SEG Einkaufspreis
 Page: SEG Preisliste,Product Category,Produktkategorie
 Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
 Page: SEG Preisliste,Product Group,Produktgruppe

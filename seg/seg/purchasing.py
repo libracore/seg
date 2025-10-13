@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
+import json
 
 @frappe.whitelist()
 def get_taxes_template(supplier):
@@ -77,4 +78,48 @@ def set_supplier_on_prices(self, event):
                                                 WHERE
                                                     `item_code` = '{item}'""".format(supplier=self.get('default_supplier'), item=self.get('name')), as_dict=True)
             frappe.db.commit()
+    return
+
+@frappe.whitelist()
+def get_updated_seg_prices(items, price_list):
+    items = json.loads(items)
+    for item in items:
+        item_price = frappe.get_all(
+            "Item Price",
+            filters={
+                        'item_code': item.get('item_code'),
+                        'price_list': price_list,
+                        'supplier': ""},
+            fields=["name"]
+            )
+
+        
+        if len(item_price) > 0:
+            item_price_doc = frappe.get_doc("Item Price", item_price[0])
+            item['freight_costs'] = item_price_doc.get('freight_costs') or 0
+            item['currency_exchange_fees'] = item_price_doc.get('currency_exchange_fee') or 0
+            item['seg_purchase_price'] = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
+    return items
+
+@frappe.whitelist()
+def update_item_seg_price(items, event):
+    items = json.loads(items)
+    for item in items:
+        #Get Actual values
+        item_doc = frappe.get_doc("Item", item.get('item_code'))
+        old_seg_price = item_doc.get('seg_purchase_price')
+        old_qty = item_doc.get('considered_qty')
+        
+        #Calculate new SEG Price according "Moving Average"
+        if event == "submit":
+            new_qty = old_qty + item.get('qty')
+            new_seg_price = ((old_qty * old_seg_price) + (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
+        else:
+            new_qty = old_qty - item.get('qty')
+            new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
+        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty)
+    frappe.db.commit()
+    
     return
