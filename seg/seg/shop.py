@@ -124,7 +124,10 @@ def login(usr=None, pwd=None):
     lm.authenticate(usr, pwd)
     lm.login()
     add_log(user=usr, method="webshop_login")
-    return frappe.local.session
+    #add information if customer wants to be forwarded to his favourites
+    response = frappe.local.session
+    response['forward_to_favorites'] = frappe.get_value("Customer", customers[0].get('customer'), "forward_to_favorites")
+    return response
     
 @frappe.whitelist()
 def get_customer_language():
