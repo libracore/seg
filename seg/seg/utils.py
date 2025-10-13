@@ -341,13 +341,13 @@ def email_errors():
                             WHERE
                                 `status` != 'Sent'
                             AND
+                                `creation` < NOW() - INTERVAL 10 MINUTE
+                            AND
                                 `creation` >= NOW() - INTERVAL 1 DAY
                             ORDER BY
                                 `sender` ASC;""", as_dict=True)
     if len(emails) < 1:
         return
-    else:
-        print(emails)
     
     sender = "Anyone"
     for email in emails:
