@@ -167,7 +167,7 @@ def create_purchase_order(supplier, filters):
         'description': tax_template.taxes[0].get('description'),
         'rate': tax_template.taxes[0].get('rate')
     }]
-
+    
     
     #get shipping address
     shipping_address = None
@@ -178,12 +178,17 @@ def create_purchase_order(supplier, filters):
     )
     if len(shipping) > 0:
         shipping_address = shipping[0].get('name')
-        
+    
+    #get supplier doc to read currency and price list
+    supplier_doc = frappe.get_doc("Supplier", supplier)
+    
     #Create Purchase Order
     po_doc = frappe.get_doc({
         'doctype': "Purchase Order",
         'supplier': supplier,
         'schedule_date': frappe.utils.add_days(datetime.today(), 14),
+        'currency': supplier_doc.get('default_currency') or "CHF",
+        'buying_price_list': supplier_doc.get('default_price_list'),
         'items': items,
         'shipping_address': shipping_address,
         'taxes_and_charges': tax_template_name,
