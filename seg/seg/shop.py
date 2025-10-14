@@ -810,7 +810,7 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
             customers = []
             for l in adr.links:
                 if l.link_doctype == "Customer":
-                    customer.append({'customer': l.link_name})
+                    customers.append({'customer': l.link_name})
                     
             if len(customers) == 0:
                 return {'error': "This session has no valid customer, and the address is not correctly linked", 'sales_order': None}
@@ -837,7 +837,8 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
             'desired_date': desired_date,
             'additional_remarks': additional_remarks,
             'payment_method': payment_method,
-            'transaction_id': transaction_id
+            'transaction_id': transaction_id,
+            'wir_percent': frappe.get_value("Customer", customers[0]['customer'], "fixed_wir_share")
         })
         # create item records
         items = json.loads(items)
