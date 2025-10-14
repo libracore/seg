@@ -8,6 +8,7 @@ frappe.ui.form.on('Sales Order',  {
         if (cur_frm.doc.__islocal) {
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
+                set_fixed_wir_percentage(frm);
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
@@ -45,6 +46,7 @@ frappe.ui.form.on('Sales Order',  {
         } else {
             cur_frm.set_value("picked_up" , 0)
         }
+        set_fixed_wir_percentage(frm);
     },
 	before_save: function(frm) {
         // update VOC
@@ -59,6 +61,12 @@ frappe.ui.form.on('Sales Order',  {
             // get total weight, update weight and LSVA
             getTotalWeight();
         }
+    },
+    wir_percent: function(frm) {
+        update_wir(frm);
+    },
+    validate: function(frm) {
+        update_wir(frm);
     }
 });
 
@@ -75,4 +83,27 @@ function check_cash_discount(frm) {
             }
         }
     });
+}
+
+function update_wir(frm) {
+    cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+}
+
+function set_fixed_wir_percentage(frm) {
+    if (frm.doc.customer) {
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Customer",
+                'name': frm.doc.customer
+            },
+            'callback': function(response) {
+                if (response.message) {
+                    cur_frm.set_value("wir_percent", response.message.fixed_wir_share);
+                }
+            }
+        });
+    } else {
+        cur_frm.set_value("wir_percent", 0);
+    }
 }
