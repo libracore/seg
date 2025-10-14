@@ -37,6 +37,7 @@ frappe.ui.form.on('Purchase Order',  {
     },
     validate: function(frm) {
         validate_order_recommendation(frm);
+        validate_price_list(frm);
     },
     drop_ship_reference: function(frm) {
         set_drop_ship_address(frm);
@@ -134,5 +135,24 @@ function add_currency_percent(frm) {
     for (let i = 0; i < frm.doc.items.length; i++) {
         let new_rate = frm.doc.items[i].rate * 1.01;
         frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", new_rate);
+    }
+}
+
+function validate_price_list(frm) {
+    if (frm.doc.supplier) {
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Supplier",
+                'name': frm.doc.supplier
+            },
+            'callback': function(response) {
+                let currency = response.message.default_currency;
+                let price_list = response.message.default_price_list;
+                if (frm.doc.currency != currency || frm.doc.buying_price_list != price_list) {
+                    frappe.msgprint("Währung oder Preisliste entspricht nicht dem Standard des Lieferanten.", "Achtung");
+                }
+            }
+        });
     }
 }
