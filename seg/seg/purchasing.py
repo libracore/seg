@@ -117,9 +117,12 @@ def update_item_seg_price(items, event):
             frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
         else:
             new_qty = old_qty - item.get('qty')
-            new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            if new_qty:
+                new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+            else:
+                new_seg_price = 0
             frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
-        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty)
+        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty or 0)
     frappe.db.commit()
     
     return
