@@ -35,6 +35,7 @@ frappe.ui.form.on('Sales Order',  {
                 }
             });
         }
+        toggle_wir_amount(frm);
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
@@ -67,6 +68,9 @@ frappe.ui.form.on('Sales Order',  {
     },
     validate: function(frm) {
         update_wir(frm);
+    },
+    set_manual_wir_amount: function(frm) {
+        toggle_wir_amount(frm);
     }
 });
 
@@ -86,7 +90,9 @@ function check_cash_discount(frm) {
 }
 
 function update_wir(frm) {
-    cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+    if (!frm.doc.set_manual_wir_amount) {
+        cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+    }
 }
 
 function set_fixed_wir_percentage(frm) {
@@ -106,4 +112,13 @@ function set_fixed_wir_percentage(frm) {
     } else {
         cur_frm.set_value("wir_percent", 0);
     }
+}
+
+function toggle_wir_amount(frm) {
+   if (!frm.doc.set_manual_wir_amount) {
+       cur_frm.set_df_property('wir_amount', 'read_only', 1);
+       update_wir(frm);
+   } else {
+       cur_frm.set_df_property('wir_amount', 'read_only', 0);
+   }
 }
