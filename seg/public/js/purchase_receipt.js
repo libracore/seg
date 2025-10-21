@@ -19,6 +19,9 @@ frappe.ui.form.on('Purchase Receipt',  {
         if (!frm.doc.exclude_from_seg_price) {
             update_item_seg_price(frm, "cancel");
         }
+    },
+    validate: function(frm) {
+        calculate_seg_total(frm);
     }
 });
 
@@ -27,6 +30,9 @@ frappe.ui.form.on('Purchase Receipt Item',  {
         update_seg_price(frm, cdt, cdn);
     },
     rate: function(frm, cdt, cdn) {
+        update_seg_price(frm, cdt, cdn);
+    },
+    qty: function(frm, cdt, cdn) {
         update_seg_price(frm, cdt, cdn);
     }
 });
@@ -66,5 +72,14 @@ function update_seg_price(frm, cdt, cdn) {
     var item = locals[cdt][cdn];
     var result = item.rate + (item.rate / 100 * item.currency_exchange_fees) + item.freight_costs
     item.seg_purchase_price = result;
+    item.seg_amount = result * item.qty;
     cur_frm.refresh_field('items');
+}
+
+function calculate_seg_total(frm) {
+    let total = 0;
+    for (let i = 0; i < frm.doc.items.length; i++) {
+        total += frm.doc.items[i].seg_amount;
+    }
+    cur_frm.set_value("seg_total", total);
 }

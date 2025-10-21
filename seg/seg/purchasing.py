@@ -98,7 +98,9 @@ def get_updated_seg_prices(items, price_list):
             item_price_doc = frappe.get_doc("Item Price", item_price[0])
             item['freight_costs'] = item_price_doc.get('freight_costs') or 0
             item['currency_exchange_fees'] = item_price_doc.get('currency_exchange_fee') or 0
-            item['seg_purchase_price'] = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
+            seg_purchase_price = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
+            item['seg_purchase_price'] = seg_purchase_price
+            item['seg_amount'] = seg_purchase_price * item['qty']
     return items
 
 @frappe.whitelist()
