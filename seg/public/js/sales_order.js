@@ -35,7 +35,7 @@ frappe.ui.form.on('Sales Order',  {
                 }
             });
         }
-        toggle_wir_amount(frm);
+        toggle_wir_amount(frm, true);
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
@@ -114,11 +114,15 @@ function set_fixed_wir_percentage(frm) {
     }
 }
 
-function toggle_wir_amount(frm) {
-   if (!frm.doc.set_manual_wir_amount) {
-       cur_frm.set_df_property('wir_amount', 'read_only', 1);
-       update_wir(frm);
-   } else {
-       cur_frm.set_df_property('wir_amount', 'read_only', 0);
-   }
+function toggle_wir_amount(frm, refresh=false) {
+    if (!frm.doc.set_manual_wir_amount) {
+        console.log("unset");
+        cur_frm.set_df_property('wir_amount', 'read_only', 1);
+        if (!refresh) {
+            update_wir(frm);
+        }
+    } else {
+        console.log("set");
+        cur_frm.set_df_property('wir_amount', 'read_only', 0);
+    }
 }
