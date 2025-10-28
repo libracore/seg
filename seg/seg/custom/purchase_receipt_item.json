@@ -13,7 +13,7 @@
    "creation": "2025-09-10 16:29:42.891123",
    "default": null,
    "depends_on": null,
-   "description": "per piece / in CHF",
+   "description": null,
    "docstatus": 0,
    "dt": "Purchase Receipt Item",
    "fetch_from": null,
