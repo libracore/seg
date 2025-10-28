@@ -21,8 +21,9 @@ frappe.ui.form.on('Purchase Receipt',  {
         }
     },
     validate: function(frm) {
+        //Calcualte SEG Total and create Taxes Entry for freight costs and Exchange Fees
         calculate_seg_total(frm);
-    }
+    },
 });
 
 frappe.ui.form.on('Purchase Receipt Item',  {
@@ -77,9 +78,47 @@ function update_seg_price(frm, cdt, cdn) {
 }
 
 function calculate_seg_total(frm) {
-    let total = 0;
-    for (let i = 0; i < frm.doc.items.length; i++) {
-        total += frm.doc.items[i].seg_amount;
-    }
-    cur_frm.set_value("seg_total", total);
+    frappe.call({
+        'method': "frappe.client.get",
+        'args': {
+            'doctype': "SEG Settings",
+            'name': "SEG Settings"
+        },
+        'callback': function(response) {
+            var seg_settings = response.message;
+            //Get Totals
+            let total = 0;
+            let freight_costs = 0;
+            let exchange_fees = 0;
+            for (let i = 0; i < frm.doc.items.length; i++) {
+                total += frm.doc.items[i].seg_amount;
+                freight_costs += frm.doc.items[i].freight_costs * frm.doc.items[i].qty;
+                exchange_fees += (frm.doc.items[i].amount / 100) * frm.doc.items[i].currency_exchange_fees
+            }
+            //Set Seg Total
+            cur_frm.set_value("seg_total", total);
+            
+            //Remove old Taxes Entries
+            for (let j = 0; j < frm.doc.taxes.length; j++) {
+                if (frm.doc.taxes[j].freight_exchange) {
+                    frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
+                }
+            }
+            
+            //Add new Rows
+            let freight_child = cur_frm.add_child('taxes');
+            frappe.model.set_value(freight_child.doctype, freight_child.name, 'charge_type', "Actual");
+            frappe.model.set_value(freight_child.doctype, freight_child.name, 'account_head', seg_settings.freight_account);
+            frappe.model.set_value(freight_child.doctype, freight_child.name, 'tax_amount', freight_costs);
+            frappe.model.set_value(freight_child.doctype, freight_child.name, 'description', seg_settings.freight_description);
+            frappe.model.set_value(freight_child.doctype, freight_child.name, 'freight_exchange', 1);
+            
+            let exchange_child = cur_frm.add_child('taxes');
+            frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'charge_type', "Actual");
+            frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'account_head', seg_settings.exchange_account);
+            frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'tax_amount', exchange_fees);
+            frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'description', seg_settings.exchange_description);
+            frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'freight_exchange', 1);
+        }
+    });
 }
