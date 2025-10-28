@@ -51,8 +51,7 @@ doctype_js = {
 doctype_list_js = {
     "Quotation" : "public/js/quotation_list.js",
     "Payment Reminder" :"public/js/payment_reminder_list.js",
-    "Purchase Invoice": "public/js/purchase_invoice_list.js",
-    "Sales Order": "public/js/sales_order_list.js"
+    "Purchase Invoice": "public/js/purchase_invoice_list.js"
 }
 
 

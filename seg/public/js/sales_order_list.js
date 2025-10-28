@@ -1,10 +1,9 @@
 // Copyright (c) 2025, libracore AG and contributors
 // For license information, please see license.txt
 
-// render
+// Prepared for later Task, not added to Hooks yet
 frappe.listview_settings['Sales Order'] = {
     refresh: function(me) {
-        console.log("Hallo");
         $(".list-row-container").each(function(i,onj){
             let data = $(this).data('data');
             console.log(data);
