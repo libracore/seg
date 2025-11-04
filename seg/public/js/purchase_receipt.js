@@ -72,9 +72,27 @@ function update_item_seg_price(frm, event) {
     });
 }
 
+    #calculate seg price
+    if self.get('currency') != "CHF":
+        #add currency fee
+        price_with_fee = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee)
+        #Currency conversion to CHF
+        exchange_rate = get_exchange_rate(self.get('currency'), "CHF")
+        price_in_chf = price_with_fee * exchange_rate
+    else:
+        price_in_chf = self.price_list_rate
+
 function update_seg_price(frm, cdt, cdn) {
-    var item = locals[cdt][cdn];
-    var result = item.rate + (item.rate / 100 * item.currency_exchange_fees) + item.freight_costs
+    let item = locals[cdt][cdn];
+    if (frm.doc.currency != "CHF") {
+        //Add exchange Fee
+        let price_with_fee = item.rate + (item.rate / 100 * item.currency_exchange_fees);
+        //Currency conversion to CHF
+        let price_in_chf = price_with_fee * locals.exchange_to_chf;
+    } else {
+        let price_in_chf = item.rate;
+    }
+    let result = price_in_chf + item.freight_costs
     item.seg_purchase_price = result;
     item.seg_amount = result * item.qty;
     cur_frm.refresh_field('items');
@@ -104,6 +122,10 @@ function calculate_seg_total(frm) {
         
         //Add new Rows
         if (freight_costs > 0) {
+            //Exchange Freight Costs from CHF to Document Currency
+            if (frm.doc.currency != "CHF") {
+                freight_costs = freight_costs * locals.exchange_from_chf;
+            }
             let freight_child = cur_frm.add_child('taxes');
             frappe.model.set_value(freight_child.doctype, freight_child.name, 'charge_type', "Actual");
             frappe.model.set_value(freight_child.doctype, freight_child.name, 'account_head', seg_settings.freight_account);
@@ -133,6 +155,45 @@ function cache_seg_settings(frm) {
         'callback': function(response) {
             if (response.message) {
                 locals.seg_settings = response.message;
+                if (frm.doc.currency != "CHF") {
+                    chache_currency_exchange(frm.doc.currency);
+                }
+            } else {
+                frappe.msgprint("Fehler beim abrufen der SEG Einstellungen", "Achtung");
+            }
+        }
+    });
+}
+
+function chache_currency_exchange(currency) {
+    //cache to CHF Exchange
+    frappe.call({
+        method: "erpnext.setup.utils.get_exchange_rate",
+        args: {
+            from_currency: currency,
+            to_currency: "CHF"
+        },
+        callback: function(response) {
+            if (response.message) {
+                locals.exchange_to_chf = response.message;
+            } else {
+                frappe.msgprint(__("Kein Wechselkurs gefunden"));
+            }
+        }
+    });
+    
+    //cache from CHF Exchange
+    frappe.call({
+        method: "erpnext.setup.utils.get_exchange_rate",
+        args: {
+            from_currency: "CHF",
+            to_currency: currency
+        },
+        callback: function(response) {
+            if (response.message) {
+                locals.exchange_from_chf = response.message;
+            } else {
+                frappe.msgprint(__("Kein Wechselkurs gefunden"));
             }
         }
     });

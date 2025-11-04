@@ -10,6 +10,7 @@ from datetime import datetime
 from frappe.utils import cint
 from frappe.core.doctype.communication.email import make
 from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
+from erpnext.setup.utils import get_exchange_rate
 
 naming_patterns = {
     'Address': {
@@ -468,5 +469,13 @@ def set_seg_price(self, event):
         self.freight_costs = 0
         self.currency_exchange_fee = frappe.get_value("Currency", self.get('currency'), "currency_exchange_fee")
     #calculate seg price
-    seg_price = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee) + self.freight_costs
+    if self.get('currency') != "CHF":
+        #add currency fee
+        price_with_fee = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee)
+        #Currency conversion to CHF
+        exchange_rate = get_exchange_rate(self.get('currency'), "CHF")
+        price_in_chf = price_with_fee * exchange_rate
+    else:
+        price_in_chf = self.price_list_rate
+    seg_price = price_in_chf + self.freight_costs
     self.seg_purchase_price = seg_price
