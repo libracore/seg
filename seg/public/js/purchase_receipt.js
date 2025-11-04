@@ -47,7 +47,8 @@ function set_seg_price(frm) {
         'method': 'seg.seg.purchasing.get_updated_seg_prices',
         'args': {
             'items': frm.doc.items,
-            'price_list': frm.doc.buying_price_list
+            'price_list': frm.doc.buying_price_list,
+            'currency': frm.doc.currency
         },
         'callback': function(response) {
             if (response.message) {
@@ -72,25 +73,18 @@ function update_item_seg_price(frm, event) {
     });
 }
 
-    #calculate seg price
-    if self.get('currency') != "CHF":
-        #add currency fee
-        price_with_fee = self.price_list_rate + (self.price_list_rate / 100 * self.currency_exchange_fee)
-        #Currency conversion to CHF
-        exchange_rate = get_exchange_rate(self.get('currency'), "CHF")
-        price_in_chf = price_with_fee * exchange_rate
-    else:
-        price_in_chf = self.price_list_rate
-
 function update_seg_price(frm, cdt, cdn) {
     let item = locals[cdt][cdn];
+    let price_in_chf = 0;
     if (frm.doc.currency != "CHF") {
         //Add exchange Fee
         let price_with_fee = item.rate + (item.rate / 100 * item.currency_exchange_fees);
         //Currency conversion to CHF
-        let price_in_chf = price_with_fee * locals.exchange_to_chf;
+        console.log(price_with_fee);
+        price_in_chf = price_with_fee * locals.exchange_to_chf;
+        console.log(price_in_chf);
     } else {
-        let price_in_chf = item.rate;
+        price_in_chf = item.rate;
     }
     let result = price_in_chf + item.freight_costs
     item.seg_purchase_price = result;
@@ -124,7 +118,8 @@ function calculate_seg_total(frm) {
         if (freight_costs > 0) {
             //Exchange Freight Costs from CHF to Document Currency
             if (frm.doc.currency != "CHF") {
-                freight_costs = freight_costs * locals.exchange_from_chf;
+                let exchange_from_chf = 1 / locals.exchange_to_chf
+                freight_costs = freight_costs * exchange_from_chf;
             }
             let freight_child = cur_frm.add_child('taxes');
             frappe.model.set_value(freight_child.doctype, freight_child.name, 'charge_type', "Actual");
@@ -166,7 +161,7 @@ function cache_seg_settings(frm) {
 }
 
 function chache_currency_exchange(currency) {
-    //cache to CHF Exchange
+    //cache Exchange Rate
     frappe.call({
         method: "erpnext.setup.utils.get_exchange_rate",
         args: {
@@ -176,22 +171,6 @@ function chache_currency_exchange(currency) {
         callback: function(response) {
             if (response.message) {
                 locals.exchange_to_chf = response.message;
-            } else {
-                frappe.msgprint(__("Kein Wechselkurs gefunden"));
-            }
-        }
-    });
-    
-    //cache from CHF Exchange
-    frappe.call({
-        method: "erpnext.setup.utils.get_exchange_rate",
-        args: {
-            from_currency: "CHF",
-            to_currency: currency
-        },
-        callback: function(response) {
-            if (response.message) {
-                locals.exchange_from_chf = response.message;
             } else {
                 frappe.msgprint(__("Kein Wechselkurs gefunden"));
             }
