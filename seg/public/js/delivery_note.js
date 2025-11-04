@@ -106,7 +106,6 @@ frappe.ui.form.on('Delivery Note', {
         update_item(frm, "submit");
     },
     after_cancel: function(frm) {
-        console.log("cancel");
         update_item(frm, "cancel");
     }
     /*onload: function(frm) {
@@ -424,7 +423,6 @@ function check_alternative_items(frm) {
 }
 
 function update_item(frm, event) {
-    console.log("update");
     frappe.call({
         'method': 'seg.seg.purchasing.update_considered_qty',
         'args': {
