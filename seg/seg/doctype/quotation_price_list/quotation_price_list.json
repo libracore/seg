@@ -5,6 +5,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "description",
   "sales_person",
   "customer_group",
   "language",
@@ -130,9 +131,14 @@
    "fieldtype": "Data",
    "label": "Customer Group",
    "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "label": "Description"
   }
  ],
- "modified": "2025-03-14 15:08:10.086668",
+ "modified": "2025-11-04 08:52:08.429624",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List",
