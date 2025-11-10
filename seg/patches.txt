@@ -4,4 +4,5 @@ seg.patches.v0_6_0.item_price_supplier
 seg.patches.v0_6_5.company_name
 seg.patches.v0_6_8.customer_group
 seg.patches.v0_9_0.mark_old_purchase_receipts
+seg.patches.v0_11_0.pricing_rule_items
 seg.patches.v0_12_0.item_group_priorities
