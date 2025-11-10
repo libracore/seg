@@ -151,7 +151,7 @@ function cache_seg_settings(frm) {
             if (response.message) {
                 locals.seg_settings = response.message;
                 if (frm.doc.currency != "CHF") {
-                    chache_currency_exchange(frm.doc.currency);
+                    chache_exchange_rate(frm.doc.currency);
                 }
             } else {
                 frappe.msgprint("Fehler beim abrufen der SEG Einstellungen", "Achtung");
@@ -160,7 +160,7 @@ function cache_seg_settings(frm) {
     });
 }
 
-function chache_currency_exchange(currency) {
+function chache_exchange_rate(currency) {
     //cache Exchange Rate
     frappe.call({
         method: "erpnext.setup.utils.get_exchange_rate",
