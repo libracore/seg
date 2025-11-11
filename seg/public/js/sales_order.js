@@ -52,6 +52,8 @@ frappe.ui.form.on('Sales Order',  {
 	before_save: function(frm) {
         // update VOC
         update_voc(frm);
+        //Set Rates for Sample Sales Order
+        set_sample_rates(frm);
         if (frm.doc.picked_up == 1) {
             frm.doc.taxes.forEach(function(entry) {
                if (entry.account_head == "2209 Geschuldete LSVA - SEG") {
@@ -124,5 +126,27 @@ function toggle_wir_amount(frm, refresh=false) {
     } else {
         console.log("set");
         cur_frm.set_df_property('wir_amount', 'read_only', 0);
+    }
+}
+
+function set_sample_rates(frm) {
+    if (frm.doc.only_samples) {
+        cur_frm.set_value("ignore_pricing_rule", 1);
+        for (let i = 0; i < frm.doc.items.length; i++) {
+            if (!frm.doc.items[i].original_rate_set) {
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate", frm.doc.items[i].rate);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate_set", 1);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "discount_percentage", 100);
+            }
+        }
+    } else {
+        cur_frm.set_value("ignore_pricing_rule", 0);
+        for (let i = 0; i < frm.doc.items.length; i++) {
+            if (frm.doc.items[i].original_rate_set) {
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", frm.doc.items[i].original_rate);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate_set", 0);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate", 0);
+            }
+        }
     }
 }
