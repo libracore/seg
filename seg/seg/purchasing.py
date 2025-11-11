@@ -3,6 +3,7 @@
 
 import frappe
 import json
+from erpnext.setup.utils import get_exchange_rate
 
 @frappe.whitelist()
 def get_taxes_template(supplier):
@@ -81,8 +82,10 @@ def set_supplier_on_prices(self, event):
     return
 
 @frappe.whitelist()
-def get_updated_seg_prices(items, price_list):
+def get_updated_seg_prices(items, price_list, currency):
     items = json.loads(items)
+    if currency != "CHF":
+        exchange_rate = get_exchange_rate(currency, "CHF")
     for item in items:
         item_price = frappe.get_all(
             "Item Price",
@@ -98,7 +101,14 @@ def get_updated_seg_prices(items, price_list):
             item_price_doc = frappe.get_doc("Item Price", item_price[0])
             item['freight_costs'] = item_price_doc.get('freight_costs') or 0
             item['currency_exchange_fees'] = item_price_doc.get('currency_exchange_fee') or 0
-            item['seg_purchase_price'] = item.get('rate') + (item.get('rate') / 100 * (item_price_doc.get('currency_exchange_fee') or 0)) + (item_price_doc.get('freight_costs') or 0)
+            if currency != "CHF":
+                price_with_fee = item.get('rate') + (item.get('rate') / 100 * item_price_doc.get('currency_exchange_fee') or 0)
+                price_in_chf = price_with_fee * exchange_rate
+            else:
+                price_in_chf = item.get('rate')
+            seg_purchase_price = price_in_chf + item_price_doc.get('freight_costs') or 0
+            item['seg_purchase_price'] = seg_purchase_price
+            item['seg_amount'] = seg_purchase_price * item['qty']
     return items
 
 @frappe.whitelist()
@@ -126,3 +136,18 @@ def update_item_seg_price(items, event):
     frappe.db.commit()
     
     return
+
+@frappe.whitelist()
+def update_considered_qty(items, event):
+    items = json.loads(items)
+    for item in items:
+        old_qty = frappe.db.get_value("Item", item.get('item_code'), "considered_qty")
+        if event == "submit":
+            new_qty = old_qty - item.get('qty')
+            if new_qty < 0:
+                new_qty = 0
+        else:
+            new_qty = old_qty + item.get('qty')
+        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty or 0)
+    
+    frappe.db.commit()

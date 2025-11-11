@@ -28,7 +28,13 @@
   "column_break_22",
   "email_error_information",
   "warehouse_section",
-  "restricted_warehouse"
+  "restricted_warehouse",
+  "freight_exchange_section",
+  "freight_account",
+  "freight_description",
+  "column_break_29",
+  "exchange_account",
+  "exchange_description"
  ],
  "fields": [
   {
@@ -167,10 +173,47 @@
    "fieldtype": "Link",
    "label": "Restricted Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "freight_exchange_section",
+   "fieldtype": "Section Break",
+   "label": "Freight Costs and Exchange Fees"
+  },
+  {
+   "fieldname": "freight_account",
+   "fieldtype": "Link",
+   "label": "Account for Freight Costs",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "default": "Frachtkosten",
+   "fieldname": "freight_description",
+   "fieldtype": "Data",
+   "label": "Description for Freight Costs",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_29",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exchange_account",
+   "fieldtype": "Link",
+   "label": "Account for Exchange Fee",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "default": "W\u00e4hrungsspesen",
+   "fieldname": "exchange_description",
+   "fieldtype": "Data",
+   "label": "Description for Exchange Fee",
+   "read_only": 1
   }
  ],
  "issingle": 1,
- "modified": "2025-06-17 17:39:22.660200",
+ "modified": "2025-10-28 16:11:46.203038",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

@@ -102,6 +102,11 @@ frappe.ui.form.on('Delivery Note', {
     },
     on_submit: function(frm) {
         attach_pdf(frm);
+        //Update considered qty in items for SEG Purchase Price
+        update_item(frm, "submit");
+    },
+    after_cancel: function(frm) {
+        update_item(frm, "cancel");
     }
     /*onload: function(frm) {
         if (flag === 0) {
@@ -413,6 +418,16 @@ function check_alternative_items(frm) {
         'method': 'seg.seg.delivery.check_alternative_items',
         'args': {
             'items': frm.doc.items
+        }
+    });
+}
+
+function update_item(frm, event) {
+    frappe.call({
+        'method': 'seg.seg.purchasing.update_considered_qty',
+        'args': {
+            'items': frm.doc.items,
+            'event': event
         }
     });
 }
