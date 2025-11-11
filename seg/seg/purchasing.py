@@ -71,6 +71,7 @@ def set_supplier_on_prices(self, event):
     if not self.is_new():
         old_doc = frappe.get_doc("Item", self.get('name'))
         if self.get('default_supplier') != old_doc.get('default_supplier'):
+            #Update Item Prices
             update_items_prices = frappe.db.sql("""
                                                 UPDATE
                                                     `tabItem Price`
@@ -78,6 +79,16 @@ def set_supplier_on_prices(self, event):
                                                     `default_supplier` = '{supplier}'
                                                 WHERE
                                                     `item_code` = '{item}'""".format(supplier=self.get('default_supplier'), item=self.get('name')), as_dict=True)
+            
+            #Update Pricing Rules
+            update_items_prices = frappe.db.sql("""
+                                                UPDATE
+                                                    `tabPricing Rule Item Code`
+                                                SET
+                                                    `default_supplier` = '{supplier}'
+                                                WHERE
+                                                    `item_code` = '{item}'""".format(supplier=self.get('default_supplier'), item=self.get('name')), as_dict=True)
+            
             frappe.db.commit()
     return
 
