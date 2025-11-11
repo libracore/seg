@@ -140,6 +140,9 @@ doc_events = {
     },
     "Communication": {
         "after_insert": "seg.seg.utils.set_email_recipient"
+    },
+    "Item Group": {
+        "before_save": "seg.seg.utils.update_priority"
     }
 }
 
