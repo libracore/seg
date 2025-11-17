@@ -479,3 +479,8 @@ def set_seg_price(self, event):
         price_in_chf = self.price_list_rate
     seg_price = price_in_chf + self.freight_costs
     self.seg_purchase_price = seg_price
+
+def update_priority(self, event):
+    priority = frappe.db.get_value("Item Group Priority", {'rule_type': self.item_group_type}, "rule_priority")
+    self.item_group_priority = priority
+    return
