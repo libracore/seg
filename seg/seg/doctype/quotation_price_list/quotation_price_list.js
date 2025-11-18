@@ -61,6 +61,11 @@ frappe.ui.form.on('Quotation Price List', {
                 }
             };
         });
+        
+        frm.add_custom_button(__("Reset Items"),  function(){
+          reset_items(frm);
+        });
+        
     },
     before_save: function(frm) {
         set_items(frm);
@@ -282,4 +287,14 @@ function remove_items(frm, template) {
             frm.doc.items.splice(i, 1);
         }
     }
+}
+
+function reset_items(frm) {
+    frm.clear_table('items');
+    for (let i = 0; i < cur_frm.doc.templates.length; i++) {
+        frappe.model.set_value(frm.doc.templates[i].doctype, frm.doc.templates[i].name, "items_set", 0);
+    }
+    
+    //~ await set_items(frm);
+    frm.refresh_field('items');
 }
