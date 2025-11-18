@@ -50,11 +50,25 @@ frappe.ui.form.on('Sales Order',  {
         set_fixed_wir_percentage(frm);
     },
 	before_save: function(frm) {
-        // update VOC
-        update_voc(frm);
+        if (frm.doc.only_samples == 1) {
+            var taxes = cur_frm.doc.taxes;
+            if (taxes.length > 0) {
+                taxes.forEach(function(entry) {
+                    /* enter VOC target account here */
+                    if (entry.account_head.startsWith("2208 ")) {
+                        frappe.model.set_value("Sales Taxes and Charges", 
+                        entry.name, 'tax_amount', 0);
+                    } 
+                });
+            }
+        } else {
+            // update VOC
+            update_voc(frm);
+        }
+        
         //Set Rates for Sample Sales Order
         set_sample_rates(frm);
-        if (frm.doc.picked_up == 1) {
+        if (frm.doc.picked_up == 1 || frm.doc.only_samples == 1) {
             frm.doc.taxes.forEach(function(entry) {
                if (entry.account_head == "2209 Geschuldete LSVA - SEG") {
                    frappe.model.set_value("Sales Taxes and Charges", entry.name, 'tax_amount', 0);
