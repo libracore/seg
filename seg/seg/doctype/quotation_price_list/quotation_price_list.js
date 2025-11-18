@@ -63,7 +63,8 @@ frappe.ui.form.on('Quotation Price List', {
         });
         
         frm.add_custom_button(__("Reset Items"),  function(){
-          reset_items(frm);
+            //Cleat Item Table and unmark templates(that items not have been set yet)
+            reset_items(frm);
         });
         
     },
@@ -295,6 +296,5 @@ function reset_items(frm) {
         frappe.model.set_value(frm.doc.templates[i].doctype, frm.doc.templates[i].name, "items_set", 0);
     }
     
-    //~ await set_items(frm);
     frm.refresh_field('items');
 }
