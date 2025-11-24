@@ -43,3 +43,4 @@ Report: Beschaffungsplan,To Order,Zu bestellen
 Report: Beschaffungsplan,Create Purchase Order,Bestellung erstellen
 Report: Beschaffungsplan,Stock in SKU,Lagerbestand
 DocType: Purchase Receipt,per piece,pro Stück
+DocType: Delivery Note,Sample Delivery,Mustersendung
