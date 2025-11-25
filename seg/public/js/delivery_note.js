@@ -26,6 +26,7 @@ frappe.ui.form.on('Delivery Note', {
 		}
         //Set picked up if customer is marked as "always picks up"
         if (cur_frm.doc.__islocal) {
+            set_only_samples_properties(frm);
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
                 //~ display_dn_note(frm.doc.customer);
@@ -124,6 +125,11 @@ frappe.ui.form.on('Delivery Note', {
     },
     after_cancel: function(frm) {
         update_item(frm, "cancel");
+    },
+    only_samples: function(frm) {
+        if (frm.doc.__islocal && frm.doc.only_samples) {
+            cur_frm.set_value("only_samples", 0);
+        }
     }
     /*onload: function(frm) {
         if (flag === 0) {
@@ -469,4 +475,8 @@ function set_sample_rates(frm) {
             }
         }
     }
+}
+
+function set_only_samples_properties(frm) {
+    cur_frm.set_df_property('only_samples','description',"Kann nach dem ersten speichern gesetzt werden.");
 }

@@ -6,6 +6,7 @@ frappe.ui.form.on('Sales Order',  {
         
         //Set picked up if customer is marked as "always picks up"
         if (cur_frm.doc.__islocal) {
+            set_only_samples_properties(frm);
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
                 set_fixed_wir_percentage(frm);
@@ -87,6 +88,11 @@ frappe.ui.form.on('Sales Order',  {
     },
     set_manual_wir_amount: function(frm) {
         toggle_wir_amount(frm);
+    },
+    only_samples: function(frm) {
+        if (frm.doc.__islocal && frm.doc.only_samples) {
+            cur_frm.set_value("only_samples", 0);
+        }
     }
 });
 
@@ -163,4 +169,8 @@ function set_sample_rates(frm) {
             }
         }
     }
+}
+
+function set_only_samples_properties(frm) {
+    cur_frm.set_df_property('only_samples','description',"Kann nach dem ersten speichern gesetzt werden.");
 }
