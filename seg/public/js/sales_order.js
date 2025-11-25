@@ -6,6 +6,7 @@ frappe.ui.form.on('Sales Order',  {
         
         //Set picked up if customer is marked as "always picks up"
         if (cur_frm.doc.__islocal) {
+            set_only_samples_properties(frm);
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
                 set_fixed_wir_percentage(frm);
@@ -50,9 +51,25 @@ frappe.ui.form.on('Sales Order',  {
         set_fixed_wir_percentage(frm);
     },
 	before_save: function(frm) {
-        // update VOC
-        update_voc(frm);
-        if (frm.doc.picked_up == 1) {
+        if (frm.doc.only_samples == 1) {
+            var taxes = cur_frm.doc.taxes;
+            if (taxes.length > 0) {
+                taxes.forEach(function(entry) {
+                    /* enter VOC target account here */
+                    if (entry.account_head.startsWith("2208 ")) {
+                        frappe.model.set_value("Sales Taxes and Charges", 
+                        entry.name, 'tax_amount', 0);
+                    } 
+                });
+            }
+        } else {
+            // update VOC
+            update_voc(frm);
+        }
+        
+        //Set Rates for Sample Sales Order
+        set_sample_rates(frm);
+        if (frm.doc.picked_up == 1 || frm.doc.only_samples == 1) {
             frm.doc.taxes.forEach(function(entry) {
                if (entry.account_head == "2209 Geschuldete LSVA - SEG") {
                    frappe.model.set_value("Sales Taxes and Charges", entry.name, 'tax_amount', 0);
@@ -71,6 +88,11 @@ frappe.ui.form.on('Sales Order',  {
     },
     set_manual_wir_amount: function(frm) {
         toggle_wir_amount(frm);
+    },
+    only_samples: function(frm) {
+        if (frm.doc.__islocal && frm.doc.only_samples) {
+            cur_frm.set_value("only_samples", 0);
+        }
     }
 });
 
@@ -125,4 +147,30 @@ function toggle_wir_amount(frm, refresh=false) {
         console.log("set");
         cur_frm.set_df_property('wir_amount', 'read_only', 0);
     }
+}
+
+function set_sample_rates(frm) {
+    if (frm.doc.only_samples) {
+        cur_frm.set_value("ignore_pricing_rule", 1);
+        for (let i = 0; i < frm.doc.items.length; i++) {
+            if (!frm.doc.items[i].original_rate_set) {
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate", frm.doc.items[i].rate);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate_set", 1);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "discount_percentage", 100);
+            }
+        }
+    } else {
+        cur_frm.set_value("ignore_pricing_rule", 0);
+        for (let i = 0; i < frm.doc.items.length; i++) {
+            if (frm.doc.items[i].original_rate_set) {
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", frm.doc.items[i].original_rate);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate_set", 0);
+                frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "original_rate", 0);
+            }
+        }
+    }
+}
+
+function set_only_samples_properties(frm) {
+    cur_frm.set_df_property('only_samples','description',"Kann nach dem ersten speichern gesetzt werden.");
 }
