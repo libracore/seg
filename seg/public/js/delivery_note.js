@@ -129,6 +129,8 @@ frappe.ui.form.on('Delivery Note', {
     only_samples: function(frm) {
         if (frm.doc.__islocal && frm.doc.only_samples) {
             cur_frm.set_value("only_samples", 0);
+        } else if (!frm.doc.only_samples) {
+            cur_frm.set_value("ignore_pricing_rule", 0);
         }
     }
     /*onload: function(frm) {
@@ -466,7 +468,6 @@ function set_sample_rates(frm) {
             }
         }
     } else {
-        cur_frm.set_value("ignore_pricing_rule", 0);
         for (let i = 0; i < frm.doc.items.length; i++) {
             if (frm.doc.items[i].original_rate_set) {
                 frappe.model.set_value(frm.doc.items[i].doctype, frm.doc.items[i].name, "rate", frm.doc.items[i].original_rate);
