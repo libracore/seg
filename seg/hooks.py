@@ -45,13 +45,14 @@ doctype_js = {
     "Payment Reminder" :"public/js/payment_reminder.js",
     "Contact" :"public/js/contact.js",
     "Currency" :"public/js/currency.js",
-    "Purchase Receipt": "public/js/purchase_receipt.js"
+    "Purchase Receipt": "public/js/purchase_receipt.js",
+    "Stock Reconciliation": "public/js/stock_reconciliation.js"
 }
 
 doctype_list_js = {
     "Quotation" : "public/js/quotation_list.js",
     "Payment Reminder" :"public/js/payment_reminder_list.js",
-    "Purchase Invoice": "public/js/purchase_invoice_list.js"
+    "Stock Reconciliation": "public/js/purchase_invoice_list.js"
 }
 
 

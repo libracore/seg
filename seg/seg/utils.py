@@ -484,3 +484,12 @@ def update_priority(self, event):
     priority = frappe.db.get_value("Item Group Priority", {'rule_type': self.item_group_type}, "rule_priority")
     self.item_group_priority = priority
     return
+
+@frappe.whitelist()
+def get_seg_prices(items):
+    items = json.loads(items)
+    
+    for item in items:
+        item['valuation_rate'] = frappe.get_value("Item", item.get('item_code'), "seg_purchase_price") or 0
+    
+    return items
