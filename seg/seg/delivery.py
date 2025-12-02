@@ -3,6 +3,8 @@
 
 import frappe
 import json
+from erpnext.stock.utils import get_stock_balance
+from seg.seg.utils import convert_material
 
 @frappe.whitelist()
 def check_barcodes(doc):
@@ -27,21 +29,38 @@ def check_barcodes(doc):
 @frappe.whitelist()
 def check_alternative_items(items):
     items = json.loads(items)
+    warehouse = frappe.db.get_single_value("SEG Settings", "main_warehouse")
     
     affected_items = []
     for item in items:
-        is_purchase_item = frappe.get_value("Item", item.get('item_code'), "is_purchase_item")
-        if not is_purchase_item:
-            alternative_items = frappe.get_all("Item Alternative", filters=[["item_code", "=", item.get('item_code')]])
-            if alternative_items:
-                affected_items.append(item.get('item_code'))
-            else:
-                alternative_items = frappe.get_all("Item Alternative", filters=[["alternative_item_code", "=", item.get('item_code')], ["two_way", "=", 1]])
+        #Check if Item has enough Stock to deliver
+        stock_qty = get_stock_balance(item.get('item_code'), warehouse)
+        if item.get('qty') > stock_qty:
+            #Check if item is Purchase Item
+            is_purchase_item = frappe.get_value("Item", item.get('item_code'), "is_purchase_item")
+            if not is_purchase_item:
+                #If Item is not purchase Item, Check if it has an Alternative
+                alternative_items = frappe.get_all("Item Alternative", filters=[["item_code", "=", item.get('item_code')]], fields=["alternative_item_code"])
                 if alternative_items:
-                    affected_items.append(item.get('item_code'))
-    
+                    affected_items.append({'item': item.get('item_code'), 'alternative_item': alternative_items[0].get('alternative_item_code'), 'qty': item.get('qty') - stock_qty})
+                else:
+                    alternative_items = frappe.get_all("Item Alternative", filters=[["alternative_item_code", "=", item.get('item_code')], ["two_way", "=", 1]], fields=["item_code"])
+                    if alternative_items:
+                        affected_items.append({'item': item.get('item_code'), 'alternative_item': alternative_items[0].get('item_code'), 'qty': item.get('qty') - stock_qty})
+    #Create Message if there are affected Items
     if len(affected_items) > 0:
-        message = "Achtung Artikelalternative buchen bei Artikel:<br>"
+        message = 'Achtung folgende Artikel sind nicht genügend an Lager und sollten umgebucht werden:<br>'
         for affected_item in affected_items:
-            message += "<br><a href='desk#Form/Item/{item_code}' target='_blank'>{item_code}</a>".format(item_code=affected_item)
-        frappe.msgprint(message, "Achtung")
+            message += '<br><a href="desk#Form/Item/{item_code}" target="_blank">{item_code} (Wird umgebucht von {alt_item})</a>'.format(item_code=affected_item.get('item'), alt_item=affected_item.get('alternative_item'))
+        message += '<br><br>Möchtest du diese Artikel direkt umbuchen?'
+        return message, affected_items
+    else:
+        return None
+
+@frappe.whitelist()
+def restock_items(items):
+    items = json.loads(items)
+    warehouse = frappe.db.get_single_value("SEG Settings", "main_warehouse")
+    for item in items:
+        convert_material(item.get('alternative_item'), item.get('item'), warehouse, item.get('qty'))
+    return True

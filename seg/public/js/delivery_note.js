@@ -437,12 +437,38 @@ function update_barcodes(frm) {
     });
 }
 
-//Check if purchase Items have an alternative, otherwise show pop-up
+//Check if purchase Items have an alternative, show pop-up
 function check_alternative_items(frm) {
     frappe.call({
         'method': 'seg.seg.delivery.check_alternative_items',
         'args': {
             'items': frm.doc.items
+        },
+        'callback': function(response) {
+            if (response.message) {
+                frappe.confirm(response.message[0],
+                    function(){
+                        // on yes
+                        frappe.call({
+                            'method': 'seg.seg.delivery.restock_items',
+                            'args': {
+                                'items': response.message[1]
+                            },
+                            'callback': function(response) {
+                                if (response.message) {
+                                    cur_frm.reload_doc();
+                                    show_alert('Artikel wurden umgebucht!')
+                                }
+                            }
+                        });
+                        window.close();
+                    },
+                    function(){
+                        // on no
+                        show_alert('Keine Artikel umgebucht!')
+                    }
+                );
+            }
         }
     });
 }
