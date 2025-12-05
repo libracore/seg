@@ -42,7 +42,6 @@ frappe.ui.form.on('Purchase Receipt Item',  {
 });
 
 function set_seg_price(frm) {
-    frappe.dom.freeze('Bitte warten, SEG Preise werden berechnet...');
     frappe.call({
         'method': 'seg.seg.purchasing.get_updated_seg_prices',
         'args': {
@@ -50,14 +49,17 @@ function set_seg_price(frm) {
             'price_list': frm.doc.buying_price_list,
             'currency': frm.doc.currency
         },
+        'freeze': true,
+        'freeze_message': 'Bitte warten, SEG Preise werden berechnet...',
         'callback': function(response) {
             if (response.message) {
                 cur_frm.doc.items = response.message;
-                cur_frm.save()
-                frappe.dom.unfreeze();
+                cur_frm.save();
             } else {
-                frappe.show_alert({message:__("Fehler beim Laden der Frachtkosten und Währungsspesen"), indicator:'red'});
-                frappe.dom.unfreeze();
+                frappe.show_alert({
+                    'message':__("Fehler beim Laden der Frachtkosten und Währungsspesen"), 
+                    'indicator':'red'
+                });
             }
         }
     });
