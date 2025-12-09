@@ -18,10 +18,8 @@ function get_seg_price(frm) {
             'items': frm.doc.items
         },
         'callback': function(response) {
-            console.log(response.message);
             if (response.message) {
                 response.message.forEach(rowData => {
-                    console.log(rowData);
                     frappe.model.set_value("Stock Reconciliation Item", rowData.name, "valuation_rate", rowData.valuation_rate);
                 });
                 frm.refresh_field("items");
