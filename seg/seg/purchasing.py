@@ -149,11 +149,10 @@ def update_item_seg_price(items, event):
     return
 
 @frappe.whitelist()
-def update_considered_qty(items, event):
-    items = json.loads(items)
-    for item in items:
+def update_considered_qty(self, event):
+    for item in self.items:
         old_qty = frappe.db.get_value("Item", item.get('item_code'), "considered_qty")
-        if event == "submit":
+        if event == "on_submit":
             new_qty = old_qty - item.get('qty')
             if new_qty < 0:
                 new_qty = 0
