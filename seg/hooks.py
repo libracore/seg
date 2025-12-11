@@ -148,6 +148,10 @@ doc_events = {
     "Delivery Note": {
         "on_submit": "seg.seg.purchasing.update_considered_qty",
         "on_cancel": "seg.seg.purchasing.update_considered_qty"
+    },
+    "Purchase Receipt": {
+        "on_submit": "seg.seg.purchasing.update_item_seg_price",
+        "on_cancel": "seg.seg.purchasing.update_item_seg_price"
     }
 }
 
