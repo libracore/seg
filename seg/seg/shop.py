@@ -184,7 +184,6 @@ def get_child_group(item_group):
             order_by='weightage desc',
             limit=1)
         record = {'image': n.get('image')}
-        # ~ record = n['name']
         if item and len(item) > 0:
             record[n['name']] = item[0]
         groups.append(record)
