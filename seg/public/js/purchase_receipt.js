@@ -11,18 +11,6 @@ frappe.ui.form.on('Purchase Receipt',  {
             set_seg_price(frm);
         }
     },
-    on_submit: function(frm) {
-        //Update SEG Price in all affected Items
-        if (!frm.doc.exclude_from_seg_price) {
-            update_item_seg_price(frm, "submit");
-        }
-    },
-    after_cancel: function(frm) {
-        //Update SEG Price in all affected Items
-        if (!frm.doc.exclude_from_seg_price) {
-            update_item_seg_price(frm, "cancel");
-        }
-    },
     before_save: function(frm) {
         //Calcualte SEG Total and create Taxes Entry for freight costs and Exchange Fees
         calculate_seg_total(frm);
@@ -59,16 +47,6 @@ function set_seg_price(frm) {
                 frappe.show_alert({message:__("Fehler beim Laden der Frachtkosten und Währungsspesen"), indicator:'red'});
                 frappe.dom.unfreeze();
             }
-        }
-    });
-}
-
-function update_item_seg_price(frm, event) {
-    frappe.call({
-        'method': 'seg.seg.purchasing.update_item_seg_price',
-        'args': {
-            'items': frm.doc.items,
-            'event': event
         }
     });
 }

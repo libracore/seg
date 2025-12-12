@@ -123,37 +123,36 @@ def get_updated_seg_prices(items, price_list, currency):
     return items
 
 @frappe.whitelist()
-def update_item_seg_price(items, event):
-    items = json.loads(items)
-    for item in items:
-        #Get Actual values
-        item_doc = frappe.get_doc("Item", item.get('item_code'))
-        old_seg_price = item_doc.get('seg_purchase_price')
-        old_qty = item_doc.get('considered_qty')
-        
-        #Calculate new SEG Price according "Moving Average"
-        if event == "submit":
-            new_qty = old_qty + item.get('qty')
-            new_seg_price = ((old_qty * old_seg_price) + (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
-            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
-        else:
-            new_qty = old_qty - item.get('qty')
-            if new_qty:
-                new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+def update_item_seg_price(self, event):
+    if not self.exclude_from_seg_price:
+        for item in self.items:
+            #Get Actual values
+            item_doc = frappe.get_doc("Item", item.get('item_code'))
+            old_seg_price = item_doc.get('seg_purchase_price')
+            old_qty = item_doc.get('considered_qty')
+            
+            #Calculate new SEG Price according "Moving Average"
+            if event == "on_submit":
+                new_qty = old_qty + item.get('qty')
+                new_seg_price = ((old_qty * old_seg_price) + (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+                frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
             else:
-                new_seg_price = 0
-            frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
-        frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty or 0)
-    frappe.db.commit()
+                new_qty = old_qty - item.get('qty')
+                if new_qty:
+                    new_seg_price = ((old_seg_price * old_qty) - (item.get('qty') * item.get('seg_purchase_price'))) / new_qty
+                else:
+                    new_seg_price = 0
+                frappe.db.set_value("Item", item.get('item_code'), "seg_purchase_price", new_seg_price)
+            frappe.db.set_value("Item", item.get('item_code'), "considered_qty", new_qty or 0)
+        frappe.db.commit()
     
     return
 
 @frappe.whitelist()
-def update_considered_qty(items, event):
-    items = json.loads(items)
-    for item in items:
+def update_considered_qty(self, event):
+    for item in self.items:
         old_qty = frappe.db.get_value("Item", item.get('item_code'), "considered_qty")
-        if event == "submit":
+        if event == "on_submit":
             new_qty = old_qty - item.get('qty')
             if new_qty < 0:
                 new_qty = 0
