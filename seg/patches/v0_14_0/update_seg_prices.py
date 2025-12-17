@@ -30,7 +30,21 @@ def execute():
     
     for item in items:
         qty, valuation_rate = get_stock_balance(item_code=item.get('name'), warehouse="Lagerräume - SEG", posting_date=nowdate(), with_valuation_rate=True)
-        frappe.db.set_value("Item", item.get('name'), "seg_purchase_price", valuation_rate)
+        
+        item_price = frappe.get_all(
+            "Item Price",
+            filters={
+                        'item_code': item.get('name'),
+                        'buying': 1,
+                        'supplier': ""},
+            fields=["name", "seg_purchase_price"],
+            order_by="currency asc"
+            )
+        
+        if len(item_price) > 0:
+            frappe.db.set_value("Item", item.get('name'), "seg_purchase_price", item_price[0].seg_purchase_price)
+        else:
+            frappe.db.set_value("Item", item.get('name'), "seg_purchase_price", valuation_rate)
         frappe.db.set_value("Item", item.get('name'), "considered_qty", qty)
     frappe.db.commit()
     return
