@@ -13,6 +13,8 @@ frappe.ui.form.on('Sales Order',  {
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
+            //Set Document Owner for List View
+            set_doc_owner();
         }
         
         if ((frm.doc.sales_team) && (frm.doc.sales_team.length === 0) && (frm.doc.customer)) {
@@ -175,3 +177,20 @@ function set_sample_rates(frm) {
 function set_only_samples_properties(frm) {
     cur_frm.set_df_property('only_samples','description',"Kann nach dem ersten speichern gesetzt werden.");
 }
+
+function set_doc_owner() {
+    frappe.call({
+        method: "frappe.client.get",
+        args: {
+            doctype: "User",
+            name: frappe.session.user
+        },
+        callback: function(response) {
+            if (response.message) {
+                let first_name = response.message.first_name;
+                cur_frm.set_value("doc_owner", first_name);
+            }
+        }
+    });
+}
+
