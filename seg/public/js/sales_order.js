@@ -13,6 +13,8 @@ frappe.ui.form.on('Sales Order',  {
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
+            //Set Document Owner for List View
+            cur_frm.set_value("doc_owner", frappe.session.user);
         }
         
         if ((frm.doc.sales_team) && (frm.doc.sales_team.length === 0) && (frm.doc.customer)) {
@@ -175,3 +177,4 @@ function set_sample_rates(frm) {
 function set_only_samples_properties(frm) {
     cur_frm.set_df_property('only_samples','description',"Kann nach dem ersten speichern gesetzt werden.");
 }
+
