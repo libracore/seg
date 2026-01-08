@@ -34,7 +34,9 @@
   "freight_description",
   "column_break_29",
   "exchange_account",
-  "exchange_description"
+  "exchange_description",
+  "webshop_section",
+  "item_group_fallback"
  ],
  "fields": [
   {
@@ -210,10 +212,20 @@
    "fieldtype": "Data",
    "label": "Description for Exchange Fee",
    "read_only": 1
+  },
+  {
+   "fieldname": "webshop_section",
+   "fieldtype": "Section Break",
+   "label": "Webshop"
+  },
+  {
+   "fieldname": "item_group_fallback",
+   "fieldtype": "Attach Image",
+   "label": "Fallback Item Group Image"
   }
  ],
  "issingle": 1,
- "modified": "2025-10-28 16:11:46.203038",
+ "modified": "2026-01-08 09:43:32.192902",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

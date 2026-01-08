@@ -164,13 +164,14 @@ def get_item_groups(language="de"):
         return get_translated_child_group(root_node, language, root_call=True)
     
 def get_child_group(item_group):
+    fallback_image = frappe.db.get_single_value("SEG Settings", "item_group_fallback")
     groups = []
     sub_groups = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
         order_by='weightage desc',
         fields=['name', 'image'])
     for s in sub_groups:
-        sg = {'image': s.get('image')}
+        sg = {'image': s.get('image') or fallback_image}
         sg[s['name']] = get_child_group(s['name'])
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
@@ -183,8 +184,7 @@ def get_child_group(item_group):
             fields=['name'], 
             order_by='weightage desc',
             limit=1)
-        record = {'image': n.get('image')}
-        # ~ record = n['name']
+        record = {'image': n.get('image') or fallback_image}
         if item and len(item) > 0:
             record[n['name']] = item[0]
         groups.append(record)
