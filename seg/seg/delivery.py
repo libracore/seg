@@ -5,6 +5,8 @@ import frappe
 import json
 from erpnext.stock.utils import get_stock_balance
 from seg.seg.utils import convert_material
+from erpnext.stock.utils import get_stock_balance
+from frappe.utils import nowdate
 
 @frappe.whitelist()
 def check_barcodes(doc):
@@ -61,6 +63,12 @@ def check_alternative_items(items):
 def restock_items(items):
     items = json.loads(items)
     warehouse = frappe.db.get_single_value("SEG Settings", "main_warehouse")
+    #Check if items can be restocked
+    for i in items:
+        stock_qty = get_stock_balance(i.get('alternative_item'), warehouse, posting_date=nowdate())
+        if i.get('qty') > stock_qty:
+            frappe.throw("Alternativer Artikel {0} hat nur noch {1} Stock an Lager und kann deshalb nicht umgelagert werden. (Umlagerungsmenge: {2})".format(i.get('alternative_item'), stock_qty, i.get('qty')))
+    #Restock Items
     for item in items:
         convert_material(item.get('alternative_item'), item.get('item'), warehouse, item.get('qty'))
     return True
