@@ -10,6 +10,10 @@ frappe.ui.form.on('Item',  {
             
             add_nextcloud_button(frm);
             set_description_properties(frm);
+        } else {
+            //Remove SEG Price and Considered Qty
+            cur_frm.set_value("seg_purchase_price", 0);
+            cur_frm.set_value("considered_qty", 0);
         }
     },
     before_save: function(frm) {
