@@ -191,13 +191,16 @@ def get_child_group(item_group):
     return groups
     
 def get_translated_child_group(item_group, language, root_call=False):
+    fallback_image = frappe.db.get_single_value("SEG Settings", "item_group_fallback")
+    
     groups = []
     if not root_call:
         item_group = frappe.db.get_value("Item Group", {"item_group_name_{0}".format(language): item_group}, "name")
         
     sub_groups = frappe.db.sql("""
                                 SELECT
-                                    `item_group_name_{lang}` AS `name`
+                                    `item_group_name_{lang}` AS `name`,
+                                    `image` AS `image`
                                 FROM
                                     `tabItem Group`
                                 WHERE
@@ -209,23 +212,22 @@ def get_translated_child_group(item_group, language, root_call=False):
                                 ORDER BY
                                     `weightage` DESC""".format(lang=language, item_group=item_group), as_dict=True)
     for s in sub_groups:
-        sg = {}
+        sg = {'image': s.get('image') or fallback_image}
         sg[s['name']] = get_translated_child_group(s['name'], language)
         groups.append(sg)
     nodes = frappe.get_all("Item Group", 
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
         order_by='weightage desc',
-        fields=['name', 'item_group_name_{0}'.format(language)])
-    frappe.log_error(nodes, "nodes")
+        fields=['name', 'item_group_name_{0}'.format(language), 'image'])
+    
     for n in nodes:
         # first item per group
         item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
             fields=['name'], 
             order_by='weightage desc',
             limit=1)
-        record = n['item_group_name_{0}'.format(language)]
+        record = {'image': n.get('image') or fallback_image}
         if item and len(item) > 0:
-            record = {}
             record[n['item_group_name_{0}'.format(language)]] = item[0]
         groups.append(record)
     return groups
