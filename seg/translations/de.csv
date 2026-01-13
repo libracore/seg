@@ -45,3 +45,5 @@ Report: Beschaffungsplan,Stock in SKU,Lagerbestand
 DocType: Purchase Receipt,per piece,pro Stück
 DocType: Delivery Note,Sample Delivery,Mustersendung
 DocType: Quotation Price List,Reset Items,Artikel neu berechnen
+DocType: Pricing Rule,Discount Calculation,Rabattberechnung
+DocType: Pricing Rule,Enter Price to calculate Discount Percentage,Preis eingeben um Rabatt in Prozent zu berechnen

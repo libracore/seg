@@ -11,6 +11,7 @@ from frappe.utils import cint
 from frappe.core.doctype.communication.email import make
 from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
 from erpnext.setup.utils import get_exchange_rate
+from frappe.utils import flt
 
 naming_patterns = {
     'Address': {
@@ -493,3 +494,17 @@ def get_seg_prices(items):
         item['valuation_rate'] = frappe.get_value("Item", item.get('item_code'), "seg_purchase_price") or 0
     
     return items
+
+#Calculate Discount Percentage for taarget Price in pricing Rule
+@frappe.whitelist()
+def get_discount_percentage(item, discounted_rate, currency):
+    #Get Item Price
+    item_price = frappe.get_list("Item Price", filters={'item_code': item, 'selling': 1, 'currency': currency}, fields=['price_list_rate'])
+    
+    if len(item_price) > 1:
+        frappe.throw("Mehrere Preise für Artikel {0} gefunden, Prozentsatz kann nicht berechnet werden!".format(item))
+    elif len(item_price) < 1:
+        frappe.throw("Kein Preis für Artikel {0} gefunden, Prozentsatz kann nicht berechnet werden!".format(item))
+    else:
+        discount_percentage = (1 - flt(discounted_rate) / item_price[0].price_list_rate) * 100
+        return discount_percentage
