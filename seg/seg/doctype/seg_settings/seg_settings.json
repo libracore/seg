@@ -28,6 +28,8 @@
   "column_break_22",
   "email_error_information",
   "warehouse_section",
+  "main_warehouse",
+  "column_break_26",
   "restricted_warehouse",
   "freight_exchange_section",
   "freight_account",
@@ -212,6 +214,17 @@
    "fieldtype": "Data",
    "label": "Description for Exchange Fee",
    "read_only": 1
+  },
+  {
+   "fieldname": "main_warehouse",
+   "fieldtype": "Link",
+   "label": "Main Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_26",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "webshop_section",
