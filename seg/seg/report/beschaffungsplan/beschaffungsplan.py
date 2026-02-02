@@ -23,7 +23,7 @@ def get_columns():
         {"label": _("Item Code"), "fieldname": "item_code_data", "fieldtype": "Data", "width": 100},
         {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 180},
         {"label": _("Default Supplier"), "fieldname": "default_supplier", "fieldtype": "Link", "options": "Supplier",  "width": 120},
-        {"label": _("Purchaser"), "fieldname": "purchaser", "fieldtype": "Link", "options": "Purchaser",  "width": 100},
+        {"label": _("Purchaser"), "fieldname": "purchaser", "fieldtype": "Link", "options": "Purchaser",  "width": 80},
         {"label": _("Stock UOM"), "fieldname": "stock_uom", "fieldtype": "Link", "width": 80, "options": "UOM"},
         {"label": _("Stock in SKU"), "fieldname": "stock_in_sku", "fieldtype": "Int", "width": 80},   
         {"label": _("Ordered Qty"), "fieldname": "ordered_qty", "fieldtype": "Int", "width": 80},
