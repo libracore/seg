@@ -23,6 +23,7 @@ def get_columns():
         {"label": _("Item Code"), "fieldname": "item_code_data", "fieldtype": "Data", "width": 100},
         {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data",  "width": 180},
         {"label": _("Default Supplier"), "fieldname": "default_supplier", "fieldtype": "Link", "options": "Supplier",  "width": 120},
+        {"label": _("Purchaser"), "fieldname": "purchaser", "fieldtype": "Link", "options": "Purchaser",  "width": 80},
         {"label": _("Stock UOM"), "fieldname": "stock_uom", "fieldtype": "Link", "width": 80, "options": "UOM"},
         {"label": _("Stock in SKU"), "fieldname": "stock_in_sku", "fieldtype": "Int", "width": 80},   
         {"label": _("Ordered Qty"), "fieldname": "ordered_qty", "fieldtype": "Int", "width": 80},
@@ -72,10 +73,12 @@ def get_data(filters, supplier=None):
             ) AS `se_consumption`,
             0 AS `avg_consumption_per_day`,
             0 AS `days_until_stock_ends`,
-            `tabItem`.`creation` AS `date_created`
+            `tabItem`.`creation` AS `date_created`,
+            `tabSupplier`.`responsible_purchaser` AS `purchaser`
         FROM `tabItem`
         LEFT JOIN `tabBin` ON `tabBin`.`item_code` = `tabItem`.`item_code`
         LEFT JOIN `tabUOM Conversion Detail` ON `tabUOM Conversion Detail`.`parent` = `tabItem`.`name`
+        LEFT JOIN `tabSupplier` ON `tabSupplier`.`name` = `tabItem`.`default_supplier`
         WHERE 
             `tabItem`.`is_purchase_item` = 1
             AND `tabItem`.`is_stock_item` = 1

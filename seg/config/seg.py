@@ -96,6 +96,12 @@ def get_data():
                        "name": "Payment Proposal",
                        "label": _("Payment Proposal"),
                        "description": _("Payment Proposal")
+                   },
+                   {
+                       "type": "doctype",
+                       "name": "Purchaser",
+                       "label": _("Purchaser"),
+                       "description": _("Purchaser")
                    }
             ]
         },
