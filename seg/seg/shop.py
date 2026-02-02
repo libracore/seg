@@ -825,6 +825,7 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
         sales_order = frappe.get_doc({
             'doctype': 'Sales Order',
             'customer': customers[0]['customer'],
+            'doc_owner': "E-Shop",
             'customer_group': frappe.get_value("Customer", customers[0]['customer'], "customer_group"),
             'commission': commission,
             'shipping_address_name': shipping_address,

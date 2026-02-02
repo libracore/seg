@@ -6,6 +6,7 @@ DocType: Customer,Has Custom Labels,Hat eigene Etiketten
 DocType: Webshop Settings,Shipping Item,Versandartikel
 DocType: Customer,Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail
 DocType: Sales Order,Payment Method,Zahlungsmethode
+DocType: Sales Order,Responsible,Verantwortlich
 DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Delivery Note,Update Barcodes,Barcodes aktualisieren
