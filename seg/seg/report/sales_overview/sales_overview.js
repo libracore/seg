@@ -28,6 +28,12 @@ frappe.query_reports["Sales Overview"] = {
             "options": "Sales Overview Employee"
         },
         {
+            "fieldname":"item_group",
+            "label": __("Item Group"),
+            "fieldtype": "Link",
+            "options": "Item Group"
+        },
+        {
             "fieldname":"depth",
             "label": __("Depth"),
             "fieldtype": "Select",

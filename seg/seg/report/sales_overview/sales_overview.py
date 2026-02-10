@@ -23,5 +23,23 @@ def get_columns():
     return columns
 
 def get_data(filters):
+    #Prepare Employee condition
+    if filters.get('employee'):
+        user = frappe.get_value("Sales Overview Employee", filters.get('employee'), "user")
+        if user:
+            employee_condition = """AND `tabDelivery Note`.`owner` = {0}""".format(user)
+        else:
+            frappe.msgprint("Fehler beim abrufen des Mitarbeiters")
+    else:
+        employee_condition = """"""
+    
+    #Get Item Groups
+    if filters.get('item_group'):
+        main_group = filters.get('item_group')
+    else:
+        main_group = "Alle Artikelgruppen"
+    
+    item_groups, display_groups = get_item_groups(main_group, depth)
+    
     data = []
     return data
