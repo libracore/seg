@@ -39,7 +39,58 @@ def get_data(filters):
     else:
         main_group = "Alle Artikelgruppen"
     
-    item_groups, display_groups = get_item_groups(main_group, depth)
+    item_groups, display_groups = get_item_groups(main_group, filters.get('depth'))
     
     data = []
     return data
+
+def get_item_groups(main_group, depth):
+    #Get all group types to be displayed
+    depth_sort = ["Product Category", "Product Subcategory", "Product Group", "Item Group"]
+    display_types = []
+    for g in depth_sort:
+        display_types.append(g)
+        if g == depth:
+            break
+    
+    frappe.log_error(display_types, "display_groups")
+    # ~ item_groups = get_item_groups()
+    
+    return 1, 2
+
+# ~ def get_item_groups(language="de"):
+    # ~ # grab root node
+    # ~ root_node = frappe.db.sql("""SELECT `name` FROM `tabItem Group` 
+        # ~ WHERE (`parent_item_group` IS NULL OR `parent_item_group` = "");""", 
+        # ~ as_dict=True)[0]['name']
+    # ~ if language == "de":
+        # ~ return get_child_group(root_node)
+    # ~ else:
+        # ~ return get_translated_child_group(root_node, language, root_call=True)
+    
+# ~ def get_child_group(item_group):
+    # ~ fallback_image = frappe.db.get_single_value("SEG Settings", "item_group_fallback")
+    # ~ groups = []
+    # ~ sub_groups = frappe.get_all("Item Group", 
+        # ~ filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
+        # ~ order_by='weightage desc',
+        # ~ fields=['name', 'image'])
+    # ~ for s in sub_groups:
+        # ~ sg = {'image': s.get('image') or fallback_image}
+        # ~ sg[s['name']] = get_child_group(s['name'])
+        # ~ groups.append(sg)
+    # ~ nodes = frappe.get_all("Item Group", 
+        # ~ filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
+        # ~ order_by='weightage desc',
+        # ~ fields=['name', 'image'])
+    # ~ for n in nodes:
+        # ~ # first item per group
+        # ~ item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
+            # ~ fields=['name'], 
+            # ~ order_by='weightage desc',
+            # ~ limit=1)
+        # ~ record = {'image': n.get('image') or fallback_image}
+        # ~ if item and len(item) > 0:
+            # ~ record[n['name']] = item[0]
+        # ~ groups.append(record)
+    # ~ return groups
