@@ -249,7 +249,7 @@
    "fieldname": "copy_to_variant_fields",
    "fieldtype": "Table",
    "label": "Fields to Copy",
-   "options": "Variant Field"
+   "options": "Variant Copy Field"
   },
   {
    "default": "0",
@@ -259,7 +259,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2026-02-17 12:25:05.613796",
+ "modified": "2026-02-18 08:31:04.862278",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

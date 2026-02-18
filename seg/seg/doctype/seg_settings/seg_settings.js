@@ -15,7 +15,7 @@ frappe.ui.form.on('SEG Settings', {
                 }
             });
 
-            const child = frappe.meta.get_docfield("Variant Field", "field_name", frm.doc.name);
+            const child = frappe.meta.get_docfield("Variant Copy Field", "field_name", frm.doc.name);
             child.options = allow_fields;
         });
     }

@@ -129,7 +129,8 @@ doc_events = {
             "seg.seg.nextcloud.after_insert_handler"
         ],
         "after_rename": "seg.seg.nextcloud.after_rename_handler",
-        "before_save": "seg.seg.purchasing.set_supplier_on_prices"
+        "before_save": "seg.seg.purchasing.set_supplier_on_prices",
+        "validate": "seg.seg.utils.update_variants"
     },
     "Supplier": {
         "after_insert": "seg.seg.nextcloud.after_insert_handler",
