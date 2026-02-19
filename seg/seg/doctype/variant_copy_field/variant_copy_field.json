@@ -1,0 +1,29 @@
+{
+ "creation": "2026-02-18 08:29:47.189052",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "field_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "field_name",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Field Name",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "modified": "2026-02-18 08:29:54.844223",
+ "modified_by": "Administrator",
+ "module": "SEG",
+ "name": "Variant Copy Field",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

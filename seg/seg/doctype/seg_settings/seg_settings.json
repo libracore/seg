@@ -38,7 +38,10 @@
   "exchange_account",
   "exchange_description",
   "webshop_section",
-  "item_group_fallback"
+  "item_group_fallback",
+  "copy_to_variant_section",
+  "do_not_update_variants",
+  "copy_to_variant_fields"
  ],
  "fields": [
   {
@@ -235,10 +238,28 @@
    "fieldname": "item_group_fallback",
    "fieldtype": "Attach Image",
    "label": "Fallback Item Group Image"
+  },
+  {
+   "fieldname": "copy_to_variant_section",
+   "fieldtype": "Section Break",
+   "label": "Copy Fields to Variant"
+  },
+  {
+   "description": "If an Item Template is saved, these field are copied to all their Variants",
+   "fieldname": "copy_to_variant_fields",
+   "fieldtype": "Table",
+   "label": "Fields to Copy",
+   "options": "Variant Copy Field"
+  },
+  {
+   "default": "0",
+   "fieldname": "do_not_update_variants",
+   "fieldtype": "Check",
+   "label": "Do Not Update Variants"
   }
  ],
  "issingle": 1,
- "modified": "2026-01-13 11:52:32.192902",
+ "modified": "2026-02-18 08:31:04.862278",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

@@ -37,6 +37,9 @@ DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
 DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
 DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
+DocType: SEG Settings,Do Not Update Variants,Varianten nicht aktualisieren
+DocType: SEG Settings,"If an Item Template is saved, these field are copied to all their Variants","Wird eine Artikelvorlage gespeichert, werden alle diese Felder auf die Varianten kopiert"
+DocType: SEG Settings,Fields to Copy,Felder zum kopieren
 DocType: Quotation Price List,Templates,Artikelvorlagen
 Report: Beschaffungsplan,Lead Time in Days,Leadtime in Tagen
 Report: Beschaffungsplan,Avg Consumption per Day,Verbrauch pro Tag
