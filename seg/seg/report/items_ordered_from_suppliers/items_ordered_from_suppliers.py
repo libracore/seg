@@ -49,7 +49,4 @@ def get_data():
                                 `tabPurchase Order Item`.`docstatus` = 1
                             AND
                                 `tabPurchase Order Item`.`received_qty` < `tabPurchase Order Item`.`qty`;""", {'warehouse': main_warehouse}, as_dict=True)
-    
-    
-    # ~ data = [{'item_code': "98221002", 'ordered_qty': 10}, {'item_code': "98221000-T"}]
     return data
