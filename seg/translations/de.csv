@@ -53,3 +53,4 @@ DocType: Pricing Rule,Discount Calculation,Rabattberechnung
 DocType: Pricing Rule,Enter Price to calculate Discount Percentage,Preis eingeben um Rabatt in Prozent zu berechnen
 DocType: Purchaser,Purchaser,Einkäufer
 DocType: Purchaser,Responsible Purchaser,Zuständiger Einkäufer
+Report: Items ordered from suppliers,Items ordered from suppliers,Bestellte Artikel bei Lieferanten
