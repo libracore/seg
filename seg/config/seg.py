@@ -236,6 +236,13 @@ def get_data():
                         "label": _("Sold Items per Customer"),
                         "doctype": "Sales Invoice",
                         "is_query_report": True
+                    },
+                    {
+                        "type": "report",
+                        "name": "Items ordered from suppliers",
+                        "label": _("Items ordered from suppliers"),
+                        "doctype": "Purchase Order",
+                        "is_query_report": True
                     }
             ]
         },
