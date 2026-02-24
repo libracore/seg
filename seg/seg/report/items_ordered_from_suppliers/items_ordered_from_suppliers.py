@@ -19,7 +19,7 @@ def get_columns():
         {"label": _("Expected Delivery Date"), "fieldname": "schedule_date", "fieldtype": "Date", "width": 100},
         {"label": _("Supplier"), "fieldname": "supplier", "fieldtype": "Link", "options": "Supplier", "width": 150},
         {"label": _("Purchase Order"), "fieldname": "purchase_order", "fieldtype": "Link", "options": "Purchase Order", "width": 100},
-        {"label": _("Reserved Qty"), "fieldname": "reserved_qty", "fieldtype": "Float", "width": 50}
+        {"label": _("Reserved Qty"), "fieldname": "reserved_qty", "fieldtype": "Float",  "precision": 1, "width": 50}
     ]
     return columns
 
