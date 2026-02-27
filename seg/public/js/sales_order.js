@@ -39,6 +39,15 @@ frappe.ui.form.on('Sales Order',  {
             });
         }
         toggle_wir_amount(frm, true);
+        
+        //Filter Transporter Field
+		frm.set_query('transporter', function() {
+			return {
+				filters: {
+					'is_transporter': 1
+				}
+			}
+		});
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
