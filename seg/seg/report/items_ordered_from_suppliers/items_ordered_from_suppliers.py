@@ -13,7 +13,7 @@ def execute(filters=None):
 def get_columns():
     columns = [
         {"label": _("Item"), "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 100},
-        {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 160},
+        {"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 250},
         {"label": _("Ordered Qty"), "fieldname": "ordered_qty", "fieldtype": "Float", "width": 80, "precision": 1},
         {"label": _("Stock Qty"), "fieldname": "stock_qty", "fieldtype": "Float", "width": 80, "precision": 1},
         {"label": _("Expected Delivery Date"), "fieldname": "schedule_date", "fieldtype": "Date", "width": 100},
@@ -29,7 +29,7 @@ def get_data():
                             SELECT
                                 `tabPurchase Order Item`.`item_code` AS `item_code`,
                                 `tabPurchase Order Item`.`item_name` AS `item_name`,
-                                `tabPurchase Order Item`.`qty` AS `ordered_qty`,
+                                (IFNULL(`tabPurchase Order Item`.`qty`, 0) - IFNULL(`tabPurchase Order Item`.`received_qty`, 0)) AS `ordered_qty`,
                                 `tabBin`.`actual_qty` AS `stock_qty`,
                                 `tabPurchase Order Item`.`schedule_date` AS `schedule_date`,
                                 `tabPurchase Order`.`supplier` AS `supplier`,
