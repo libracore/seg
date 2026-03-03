@@ -29,7 +29,7 @@ def get_data():
                             SELECT
                                 `tabPurchase Order Item`.`item_code` AS `item_code`,
                                 `tabPurchase Order Item`.`item_name` AS `item_name`,
-                                (`tabPurchase Order Item`.`qty` - `tabPurchase Order Item`.`received_qty`) AS `ordered_qty`,
+                                (IFNULL(`tabPurchase Order Item`.`qty`, 0) - IFNULL(`tabPurchase Order Item`.`received_qty`, 0)) AS `ordered_qty`,
                                 `tabBin`.`actual_qty` AS `stock_qty`,
                                 `tabPurchase Order Item`.`schedule_date` AS `schedule_date`,
                                 `tabPurchase Order`.`supplier` AS `supplier`,
