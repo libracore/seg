@@ -53,10 +53,13 @@ def get_item_groups(main_group, depth):
         if g == depth:
             break
     
-    frappe.log_error(display_types, "display_groups")
-    # ~ item_groups = get_item_groups()
+    item_groups = [main_group]
+    display_groups = [main_group]
+    item_groups, display_groups = get_child_group(main_group, display_types, item_groups, display_groups)
+    frappe.log_error(item_groups, "item_groups")
+    frappe.log_error(display_groups, "display_groups")
     
-    return 1, 2
+    return item_groups, display_groups
 
 # ~ def get_item_groups(language="de"):
     # ~ # grab root node
@@ -67,30 +70,52 @@ def get_item_groups(main_group, depth):
         # ~ return get_child_group(root_node)
     # ~ else:
         # ~ return get_translated_child_group(root_node, language, root_call=True)
+
+def get_child_group(item_group, display_types, item_groups, display_groups):
+    groups = []
+    sub_groups = frappe.get_all("Item Group", 
+        filters={'parent_item_group': item_group, 'is_group': 1},
+        order_by='weightage desc',
+        fields=['name', 'item_group_type'])
+    for s in sub_groups:
+        sg = {}
+        sg[s['name']] = get_child_group(s['name'], display_types, item_groups, display_groups)
+        groups.append(sg)
+        item_groups.append(s['name'])
+        if s['item_group_type'] in display_types:
+            display_groups.append(s['name'])
+    nodes = frappe.get_all("Item Group", 
+        filters={'parent_item_group': item_group, 'is_group': 0},
+        order_by='weightage desc',
+        fields=['name', 'item_group_type'])
+    for n in nodes:
+        item_groups.append(n['name'])
+        if n['item_group_type'] in display_types:
+            display_groups.append(n['name'])
+    return item_groups, display_groups
     
 # ~ def get_child_group(item_group):
-    # ~ fallback_image = frappe.db.get_single_value("SEG Settings", "item_group_fallback")
     # ~ groups = []
     # ~ sub_groups = frappe.get_all("Item Group", 
         # ~ filters={'parent_item_group': item_group, 'is_group': 1, 'show_in_website': 1},
         # ~ order_by='weightage desc',
-        # ~ fields=['name', 'image'])
+        # ~ fields=['name'])
     # ~ for s in sub_groups:
-        # ~ sg = {'image': s.get('image') or fallback_image}
+        # ~ sg = {}
         # ~ sg[s['name']] = get_child_group(s['name'])
         # ~ groups.append(sg)
     # ~ nodes = frappe.get_all("Item Group", 
         # ~ filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
         # ~ order_by='weightage desc',
-        # ~ fields=['name', 'image'])
+        # ~ fields=['name'])
     # ~ for n in nodes:
-        # ~ # first item per group
+        # first item per group
         # ~ item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
             # ~ fields=['name'], 
             # ~ order_by='weightage desc',
             # ~ limit=1)
-        # ~ record = {'image': n.get('image') or fallback_image}
+        # ~ record = {}
         # ~ if item and len(item) > 0:
             # ~ record[n['name']] = item[0]
-        # ~ groups.append(record)
+        # ~ groups.append(n)
     # ~ return groups
