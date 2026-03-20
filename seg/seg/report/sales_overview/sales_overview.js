@@ -25,7 +25,7 @@ frappe.query_reports["Sales Overview"] = {
             "fieldname":"employee",
             "label": __("Employee"),
             "fieldtype": "Link",
-            "options": "Sales Overview Employee"
+            "options": "Sales Person"
         },
         {
             "fieldname":"item_group",
