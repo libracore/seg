@@ -245,7 +245,7 @@
    "label": "Copy Fields to Variant"
   },
   {
-   "description": "If an Item Template is saved, these field are copied to all their Variants",
+   "description": "If an Item Template is saved, these field are copied to all their Variants. This is a copy from the Standard ERP Function in Item Variant Settings. The process is seperated to use Item Variant Settings to copy the Attributes on created and this process to copy the Attributes on safe.",
    "fieldname": "copy_to_variant_fields",
    "fieldtype": "Table",
    "label": "Fields to Copy",
@@ -259,7 +259,7 @@
   }
  ],
  "issingle": 1,
- "modified": "2026-02-18 08:31:04.862278",
+ "modified": "2026-03-20 14:30:29.856433",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",
