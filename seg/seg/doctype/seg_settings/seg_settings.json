@@ -20,6 +20,7 @@
   "switzerland_purchase_taxes",
   "foreign_purchase_taxes",
   "email_template_section",
+  "so_email_template",
   "dn_email_template",
   "pr_email_template",
   "rp_email_template",
@@ -256,10 +257,16 @@
    "fieldname": "do_not_update_variants",
    "fieldtype": "Check",
    "label": "Do Not Update Variants"
+  },
+  {
+   "fieldname": "so_email_template",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Notification"
   }
  ],
  "issingle": 1,
- "modified": "2026-03-20 14:30:29.856433",
+ "modified": "2026-03-24 14:33:44.082941",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

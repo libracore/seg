@@ -226,6 +226,9 @@ def get_email_recipient_and_message(doc):
         else:
             template = frappe.get_value("SEG Settings", "SEG Settings", "rp_email_template")
         html = frappe.db.get_value("Email Template", template, "response")
+    elif doc.get('doctype') == "Sales Order":
+        template = frappe.get_value("SEG Settings", "SEG Settings", "so_email_template")
+        html = frappe.db.get_value("Notification", template, "message")
     else:
         html = frappe.db.get_value("Email Template", doc.get('doctype'), "response")
     
