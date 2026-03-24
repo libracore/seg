@@ -72,3 +72,19 @@ def restock_items(items):
     for item in items:
         convert_material(item.get('alternative_item'), item.get('item'), warehouse, item.get('qty'))
     return True
+
+#Update Field "Delivery Note" qty in Sales Orders
+def update_delivery_note_qty(self, event):
+    handeled_so = []
+    for item in self.items:
+        if item.against_sales_order and item.against_sales_order not in handeled_so:
+            #get all Delivery Notes
+            delivery_notes = frappe.db.sql("""
+                                            SELECT
+                                                COUNT(`tabDelivery Note`.`name`)
+                                            FROM
+                                                `tabDelivery Note`
+                                            LEFT JOIN
+                                                `tabDelivery Note Item
+                                            WHERE
+                                                
