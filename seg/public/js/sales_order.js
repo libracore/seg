@@ -59,6 +59,12 @@ frappe.ui.form.on('Sales Order',  {
                 $(target).parent().parent().remove();   // remove Menu > Email
             }
         }
+        
+        if (!frm.doc.ignore_pricing_rule) {
+            frm.add_custom_button(__("Detach From Pricing Rule"), function() {
+                modify_item_rate(frm);
+            });
+        }
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
