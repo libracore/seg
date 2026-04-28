@@ -15,6 +15,7 @@ from erpnext.controllers.accounts_controller import get_advance_journal_entries,
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import flt
 from frappe import _
+from frappe.utils import cstr
 
 naming_patterns = {
     'Address': {
