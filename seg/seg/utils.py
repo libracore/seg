@@ -15,7 +15,6 @@ from erpnext.controllers.accounts_controller import get_advance_journal_entries,
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import flt
 from frappe import _
-from frappe.utils import cstr
 
 naming_patterns = {
     'Address': {
@@ -570,16 +569,3 @@ def copy_attributes_to_variant(item, variant):
                     variant.set(field.fieldname, item.get(field.fieldname))
 
     variant.variant_of = item.name
-
-    if 'description' not in allow_fields:
-        if not variant.description:
-                variant.description = ""
-    else:
-        if item.variant_based_on=='Item Attribute':
-            if variant.attributes:
-                attributes_description = item.description + " "
-                for d in variant.attributes:
-                    attributes_description += "<div>" + d.attribute + ": " + cstr(d.attribute_value) + "</div>"
-
-                if attributes_description not in variant.description:
-                    variant.description = attributes_description
