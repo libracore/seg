@@ -15,10 +15,10 @@ def get_columns():
         {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 120},
         {"label": _("Net Turnover"), "fieldname": "net_turnover", "fieldtype": "Currency", "width": 100},
         {"label": _("Quantity"), "fieldname": "quantity", "fieldtype": "float", "options": "Customer", "width": 80},
-        # ~ {"label": _("Total Purchase Price"), "fieldname": "total_purchase", "fieldtype": "Currency", "width": 100}, -> TBD
+        {"label": _("Total Purchase Price"), "fieldname": "total_purchase", "fieldtype": "Currency", "width": 100},
+        {"label": _("DB on Purchase Price CHF"), "fieldname": "db_purchase_price_chf", "fieldtype": "Currency", "width": 100},
+        {"label": _("DB on Purchase Price %"), "fieldname": "db_purchase_price", "fieldtype": "Percent", "width": 100},
         {"label": _("Total SEG Purchase Price"), "fieldname": "total_seg_purchase", "fieldtype": "Currency", "width": 100},
-        # ~ {"label": _("DB on Purchase Price CHF"), "fieldname": "db_purchase_price_chf", "fieldtype": "Currency", "width": 100}, -> TBD
-        # ~ {"label": _("DB on Purchase Price %"), "fieldname": "db_purchase_price", "fieldtype": "Percent", "width": 100}, -> TBD
         {"label": _("DB on SEG Purchase Price CHF"), "fieldname": "db_seg_price_chf", "fieldtype": "Currency", "width": 100},
         {"label": _("DB on SEG Purchase Price %"), "fieldname": "db_seg_price", "fieldtype": "Percent", "width": 100}
     ]
@@ -49,40 +49,46 @@ def get_data(filters):
         main_group = "Alle Artikelgruppen"
     
     display_groups = get_display_groups(main_group, filters.get('depth'))
-    frappe.log_error(display_groups, "display_groups")
+    
     #Collect Data
     datas = []
     for dp in display_groups:
         item_groups = [dp]
         item_groups = get_child_groups(dp, item_groups)
-        frappe.log_error(item_groups, "item_groups")
         
         data = frappe.db.sql("""
                                 SELECT 
                                     %(item_group)s AS `item_group`,
-                                    SUM(`tabDelivery Note Item`.`net_amount`) AS `net_turnover`,
+                                    SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100) AS `net_turnover`,
                                     SUM(`tabDelivery Note Item`.`qty`) AS `quantity`,
+                                    SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)) AS `total_purchase`,
+                                    (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`))) AS `db_purchase_price_chf`,
+                                    ((SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)))) * 100 / (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `db_purchase_price`,
                                     SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `total_seg_purchase`,
-                                    SUM(`tabDelivery Note Item`.`net_amount`) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `db_seg_price_chf`,
-                                    (SUM(`tabDelivery Note Item`.`net_amount`) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) / SUM(`tabDelivery Note Item`.`net_amount`) * 100 AS `db_seg_price`
+                                    (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `db_seg_price_chf`,
+                                    ((SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) * 100 / (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `db_seg_price`
                                 FROM
                                     `tabDelivery Note Item`
                                 LEFT JOIN
                                     `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
                                 LEFT JOIN   
                                     `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
-                                LEFT JOIN   
+                                LEFT JOIN
                                     `tabSales Team` ON `tabDelivery Note`.`customer` = `tabSales Team`.`parent`
                                 LEFT JOIN
                                     `tabCustomer` ON `tabDelivery Note`.`customer` = `tabCustomer`.`name`
+                                LEFT JOIN
+                                    `tabStock Ledger Entry` ON `tabStock Ledger Entry`.`voucher_no` = `tabDelivery Note`.`name` 
+                                AND
+                                    `tabStock Ledger Entry`.`voucher_detail_no` = `tabDelivery Note Item`.`name`
                                 WHERE
                                     `tabDelivery Note`.`docstatus` = 1
                                 AND
                                     `tabDelivery Note`.`posting_date` BETWEEN %(from_date)s AND %(to_date)s
                                 AND
                                     `tabItem`.`item_group` IN %(item_groups)s
-                                %(employee_condition)s
-                                ;""", {'item_group': dp, 'from_date': filters.get('from_date'), 'to_date': filters.get('to_date'), 'item_groups': tuple(item_groups), 'employee_condition': employee_condition}, as_dict=True)
+                                {employee_condition}
+                                ;""".format(employee_condition=employee_condition), {'item_group': dp, 'from_date': filters.get('from_date'), 'to_date': filters.get('to_date'), 'item_groups': tuple(item_groups), 'employee_condition': employee_condition}, as_dict=True)
         
         if len(data) > 0:
             datas.append(data[0])
