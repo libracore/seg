@@ -39,6 +39,32 @@ frappe.ui.form.on('Sales Order',  {
             });
         }
         toggle_wir_amount(frm, true);
+        
+        //Filter Transporter Field
+		frm.set_query('transporter', function() {
+			return {
+				filters: {
+					'is_transporter': 1
+				}
+			}
+		});
+        
+        if (frm.doc.docstatus == 1) {
+            // custom mail dialog (prevent duplicate icons on creation)
+            if (document.getElementsByClassName("fa-envelope-o").length === 0) {
+                cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
+                    custom_mail_dialog(frm);
+                });
+                var target ="span[data-label='" + __("Email") + "']";
+                $(target).parent().parent().remove();   // remove Menu > Email
+            }
+        }
+        
+        if (!frm.doc.ignore_pricing_rule) {
+            frm.add_custom_button(__("Detach From Pricing Rule"), function() {
+                modify_item_rate(frm);
+            });
+        }
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;

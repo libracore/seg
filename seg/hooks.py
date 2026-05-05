@@ -129,7 +129,8 @@ doc_events = {
             "seg.seg.nextcloud.after_insert_handler"
         ],
         "after_rename": "seg.seg.nextcloud.after_rename_handler",
-        "before_save": "seg.seg.purchasing.set_supplier_on_prices"
+        "before_save": "seg.seg.purchasing.set_supplier_on_prices",
+        "validate": "seg.seg.utils.update_variants"
     },
     "Supplier": {
         "after_insert": "seg.seg.nextcloud.after_insert_handler",
@@ -147,7 +148,12 @@ doc_events = {
     },
     "Delivery Note": {
         "on_submit": "seg.seg.purchasing.update_considered_qty",
-        "on_cancel": "seg.seg.purchasing.update_considered_qty"
+        "on_cancel": [
+                    "seg.seg.purchasing.update_considered_qty",
+                    "seg.seg.delivery.update_delivery_note_qty"
+                    ],
+        "after_insert": "seg.seg.delivery.update_delivery_note_qty",
+        "on_trash": "seg.seg.delivery.update_delivery_note_qty"
     },
     "Purchase Receipt": {
         "on_submit": "seg.seg.purchasing.update_item_seg_price",

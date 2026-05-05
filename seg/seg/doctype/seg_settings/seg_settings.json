@@ -20,6 +20,7 @@
   "switzerland_purchase_taxes",
   "foreign_purchase_taxes",
   "email_template_section",
+  "so_email_template",
   "dn_email_template",
   "pr_email_template",
   "rp_email_template",
@@ -38,7 +39,10 @@
   "exchange_account",
   "exchange_description",
   "webshop_section",
-  "item_group_fallback"
+  "item_group_fallback",
+  "copy_to_variant_section",
+  "do_not_update_variants",
+  "copy_to_variant_fields"
  ],
  "fields": [
   {
@@ -235,10 +239,34 @@
    "fieldname": "item_group_fallback",
    "fieldtype": "Attach Image",
    "label": "Fallback Item Group Image"
+  },
+  {
+   "fieldname": "copy_to_variant_section",
+   "fieldtype": "Section Break",
+   "label": "Copy Fields to Variant"
+  },
+  {
+   "description": "If an Item Template is saved, these field are copied to all their Variants. This is a copy from the Standard ERP Function in Item Variant Settings. The process is seperated to use Item Variant Settings to copy the Attributes on created and this process to copy the Attributes on safe.",
+   "fieldname": "copy_to_variant_fields",
+   "fieldtype": "Table",
+   "label": "Fields to Copy",
+   "options": "Variant Copy Field"
+  },
+  {
+   "default": "0",
+   "fieldname": "do_not_update_variants",
+   "fieldtype": "Check",
+   "label": "Do Not Update Variants"
+  },
+  {
+   "fieldname": "so_email_template",
+   "fieldtype": "Link",
+   "label": "Sales Order",
+   "options": "Notification"
   }
  ],
  "issingle": 1,
- "modified": "2026-01-13 11:52:32.192902",
+ "modified": "2026-03-24 14:33:44.082941",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

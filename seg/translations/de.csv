@@ -7,6 +7,7 @@ DocType: Webshop Settings,Shipping Item,Versandartikel
 DocType: Customer,Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail
 DocType: Sales Order,Payment Method,Zahlungsmethode
 DocType: Sales Order,Responsible,Verantwortlicher
+DocType: Sales Order,Delivery Note Qty,Anzahl Lieferscheine
 DocType: Delivery Note,Payment Method,Zahlungsmethode
 DocType: Delivery Note,Additional Text,Zusätzlicher Text
 DocType: Delivery Note,Update Barcodes,Barcodes aktualisieren
@@ -37,6 +38,9 @@ DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
 DocType: SEG Settings,Switzerland,Schweiz
 DocType: SEG Settings,Foreign countries,Ausland
 DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
+DocType: SEG Settings,Do Not Update Variants,Varianten nicht aktualisieren
+DocType: SEG Settings,"If an Item Template is saved, these field are copied to all their Variants. This is a copy from the Standard ERP Function in Item Variant Settings. The process is seperated to use Item Variant Settings to copy the Attributes on created and this process to copy the Attributes on safe.","Wird eine Artikelvorlage gespeichert, werden alle diese Felder auf die Varianten kopiert. Dies ist eine Kopie zum Prozess in den Einstellungen zur Artikelvariante. Der Prozess in Einstellungen zur Artikelvariante wird verwendet um die Felder beim erstellen eines Artikels zu übernehmen, dieser Prozess wird verwendet um die Felder bei jedem speichern zu übernehmen."
+DocType: SEG Settings,Fields to Copy,Felder zum kopieren
 DocType: Quotation Price List,Templates,Artikelvorlagen
 Report: Beschaffungsplan,Lead Time in Days,Leadtime in Tagen
 Report: Beschaffungsplan,Avg Consumption per Day,Verbrauch pro Tag
@@ -59,3 +63,4 @@ Report: Sales Overview,DB on Purchase Price %,DB auf EK in %
 Report: Sales Overview,Total SEG Purchase Price,SEG-EK Total
 Report: Sales Overview,DB on SEG Purchase Price CHF,DB auf SEG-EK in CHF
 Report: Sales Overview,DB on SEG Purchase Price %,DB auf SEG-EK in %
+Report: Items ordered from suppliers,Items ordered from suppliers,Bestellte Artikel bei Lieferanten

@@ -142,16 +142,6 @@ frappe.ui.form.on('Delivery Note', {
     //~ }
 //~ })
 
-
-function modify_item_rate(frm) {
-    frm.doc.items.forEach(function (item) {
-        var price_rule_rate = item.rate;
-        frappe.model.set_value(item.doctype, item.name, 'discount_percentage', 0);
-        frappe.model.set_value(item.doctype, item.name, 'price_list_rate', price_rule_rate);
-    });
-    cur_frm.set_value("ignore_pricing_rule", 1);
-}
-
 function return_to_previous_rate(frm){
     frm.doc.items.forEach(function (item) {
         frappe.call({
