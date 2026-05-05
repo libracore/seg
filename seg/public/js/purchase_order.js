@@ -34,6 +34,11 @@ frappe.ui.form.on('Purchase Order',  {
                 add_currency_percent(frm);
             });
         }
+        
+        //Check if Supplier has Skonto and display Comment
+        if (frm.doc.supplier) {
+            display_skonto_comment(frm);
+        }
     },
     validate: function(frm) {
         validate_order_recommendation(frm);
@@ -44,6 +49,7 @@ frappe.ui.form.on('Purchase Order',  {
     },
     supplier: function(frm) {
         set_taxes_template(frm);
+        display_skonto_comment(frm);
     }
 });
 
@@ -151,6 +157,33 @@ function validate_price_list(frm) {
                 let price_list = response.message.default_price_list;
                 if (frm.doc.currency != currency || frm.doc.buying_price_list != price_list) {
                     frappe.msgprint("Währung oder Preisliste entspricht nicht dem Standard des Lieferanten.", "Achtung");
+                }
+            }
+        });
+    }
+}
+
+function display_skonto_comment(frm) {
+    cur_frm.dashboard.clear_comment();
+    if (frm.doc.supplier) {
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Supplier",
+                'name': frm.doc.supplier
+            },
+            'callback': function(response) {
+                let supplier = response.message;
+                if (supplier) {
+                    if (supplier.has_skonto) {
+                        let message;
+                        if (supplier.skonto_note) {
+                            message = "Bei diesem Lieferanten ist Skonto verfügbar: " + supplier.skonto_note
+                        } else {
+                            message = "Bei diesem Lieferanten ist Skonto verfügbar."
+                        }
+                        cur_frm.dashboard.add_comment(message, 'red', true);
+                    }
                 }
             }
         });
