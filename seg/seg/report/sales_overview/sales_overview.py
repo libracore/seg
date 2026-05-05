@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils.data import cint
 
 def execute(filters=None):
     columns = get_columns()
@@ -12,15 +13,15 @@ def execute(filters=None):
 
 def get_columns():
     columns = [
-        {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 120},
-        {"label": _("Net Turnover"), "fieldname": "net_turnover", "fieldtype": "Currency", "width": 100},
-        {"label": _("Quantity"), "fieldname": "quantity", "fieldtype": "float", "options": "Customer", "width": 80},
-        {"label": _("Total Purchase Price"), "fieldname": "total_purchase", "fieldtype": "Currency", "width": 100},
-        {"label": _("DB on Purchase Price CHF"), "fieldname": "db_purchase_price_chf", "fieldtype": "Currency", "width": 100},
-        {"label": _("DB on Purchase Price %"), "fieldname": "db_purchase_price", "fieldtype": "Percent", "width": 100},
-        {"label": _("Total SEG Purchase Price"), "fieldname": "total_seg_purchase", "fieldtype": "Currency", "width": 100},
-        {"label": _("DB on SEG Purchase Price CHF"), "fieldname": "db_seg_price_chf", "fieldtype": "Currency", "width": 100},
-        {"label": _("DB on SEG Purchase Price %"), "fieldname": "db_seg_price", "fieldtype": "Percent", "width": 100}
+        {"label": _("Item Group Priority"), "fieldname": "item_group_prio", "fieldtype": "Int", "width": 50},
+        {"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
+        {"label": _("Net Turnover"), "fieldname": "net_turnover", "fieldtype": "Currency", "width": 130},
+        {"label": _("Total Purchase Price"), "fieldname": "total_purchase", "fieldtype": "Currency", "width": 130},
+        {"label": _("DB on Purchase Price CHF"), "fieldname": "db_purchase_price_chf", "fieldtype": "Currency", "width": 130},
+        {"label": _("DB on Purchase Price %"), "fieldname": "db_purchase_price", "fieldtype": "Percent", "width": 130},
+        {"label": _("Total SEG Purchase Price"), "fieldname": "total_seg_purchase", "fieldtype": "Currency", "width": 130},
+        {"label": _("DB on SEG Purchase Price CHF"), "fieldname": "db_seg_price_chf", "fieldtype": "Currency", "width": 130},
+        {"label": _("DB on SEG Purchase Price %"), "fieldname": "db_seg_price", "fieldtype": "Percent", "width": 130}
     ]
     return columns
 
@@ -31,24 +32,13 @@ def get_data(filters):
     else:
         employee_condition = """"""
     
-    frappe.log_error(employee_condition, "employee_condition")
-    # ~ #Prepare Employee condition
-    # ~ if filters.get('employee'):
-        # ~ user = frappe.get_value("Sales Overview Employee", filters.get('employee'), "user")
-        # ~ if user:
-            # ~ employee_condition = """AND `tabDelivery Note`.`owner` = {0}""".format(user)
-        # ~ else:
-            # ~ frappe.msgprint("Fehler beim abrufen des Mitarbeiters")
-    # ~ else:
-        # ~ employee_condition = """"""
-    
     #Get Item Groups
     if filters.get('item_group'):
         main_group = filters.get('item_group')
     else:
         main_group = "Alle Artikelgruppen"
     
-    display_groups = get_display_groups(main_group, filters.get('depth'))
+    display_groups = get_display_groups(main_group, filters.get('depth')[4:] if filters.get('depth') else filters.get('depth'))
     
     #Collect Data
     datas = []
@@ -59,14 +49,13 @@ def get_data(filters):
         data = frappe.db.sql("""
                                 SELECT 
                                     %(item_group)s AS `item_group`,
-                                    SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100) AS `net_turnover`,
-                                    SUM(`tabDelivery Note Item`.`qty`) AS `quantity`,
+                                    SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `net_turnover`,
                                     SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)) AS `total_purchase`,
-                                    (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`))) AS `db_purchase_price_chf`,
-                                    ((SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)))) * 100 / (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `db_purchase_price`,
+                                    (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`))) AS `db_purchase_price_chf`,
+                                    ((SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)))) * 100 / (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) AS `db_purchase_price`,
                                     SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `total_seg_purchase`,
-                                    (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `db_seg_price_chf`,
-                                    ((SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) * 100 / (SUM(`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `db_seg_price`
+                                    (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `db_seg_price_chf`,
+                                    ((SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) * 100 / (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) AS `db_seg_price`
                                 FROM
                                     `tabDelivery Note Item`
                                 LEFT JOIN
@@ -89,6 +78,9 @@ def get_data(filters):
                                     `tabItem`.`item_group` IN %(item_groups)s
                                 {employee_condition}
                                 ;""".format(employee_condition=employee_condition), {'item_group': dp, 'from_date': filters.get('from_date'), 'to_date': filters.get('to_date'), 'item_groups': tuple(item_groups), 'employee_condition': employee_condition}, as_dict=True)
+        
+        #Add Item Group Prio
+        data[0]['item_group_prio'] = cint(frappe.get_value("Item Group", dp, "item_group_priority"))
         
         if len(data) > 0:
             datas.append(data[0])

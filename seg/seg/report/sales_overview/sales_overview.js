@@ -37,7 +37,7 @@ frappe.query_reports["Sales Overview"] = {
             "fieldname":"depth",
             "label": __("Depth"),
             "fieldtype": "Select",
-            "options": "Item Group\nProduct Group\nProduct Subcategory\nProduct Category"
+            "options": "5 - Item Group\n4 - Product Group\n3 - Product Subcategory\n2 - Product Category"
         }
     ]
 };

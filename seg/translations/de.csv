@@ -50,3 +50,12 @@ DocType: Pricing Rule,Discount Calculation,Rabattberechnung
 DocType: Pricing Rule,Enter Price to calculate Discount Percentage,Preis eingeben um Rabatt in Prozent zu berechnen
 DocType: Purchaser,Purchaser,Einkäufer
 DocType: Purchaser,Responsible Purchaser,Zuständiger Einkäufer
+Report: Sales Overview,Sales Overview,Verkaufsübersicht
+Report: Sales Overview,Item Group Priority,Priorität aus Artikelgruppe
+Report: Sales Overview,Net Turnover,Nettobetrag
+Report: Sales Overview,Total Purchase Price,EK Total
+Report: Sales Overview,DB on Purchase Price CHF,DB auf EK in CHF
+Report: Sales Overview,DB on Purchase Price %,DB auf EK in %
+Report: Sales Overview,Total SEG Purchase Price,SEG-EK Total
+Report: Sales Overview,DB on SEG Purchase Price CHF,DB auf SEG-EK in CHF
+Report: Sales Overview,DB on SEG Purchase Price %,DB auf SEG-EK in %
