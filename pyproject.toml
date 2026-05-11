@@ -1,13 +1,13 @@
 [project]
 name = "seg"
 authors = [
-    { name = "libracore", email = "info@libracore.com" }
+    { name = "libracore AG", email = "info@libracore.com" }
 ]
-description = "SEG customisations"
+description = "ERPNext Apps for SEG"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
-dependencies = []
+dependencies = ["webdavclient3"]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
