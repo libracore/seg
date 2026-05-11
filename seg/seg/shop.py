@@ -13,7 +13,7 @@ from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
 from erpnextswiss.erpnextswiss.datatrans import get_payment_status
-# TODO: make this work again:
+# TODO: make this work again
 #from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from frappe.core.doctype.communication.email import make
 
