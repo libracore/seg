@@ -13,7 +13,8 @@ from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
 from erpnextswiss.erpnextswiss.datatrans import get_payment_status
-from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
+# TODO: make this work again
+#from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from frappe.core.doctype.communication.email import make
 
 PREPAID = "N20"
@@ -32,7 +33,9 @@ def get_matching_variant(item_code, old_selection, new_selection):
             if k not in attributes:
                 attributes[k] = v
         # check if there are multiple variants matching
-        matches = get_next_attribute_and_values(item_code, attributes)
+        # TODO: make this work again
+        # matches = get_next_attribute_and_values(item_code, attributes)
+        matches = []
         if len(matches['filtered_items']) == 1:
             # leave with this variant code
             return list(matches['filtered_items'])[0]
