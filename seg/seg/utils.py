@@ -453,6 +453,11 @@ def update_item_prices(currency, currency_exchange_fee):
     old_fee = frappe.get_value("Currency", currency, "currency_exchange_fee")
     
     if old_fee != currency_exchange_fee:
+        #get actual exchange rate
+        exchange_rate = frappe.get_list("Currency Exchange", filters={'from_currency': currency, 'to_currency': "CHF", 'for_buying': 1}, fields=["exchange_rate", "date"], order_by="date desc", limit=1, as_list=False)
+        if len(exchange_rate) < 1:
+            frappe.throw("Umrechnungskurs konnte nicht gefunden werden, SEG-Preise wurden nicht aktualisiert")
+        
         #Update Item Prices
         affected_prices = frappe.db.sql("""
                         SELECT
@@ -466,8 +471,9 @@ def update_item_prices(currency, currency_exchange_fee):
             price_doc = frappe.get_doc("Item Price", affected_price.get('name'))
             price_doc.currency_exchange_fee = currency_exchange_fee
             frappe.db.set_value("Item Price", price_doc.get('name'), "currency_exchange_fee", currency_exchange_fee)
+
             #recalculate SEG Price
-            new_seg_price = price_doc.price_list_rate + (price_doc.price_list_rate / 100 * currency_exchange_fee) + price_doc.freight_costs
+            new_seg_price = (price_doc.price_list_rate * exchange_rate[0].get('exchange_rate')) + ((price_doc.price_list_rate * exchange_rate[0].get('exchange_rate')) / 100 * currency_exchange_fee) + price_doc.freight_costs
             frappe.db.set_value("Item Price", price_doc.get('name'), "seg_purchase_price", new_seg_price)
         frappe.db.commit()
 

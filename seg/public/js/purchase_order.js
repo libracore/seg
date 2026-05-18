@@ -109,7 +109,8 @@ function validate_order_recommendation(frm) {
         }
         
         if (affected_items) {
-            frappe.msgprint(message, "Bestellempfehlung Lieferant");
+            console.log(message);
+            frappe.msgprint({'title': "Bestellempfehlung Lieferant", 'message': message});
         }
     }
 }
