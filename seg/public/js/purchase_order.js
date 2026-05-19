@@ -41,7 +41,6 @@ frappe.ui.form.on('Purchase Order',  {
         }
     },
     validate: function(frm) {
-        validate_order_recommendation(frm);
         validate_price_list(frm);
     },
     drop_ship_reference: function(frm) {
@@ -50,6 +49,9 @@ frappe.ui.form.on('Purchase Order',  {
     supplier: function(frm) {
         set_taxes_template(frm);
         display_skonto_comment(frm);
+    },
+    after_save(frm) {
+        validate_order_recommendation(frm);
     }
 });
 
@@ -110,7 +112,8 @@ function validate_order_recommendation(frm) {
         
         if (affected_items) {
             console.log(message);
-            frappe.msgprint({'title': "Bestellempfehlung Lieferant", 'message': message});
+            //~ frappe.msgprint({'title': "Bestellempfehlung Lieferant", 'message': message});
+            frappe.msgprint(message, "Bestellempfehlung Lieferant");
         }
     }
 }
