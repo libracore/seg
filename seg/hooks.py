@@ -117,7 +117,8 @@ doc_events = {
     "Customer": {
         "before_insert": "seg.seg.customer.set_allow_invoice",
         "after_insert": "seg.seg.nextcloud.after_insert_handler",
-        "after_rename": "seg.seg.nextcloud.after_rename_handler"
+        "after_rename": "seg.seg.nextcloud.after_rename_handler",
+        "before_save": "seg.seg.mahnsperre.check_mahnsperre"
     },
     "Sales Invoice": {
         "on_submit": "seg.seg.utils.create_journal_entry",

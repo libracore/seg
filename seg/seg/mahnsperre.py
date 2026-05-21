@@ -4,7 +4,12 @@
 import frappe
 from frappe.utils import cint
 
-@frappe.whitelist()
+def check_mahnsperre(self, event):
+    #check if mahnsperre has changed
+    old_value = frappe.get_value("Customer", self.name, "mahnsperre")
+    if self.mahnsperre != old_value:
+        set_mahnsperre(self.name, self.mahnsperre)
+
 def set_mahnsperre(customer, mahnsperre):
     invoices = frappe.get_all("Sales Invoice", filters=[["customer", "=", customer], ["docstatus", "<", 2], ["outstanding_amount", ">", 0]])
     for invoice in invoices:
