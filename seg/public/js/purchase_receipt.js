@@ -11,9 +11,12 @@ frappe.ui.form.on('Purchase Receipt',  {
             set_seg_price(frm);
         }
     },
-    before_save: function(frm) {
+    before_save: async function(frm) {
         //Calcualte SEG Total and create Taxes Entry for freight costs and Exchange Fees
-        calculate_seg_total(frm);
+        const okay = await calculate_seg_total(frm);
+        if (!okay) {
+            console.log("Raise Time condition happend :-(");
+        }
     },
 });
 
@@ -68,7 +71,7 @@ function update_seg_price(frm, cdt, cdn) {
     cur_frm.refresh_field('items');
 }
 
-function calculate_seg_total(frm) {
+async function calculate_seg_total(frm) {
     if (locals.seg_settings) {
         let seg_settings = locals.seg_settings;
         //Get Totals
@@ -81,7 +84,7 @@ function calculate_seg_total(frm) {
             exchange_fees += (frm.doc.items[i].amount / 100) * frm.doc.items[i].currency_exchange_fees
         }
         //Set Seg Total
-        cur_frm.set_value("seg_total", total);
+        await cur_frm.set_value("seg_total", total);
         
         //Add new Rows
         if (freight_costs > 0) {
@@ -95,23 +98,23 @@ function calculate_seg_total(frm) {
             
             for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
                 if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.freight_description)) {
-                    frappe.model.set_value(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name, 'tax_amount', freight_costs);
+                    await frappe.model.set_value(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name, 'tax_amount', freight_costs);
                     freight_hit = true;
                 }
             }
             
             if (!freight_hit) {
                 let freight_child = cur_frm.add_child('taxes');
-                frappe.model.set_value(freight_child.doctype, freight_child.name, 'charge_type', "Actual");
-                frappe.model.set_value(freight_child.doctype, freight_child.name, 'account_head', seg_settings.freight_account);
-                frappe.model.set_value(freight_child.doctype, freight_child.name, 'tax_amount', freight_costs);
-                frappe.model.set_value(freight_child.doctype, freight_child.name, 'description', seg_settings.freight_description);
-                frappe.model.set_value(freight_child.doctype, freight_child.name, 'freight_exchange', 1);
+                await frappe.model.set_value(freight_child.doctype, freight_child.name, 'charge_type', "Actual");
+                await frappe.model.set_value(freight_child.doctype, freight_child.name, 'account_head', seg_settings.freight_account);
+                await frappe.model.set_value(freight_child.doctype, freight_child.name, 'tax_amount', freight_costs);
+                await frappe.model.set_value(freight_child.doctype, freight_child.name, 'description', seg_settings.freight_description);
+                await frappe.model.set_value(freight_child.doctype, freight_child.name, 'freight_exchange', 1);
             }
         } else {
             for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
                 if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.freight_description)) {
-                    frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
+                    await frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
                 }
             }
         }
@@ -121,27 +124,28 @@ function calculate_seg_total(frm) {
             
             for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
                 if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.exchange_description)) {
-                    frappe.model.set_value(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name, 'tax_amount', exchange_fees);
+                    await frappe.model.set_value(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name, 'tax_amount', exchange_fees);
                     exchange_hit = true;
                 }
             }
             
             if (!exchange_hit) {
                 let exchange_child = cur_frm.add_child('taxes');
-                frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'charge_type', "Actual");
-                frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'account_head', seg_settings.exchange_account);
-                frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'tax_amount', exchange_fees);
-                frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'description', seg_settings.exchange_description);
-                frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'freight_exchange', 1);
+                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'charge_type', "Actual");
+                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'account_head', seg_settings.exchange_account);
+                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'tax_amount', exchange_fees);
+                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'description', seg_settings.exchange_description);
+                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'freight_exchange', 1);
             }
         } else {
             for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
                 if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.exchange_description)) {
-                    frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
+                    await frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
                 }
             }
         }
     }
+    return "OK"
 }
 
 function cache_seg_settings(frm) {
