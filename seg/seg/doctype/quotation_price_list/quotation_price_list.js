@@ -68,9 +68,9 @@ frappe.ui.form.on('Quotation Price List', {
         });
         
     },
-    before_save: function(frm) {
-        set_items(frm);
-    },
+    //~ before_save: function(frm) {
+        //~ set_items(frm);
+    //~ },
     contact: function(frm) {
         display_contact(frm);
     },

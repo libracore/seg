@@ -17,10 +17,10 @@ class QuotationPriceList(Document):
         items = []
 
         #get items to import
-        for template in doc.get('templates'):
+        for template in self.get('templates'):
             if not template.get('items_set') == 1:
                 #get prices for all items
-                prices = get_prices(template.get('item_code'), doc.get('customer'))
+                prices = get_prices(template.get('item_code'), self.get('customer'))
                 #check if it is a template or a single item
                 is_template = frappe.get_value("Item", template.get('item_code'), "has_variants")
                 #if it is a template, get all variants
@@ -60,7 +60,38 @@ class QuotationPriceList(Document):
                 #add template to imported templates and set flag for JS
                 imported_templates.append(template.get('name'))
                 something_to_import = True
-
+        
+        if something_to_import:
+            #create new items
+            for new_item in new_items:
+                item_price_l = 0
+                item_price_kg = 0
+                if new_item.get('kg_price'):
+                    
+                
+                
+                self.append("items", {
+                                        'price_list_rate': new_item.get('price_list_rate'),
+                                        'item_code': new_item.get('item_code'),
+                                        'variant_of': new_item.get('variant_of'),
+                                        'item_price': new_item.get('item_price'),
+                                        'kg_price': new_item.get('kg_price'),
+                                        'discount': new_item.get('discount'),
+                                        'variant': new_item.get('variant'),
+                                        'variant_fr': new_item.get('variant_fr')
+                                    }
+                if (row.kg_price) {
+                    calculate_kg_and_l(row);
+                }
+            }
+            
+            //mark imported templates
+            for (let j = 0; j < response.message.imported_templates.length; j++) {
+                frappe.model.set_value("Quotation Price List Templates", response.message.imported_templates[j], "items_set", 1);
+            }
+        } else {
+            frappe.show_alert('Keine neuen Artikel importiert', 3);
+        }
         return {
                 'something_to_import': something_to_import,
                 'new_items': new_items,
