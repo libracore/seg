@@ -14,7 +14,6 @@ frappe.ui.form.on('Quotation Price List', {
         frm.set_query('sales_person', function() {
             return {
                 filters: {
-                    'link_doctype': 'User',
                     'user_type': "System User"
                 }
             };
@@ -246,7 +245,6 @@ function set_address(frm) {
         args: {
             doctype: "Address",
             filters: {
-                link_doctype: "Customer",
                 link_name: cur_frm.doc.customer,
                 address_type: "Billing",
                 is_primary_address: 1

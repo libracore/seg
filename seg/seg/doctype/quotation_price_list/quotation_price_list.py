@@ -67,8 +67,9 @@ class QuotationPriceList(Document):
                 item_price_l = 0
                 item_price_kg = 0
                 if new_item.get('kg_price'):
-                    
-                
+                    kg_l_prices = get_kg_and_l_price(new_item, j_son=True)
+                    item_price_l = kg_l_prices.get('liter_price')
+                    item_price_kg = kg_l_prices.get('kg_price')
                 
                 self.append("items", {
                                         'price_list_rate': new_item.get('price_list_rate'),
@@ -78,25 +79,13 @@ class QuotationPriceList(Document):
                                         'kg_price': new_item.get('kg_price'),
                                         'discount': new_item.get('discount'),
                                         'variant': new_item.get('variant'),
-                                        'variant_fr': new_item.get('variant_fr')
-                                    }
-                if (row.kg_price) {
-                    calculate_kg_and_l(row);
-                }
-            }
+                                        'variant_fr': new_item.get('variant_fr'),
+                                        'item_price_l': item_price_l,
+                                        'item_price_kg': item_price_kg
+                                    })
             
-            //mark imported templates
-            for (let j = 0; j < response.message.imported_templates.length; j++) {
-                frappe.model.set_value("Quotation Price List Templates", response.message.imported_templates[j], "items_set", 1);
-            }
-        } else {
+            
             frappe.show_alert('Keine neuen Artikel importiert', 3);
-        }
-        return {
-                'something_to_import': something_to_import,
-                'new_items': new_items,
-                'imported_templates': imported_templates
-                }
 
 @frappe.whitelist()
 def get_prices(item_code, customer):
@@ -148,8 +137,9 @@ def get_prices(item_code, customer):
     return data
 
 @frappe.whitelist()
-def get_kg_and_l_price(row):
-    row = json.loads(row)
+def get_kg_and_l_price(row, j_son=False):
+    if not j_son:
+        row = json.loads(row)
     
     #get item Attribute
     item_attribute = frappe.db.sql("""
