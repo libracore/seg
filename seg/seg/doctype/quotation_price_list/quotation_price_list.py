@@ -84,8 +84,9 @@ class QuotationPriceList(Document):
                                         'item_price_kg': item_price_kg
                                     })
             
-            
-            frappe.show_alert('Keine neuen Artikel importiert', 3);
+            for template in self.templates:
+                if template.get('name') in imported_templates:
+                    template.items_set = 1
 
 @frappe.whitelist()
 def get_prices(item_code, customer):

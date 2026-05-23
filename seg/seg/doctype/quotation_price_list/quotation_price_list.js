@@ -67,9 +67,6 @@ frappe.ui.form.on('Quotation Price List', {
         });
         
     },
-    //~ before_save: function(frm) {
-        //~ set_items(frm);
-    //~ },
     contact: function(frm) {
         display_contact(frm);
     },
@@ -244,11 +241,11 @@ function set_address(frm) {
         method: "frappe.client.get_list",
         args: {
             doctype: "Address",
-            filters: {
-                link_name: cur_frm.doc.customer,
-                address_type: "Billing",
-                is_primary_address: 1
-            },
+            filters: [
+                ["Dynamic Link", "link_doctype", "=", "Customer"],
+                ["Dynamic Link", "link_name", "=", cur_frm.doc.customer],
+                ["Address", "is_primary_address", "=", 1]
+            ],
             fields: ["name"]
         },
         callback: function(response) {
