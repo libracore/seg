@@ -11,11 +11,13 @@ from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
 from frappe.utils import cint
 from frappe.core.doctype.communication.email import make
-from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
+from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries_for_regional
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import flt
 from frappe import _
 import copy
+from erpnext.accounts.party import get_party_account
+
 
 naming_patterns = {
     'Address': {
@@ -393,22 +395,43 @@ def send_email(recipient, message):
 def check_advances(doc, include_unallocated=True):
     doc = json.loads(doc)
     
-    party_account = doc.get('debit_to')
+    party_account = []
+    default_advance_account = None
+    
+    
     party_type = "Customer"
     party = doc.get('customer')
     amount_field = "credit_in_account_currency"
     order_field = "sales_order"
     order_doctype = "Sales Order"
-    order_list = []
-        
-    journal_entries = get_advance_journal_entries(party_type, party, party_account,
-        amount_field, order_doctype, order_list, include_unallocated)
+    party_account.append(doc.get('debit_to'))
+    
+    party_accounts = get_party_account(
+                party_type, party=party, company=doc.get('company'), include_advance=True
+            )
+    
+    if party_accounts:
+                party_account.append(party_accounts[0])
+                default_advance_account = party_accounts[1] if len(party_accounts) == 2 else None
 
-    payment_entries = get_advance_payment_entries(party_type, party, party_account,
-        order_doctype, order_list, include_unallocated)
-
+    order_list = list(set(d.get(order_field) for d in doc.get("items") if d.get(order_field)))
+    
+    journal_entries = get_advance_journal_entries(
+            party_type, party, party_account, amount_field, order_doctype, order_list, include_unallocated
+        )
+    
+    payment_entries = get_advance_payment_entries_for_regional(
+            party_type,
+            party,
+            party_account,
+            order_doctype,
+            order_list,
+            default_advance_account,
+            include_unallocated,
+        )
+    
     res = journal_entries + payment_entries
-
+    
     return res
 
 #add e-mail recipients to content, to show in Document History

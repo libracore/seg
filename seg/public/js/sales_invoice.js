@@ -146,7 +146,6 @@ function update_discout(frm) {
         frm.doc.items.forEach(function(item) {
             if (current_dn != item.delivery_note) {
                 current_dn = item.delivery_note;
-                //console.log("item", item.delivery_note, item.dn_discount_amount)
                 dn_discount_total = dn_discount_total + item.dn_discount_amount;
             }
         });
