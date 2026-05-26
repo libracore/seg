@@ -219,7 +219,6 @@ def get_translated_child_group(item_group, language, root_call=False):
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
         order_by='weightage desc',
         fields=['name', 'item_group_name_{0}'.format(language)])
-    frappe.log_error(nodes, "nodes")
     for n in nodes:
         # first item per group
         item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
