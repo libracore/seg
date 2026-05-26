@@ -611,12 +611,12 @@ def delete_address(name=None):
     if permitted:
         # delete address: drop links
         address.links = []
-        address.owner = "Nobody"
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()
         except Exception as err:
             error = err
+        frappe.log_error("3", address.links)
     else:
         error = "Permission error"
     return {'error': error}
