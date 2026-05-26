@@ -1072,7 +1072,7 @@ def get_datatrans_payment_link(currency, refno, amount, verify=True):
 
 @frappe.whitelist()
 def log_error(message):
-    frappe.log_error(message, "Webshop error")
+    frappe.log_error("Webshop error", message)
     return {'success': 1, 'error': ''}
 
 def get_recursive_item_groups(item_group, language="de"):
