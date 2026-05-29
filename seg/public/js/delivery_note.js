@@ -450,7 +450,7 @@ function check_alternative_items(frm) {
                     },
                     function(){
                         // on no
-                        show_alert('Keine Artikel umgebucht!')
+                        frappe.show_alert('Keine Artikel umgebucht!')
                     }
                 );
             }

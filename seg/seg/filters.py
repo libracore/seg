@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 # searches for supplier
+@frappe.whitelist()
 def get_alternative_items(doctype, txt, searchfield, start, page_len, filters):
     return frappe.db.sql(
         """SELECT `tabItem Alternative`.`item_code`, `tabItem Alternative`.`item_name`
