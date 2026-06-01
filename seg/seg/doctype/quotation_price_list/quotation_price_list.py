@@ -10,7 +10,7 @@ from seg.seg.shop import get_recursive_item_groups
 import re
 
 class QuotationPriceList(Document):
-    def before_save(self):
+    def validate(self):
         new_items = []
         imported_templates = []
         something_to_import = False
@@ -28,6 +28,7 @@ class QuotationPriceList(Document):
                     items = frappe.db.sql("""
                                             SELECT
                                                 `tabItem`.`item_code`,
+                                                `tabItem`.`item_name`,
                                                 `tabItem`.`variant_of`,
                                                 GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`,
                                                 GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr` SEPARATOR ', ') AS `attribute_value_fr`
@@ -55,7 +56,7 @@ class QuotationPriceList(Document):
                             item_price = price.get('discounted_rate')
                             price_list_rate = price.get('price_list_rate')
                             discount = price.get('discount_percentage')
-                    new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
+                    new_items.append({'item_code': item.get('item_code'), 'item_name': item.get('item_name'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
                 
                 #add template to imported templates and set flag for JS
                 imported_templates.append(template.get('name'))
@@ -74,6 +75,7 @@ class QuotationPriceList(Document):
                 self.append("items", {
                                         'price_list_rate': new_item.get('price_list_rate'),
                                         'item_code': new_item.get('item_code'),
+                                        'item_name': new_item.get('item_name'),
                                         'variant_of': new_item.get('variant_of'),
                                         'item_price': new_item.get('item_price'),
                                         'kg_price': new_item.get('kg_price'),
