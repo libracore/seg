@@ -67,7 +67,7 @@ frappe.ui.form.on('Sales Invoice',  {
             }
         }
         
-        if (cur_frm.doc.is_return&&cur_frm.doc.docstatus == 1&&cur_frm.doc.outstanding_amount!=0) {
+        if (cur_frm.doc.is_return && cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
             frm.add_custom_button(__("Verbuchbares Guthaben"), function() {
                 frappe.call({
                     method: "seg.seg.utils.create_advance_je",

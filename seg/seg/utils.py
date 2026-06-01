@@ -11,7 +11,7 @@ from seg.seg.doctype.sales_report.sales_report import update_last_purchase_rates
 from datetime import datetime
 from frappe.utils import cint
 from frappe.core.doctype.communication.email import make
-from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries_for_regional
+from erpnext.controllers.accounts_controller import get_advance_journal_entries, get_advance_payment_entries
 from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import flt
 from frappe import _
@@ -420,7 +420,7 @@ def check_advances(doc, include_unallocated=True):
             party_type, party, party_account, amount_field, order_doctype, order_list, include_unallocated
         )
     
-    payment_entries = get_advance_payment_entries_for_regional(
+    payment_entries = get_advance_payment_entries(
             party_type,
             party,
             party_account,
