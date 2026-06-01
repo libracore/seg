@@ -57,14 +57,14 @@ frappe.ui.form.on('Sales Invoice',  {
             check_cash_discount(frm);
         }
         if (frm.doc.docstatus == 1) {
-            // custom mail dialog (prevent duplicate icons on creation)
-            if (document.getElementsByClassName("fa-envelope-o").length === 0) {
-                cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
-                    custom_mail_dialog(frm);
-                });
-                var target ="span[data-label='" + __("Email") + "']";
-                $(target).parent().parent().remove();   // remove Menu > Email
-            }
+            // custom mail dialog
+            cur_frm.page.add_action_icon("es-line-email", function() {
+                custom_mail_dialog(frm);
+            }, "", "Email");
+            let target = $('span.menu-item-label').filter(function() {
+                return $(this).text().trim() === __('Email');
+            });
+            $(target).parent().parent().remove();   // remove Menu > Email
         }
         
         if (cur_frm.doc.is_return && cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {

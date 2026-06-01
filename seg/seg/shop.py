@@ -358,12 +358,13 @@ def get_item_details(item_code=None, language="de"):
         
         web_specs = frappe.db.sql("""
             SELECT
-                `label{lang}` AS `label`,
-                `description{lang}` AS `description`,
+                `custom_label{lang}` AS `label`,
+                `custom_description{lang}` AS `description`,
                 `idx`,
                 1 AS `source`
-            FROM `tabItem Website Specification`
+            FROM `tabItem Custom Website Specification`
             WHERE `parent` = "{item_code}"
+            AND `parentfield` = 'website_specifications'
             
             UNION
             
@@ -374,6 +375,7 @@ def get_item_details(item_code=None, language="de"):
                 2 AS `source`
             FROM `tabItem Custom Website Specification`
             WHERE `parent` = "{item_code}"
+            AND `parentfield` = 'custom_website_specifications'
             ORDER BY `source` DESC, `idx` ASC;
         """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['website_specification'] = web_specs
