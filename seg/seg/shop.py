@@ -1060,6 +1060,7 @@ def change_password(user=None, new_pass=None, old_pass=None):
     if user == frappe.session.user:
         if user == check_password(user, old_pass):
             update_password(user, new_pass)
+            frappe.db.commit()
             return {'success': 1}
         else:
             return {'success': 0, 'error': 'wrong password'}

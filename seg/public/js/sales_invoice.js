@@ -98,18 +98,18 @@ frappe.ui.form.on('Sales Invoice',  {
     }
 });
 
-// mutation observer for item changes
-var totalObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        getTotalWeight();
-    });
-});
-var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
-var options = {
-    attributes: true,
-    characterData: true
-};
-totalObserver.observe(target, options);
+// mutation observer for item changes -> Removed with v2025
+//~ var totalObserver = new MutationObserver(function(mutations) {
+    //~ mutations.forEach(function(mutation) {
+        //~ getTotalWeight();
+    //~ });
+//~ });
+//~ var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+//~ var options = {
+    //~ attributes: true,
+    //~ characterData: true
+//~ };
+//~ totalObserver.observe(target, options);
 
 function check_customer_mahnsperre(frm) {
     frappe.call({

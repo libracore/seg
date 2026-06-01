@@ -290,18 +290,18 @@ function display_purchase_price_field(frm) {
     });
 }
 
-// mutation observer for item changes
-var totalObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
- 	    getTotalWeight();
-    });
-});
-var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
-var options = {
-    attributes: true,
-    characterData: true
-};
-totalObserver.observe(target, options);
+// mutation observer for item changes -> Removed with v2025
+//~ var totalObserver = new MutationObserver(function(mutations) {
+    //~ mutations.forEach(function(mutation) {
+ 	    //~ getTotalWeight();
+    //~ });
+//~ });
+//~ var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+//~ var options = {
+    //~ attributes: true,
+    //~ characterData: true
+//~ };
+//~ totalObserver.observe(target, options);
 
 function update_wir(frm) {
     if (frm.doc.wir_percent > 0) {
