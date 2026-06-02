@@ -55,7 +55,7 @@ function show_report_information() {
                     <b>Nettobetrag (4):</b><br>
                     Zeigt den Nettoumsatz der jeweiligen Artikelgruppe und aller dessen Unterartikelgruppen. Wird berechnet aus allen Positionen von gebuchten Lieferscheinen abzüglich die Rückvergütung welche prozentual im Kunden hinterlegt ist.<br><br>
                     <b>EK Total (5):</b><br>
-                    Zeigt den Totalen Einkaufspreis welcher für die in dieser Zeile enthaltenen Positionen bezahlt wurde basierend auf der Valuation Rate(falls keine vorhanden ist, wird der letzte Einkaufspreis verwendet.
+                    Zeigt den Totalen Einkaufspreis welcher für die in dieser Zeile enthaltenen Positionen bezahlt wurde basierend auf der Valuation Rate(falls keine vorhanden ist, wird der letzte Einkaufspreis verwendet.<br><br>
                     <b>DB auf EK in CHF (6):</b><br>
                     Zeigt den Deckungsbeitrag in CHF: Nettobetrag - EK Tota.l<br><br>
                     <b>DB auf EK in % (7):</b><br>
