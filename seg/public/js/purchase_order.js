@@ -28,12 +28,13 @@ frappe.ui.form.on('Purchase Order',  {
             };
         });
         
-        if (frm.doc.currency != "CHF" && frm.doc.docstatus == 0) {
-            frm.add_custom_button(__("Add 1% to Rate"),  function(){
-                //Add 1% to Items Rate
-                add_currency_percent(frm);
-            });
-        }
+        //Removed by IvLo with v2025 because Currency Fields should be covered with Pruchase Price
+        //~ if (frm.doc.currency != "CHF" && frm.doc.docstatus == 0) {
+            //~ frm.add_custom_button(__("Add 1% to Rate"),  function(){
+                //~ //Add 1% to Items Rate
+                //~ add_currency_percent(frm);
+            //~ });
+        //~ }
         
         //Check if Supplier has Skonto and display Comment
         if (frm.doc.supplier) {
