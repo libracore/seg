@@ -37,16 +37,14 @@ frappe.ui.form.on('Delivery Note', {
             add_dn_nextcloud_button(frm);
         }
         
-        if (frm.doc.docstatus == 1) {
-            // custom mail dialog
-            cur_frm.page.add_action_icon("es-line-email", function() {
-                custom_mail_dialog(frm);
-            }, "", "Email");
-            let target = $('span.menu-item-label').filter(function() {
-                return $(this).text().trim() === __('Email');
-            });
-            $(target).parent().parent().remove();   // remove Menu > Email
-        }
+        // custom mail dialog
+        cur_frm.page.add_action_icon("es-line-email", function() {
+            custom_mail_dialog(frm);
+        }, "", "Email");
+        let target = $('span.menu-item-label').filter(function() {
+            return $(this).text().trim() === __('Email');
+        });
+        $(target).parent().parent().remove();   // remove Menu > Email
     
         if ((frm.doc.docstatus === 1) && (cur_frm.attachments.get_attachments().length === 0)) {
             frm.add_custom_button(__("PDF"), function() {

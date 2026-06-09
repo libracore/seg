@@ -100,8 +100,9 @@ function custom_mail_dialog(frm) {
                 //~ cc:  cc,
                 //~ bcc: bcc,
                 recipients: recipient,
+                message: message,
+                frm: cur_frm,
                 attach_document_print: true,
-                message: message
             });
         }
     });

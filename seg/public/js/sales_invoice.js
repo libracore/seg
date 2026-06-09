@@ -56,16 +56,15 @@ frappe.ui.form.on('Sales Invoice',  {
         if (frm.doc.customer) {
             check_cash_discount(frm);
         }
-        if (frm.doc.docstatus == 1) {
-            // custom mail dialog
-            cur_frm.page.add_action_icon("es-line-email", function() {
-                custom_mail_dialog(frm);
-            }, "", "Email");
-            let target = $('span.menu-item-label').filter(function() {
-                return $(this).text().trim() === __('Email');
-            });
-            $(target).parent().parent().remove();   // remove Menu > Email
-        }
+        
+        // custom mail dialog
+        cur_frm.page.add_action_icon("es-line-email", function() {
+            custom_mail_dialog(frm);
+        }, "", "Email");
+        let target = $('span.menu-item-label').filter(function() {
+            return $(this).text().trim() === __('Email');
+        });
+        $(target).parent().parent().remove();   // remove Menu > Email
         
         if (cur_frm.doc.is_return && cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
             frm.add_custom_button(__("Verbuchbares Guthaben"), function() {
