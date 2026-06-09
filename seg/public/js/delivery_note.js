@@ -53,6 +53,12 @@ frappe.ui.form.on('Delivery Note', {
                 attach_pdf(frm);
             });
         }
+        
+        if (frm.doc.docstatus === 0) {
+            frm.add_custom_button(__("Automatisches umlagern"), function() {
+                check_alternative_items(frm);
+            });
+        }
     },
     before_save: function(frm) {
         if (frm.doc.only_samples == 1) {
