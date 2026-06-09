@@ -369,7 +369,7 @@
    "hidden": 0,
    "is_query_report": 0,
    "label": "Reports",
-   "link_count": 7,
+   "link_count": 8,
    "link_type": "DocType",
    "onboard": 0,
    "type": "Card Break"
@@ -377,7 +377,17 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Sales Overview",
+   "label": "Sales Report",
+   "link_count": 0,
+   "link_to": "Sales report",
+   "link_type": "Report",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 1,
+   "label": "Sales Report 2026",
    "link_count": 0,
    "link_to": "Sales Overview",
    "link_type": "Report",
@@ -445,7 +455,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-05 14:46:33.084960",
+ "modified": "2026-06-09 12:06:11.558991",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG",
