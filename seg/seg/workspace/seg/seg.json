@@ -397,9 +397,9 @@
   {
    "hidden": 0,
    "is_query_report": 1,
-   "label": "Preisliste",
+   "label": "SEG Preisliste",
    "link_count": 0,
-   "link_to": "Preisliste",
+   "link_to": "SEG Preisliste",
    "link_type": "Report",
    "onboard": 0,
    "type": "Link"
@@ -455,7 +455,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-06-09 12:06:11.558991",
+ "modified": "2026-06-09 12:16:43.513961",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG",
