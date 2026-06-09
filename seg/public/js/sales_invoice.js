@@ -57,17 +57,17 @@ frappe.ui.form.on('Sales Invoice',  {
             check_cash_discount(frm);
         }
         if (frm.doc.docstatus == 1) {
-            // custom mail dialog (prevent duplicate icons on creation)
-            if (document.getElementsByClassName("fa-envelope-o").length === 0) {
-                cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
-                    custom_mail_dialog(frm);
-                });
-                var target ="span[data-label='" + __("Email") + "']";
-                $(target).parent().parent().remove();   // remove Menu > Email
-            }
+            // custom mail dialog
+            cur_frm.page.add_action_icon("es-line-email", function() {
+                custom_mail_dialog(frm);
+            }, "", "Email");
+            let target = $('span.menu-item-label').filter(function() {
+                return $(this).text().trim() === __('Email');
+            });
+            $(target).parent().parent().remove();   // remove Menu > Email
         }
         
-        if (cur_frm.doc.is_return&&cur_frm.doc.docstatus == 1&&cur_frm.doc.outstanding_amount!=0) {
+        if (cur_frm.doc.is_return && cur_frm.doc.docstatus == 1 && cur_frm.doc.outstanding_amount!=0) {
             frm.add_custom_button(__("Verbuchbares Guthaben"), function() {
                 frappe.call({
                     method: "seg.seg.utils.create_advance_je",
@@ -98,18 +98,18 @@ frappe.ui.form.on('Sales Invoice',  {
     }
 });
 
-// mutation observer for item changes
-var totalObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        getTotalWeight();
-    });
-});
-var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
-var options = {
-    attributes: true,
-    characterData: true
-};
-totalObserver.observe(target, options);
+// mutation observer for item changes -> Removed with v2025
+//~ var totalObserver = new MutationObserver(function(mutations) {
+    //~ mutations.forEach(function(mutation) {
+        //~ getTotalWeight();
+    //~ });
+//~ });
+//~ var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+//~ var options = {
+    //~ attributes: true,
+    //~ characterData: true
+//~ };
+//~ totalObserver.observe(target, options);
 
 function check_customer_mahnsperre(frm) {
     frappe.call({
@@ -146,7 +146,6 @@ function update_discout(frm) {
         frm.doc.items.forEach(function(item) {
             if (current_dn != item.delivery_note) {
                 current_dn = item.delivery_note;
-                //console.log("item", item.delivery_note, item.dn_discount_amount)
                 dn_discount_total = dn_discount_total + item.dn_discount_amount;
             }
         });

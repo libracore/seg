@@ -9,14 +9,14 @@ frappe.ui.form.on('Purchase Order',  {
         }
         
         if (frm.doc.docstatus < 2) {
-            // custom mail dialog (prevent duplicate icons on creation)
-            if (document.getElementsByClassName("fa-envelope-o").length === 0) {
-                cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
-                    custom_mail_dialog(frm);
-                });
-                var target ="span[data-label='" + __("Email") + "']";
-                $(target).parent().parent().remove();   // remove Menu > Email
-            }
+            // custom mail dialog
+            cur_frm.page.add_action_icon("es-line-email", function() {
+                custom_mail_dialog(frm);
+            }, "", "Email");
+            let target = $('span.menu-item-label').filter(function() {
+                return $(this).text().trim() === __('Email');
+            });
+            $(target).parent().parent().remove();   // remove Menu > Email
         }
         
         //Filter drop Ship Reference
@@ -28,12 +28,13 @@ frappe.ui.form.on('Purchase Order',  {
             };
         });
         
-        if (frm.doc.currency != "CHF" && frm.doc.docstatus == 0) {
-            frm.add_custom_button(__("Add 1% to Rate"),  function(){
-                //Add 1% to Items Rate
-                add_currency_percent(frm);
-            });
-        }
+        //Removed by IvLo with v2025 because Currency Fields should be covered with Pruchase Price
+        //~ if (frm.doc.currency != "CHF" && frm.doc.docstatus == 0) {
+            //~ frm.add_custom_button(__("Add 1% to Rate"),  function(){
+                //~ //Add 1% to Items Rate
+                //~ add_currency_percent(frm);
+            //~ });
+        //~ }
         
         //Check if Supplier has Skonto and display Comment
         if (frm.doc.supplier) {
@@ -41,7 +42,6 @@ frappe.ui.form.on('Purchase Order',  {
         }
     },
     validate: function(frm) {
-        validate_order_recommendation(frm);
         validate_price_list(frm);
     },
     drop_ship_reference: function(frm) {
@@ -50,6 +50,9 @@ frappe.ui.form.on('Purchase Order',  {
     supplier: function(frm) {
         set_taxes_template(frm);
         display_skonto_comment(frm);
+    },
+    after_save(frm) {
+        validate_order_recommendation(frm);
     }
 });
 
@@ -109,6 +112,8 @@ function validate_order_recommendation(frm) {
         }
         
         if (affected_items) {
+            console.log(message);
+            //~ frappe.msgprint({'title': "Bestellempfehlung Lieferant", 'message': message});
             frappe.msgprint(message, "Bestellempfehlung Lieferant");
         }
     }

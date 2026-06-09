@@ -14,7 +14,6 @@ frappe.ui.form.on('Quotation Price List', {
         frm.set_query('sales_person', function() {
             return {
                 filters: {
-                    'link_doctype': 'User',
                     'user_type': "System User"
                 }
             };
@@ -67,9 +66,6 @@ frappe.ui.form.on('Quotation Price List', {
             reset_items(frm);
         });
         
-    },
-    before_save: function(frm) {
-        set_items(frm);
     },
     contact: function(frm) {
         display_contact(frm);
@@ -245,12 +241,11 @@ function set_address(frm) {
         method: "frappe.client.get_list",
         args: {
             doctype: "Address",
-            filters: {
-                link_doctype: "Customer",
-                link_name: cur_frm.doc.customer,
-                address_type: "Billing",
-                is_primary_address: 1
-            },
+            filters: [
+                ["Dynamic Link", "link_doctype", "=", "Customer"],
+                ["Dynamic Link", "link_name", "=", cur_frm.doc.customer],
+                ["Address", "is_primary_address", "=", 1]
+            ],
             fields: ["name"]
         },
         callback: function(response) {
