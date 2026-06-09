@@ -8,16 +8,14 @@ frappe.ui.form.on('Purchase Order',  {
             set_taxes_template(frm);
         }
         
-        if (frm.doc.docstatus < 2) {
-            // custom mail dialog
-            cur_frm.page.add_action_icon("es-line-email", function() {
-                custom_mail_dialog(frm);
-            }, "", "Email");
-            let target = $('span.menu-item-label').filter(function() {
-                return $(this).text().trim() === __('Email');
-            });
-            $(target).parent().parent().remove();   // remove Menu > Email
-        }
+        // custom mail dialog
+        cur_frm.page.add_action_icon("es-line-email", function() {
+            custom_mail_dialog(frm);
+        }, "", "Email");
+        let target = $('span.menu-item-label').filter(function() {
+            return $(this).text().trim() === __('Email');
+        });
+        $(target).parent().parent().remove();   // remove Menu > Email
         
         //Filter drop Ship Reference
        frm.set_query('drop_ship_reference', function() {

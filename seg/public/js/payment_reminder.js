@@ -3,16 +3,14 @@
 
 frappe.ui.form.on('Payment Reminder',  {
     refresh: function(frm) {
-        if (frm.doc.docstatus == 1) {
-            // custom mail dialog
-            cur_frm.page.add_action_icon("es-line-email", function() {
-                custom_mail_dialog(frm);
-            }, "", "Email");
-            let target = $('span.menu-item-label').filter(function() {
-                return $(this).text().trim() === __('Email');
-            });
-            $(target).parent().parent().remove();   // remove Menu > Email
-        }
+        // custom mail dialog
+        cur_frm.page.add_action_icon("es-line-email", function() {
+            custom_mail_dialog(frm);
+        }, "", "Email");
+        let target = $('span.menu-item-label').filter(function() {
+            return $(this).text().trim() === __('Email');
+        });
+        $(target).parent().parent().remove();   // remove Menu > Email
     }
 });
 
