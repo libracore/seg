@@ -108,7 +108,6 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio, 'item_code': item_code}, fields=['name'])
     else:
         target_prio = frappe.get_value("Item Group Priority", {'rule_type': "General"}, "rule_priority")
-        frappe.log_error(target_prio, "target_prio General")
         matches = frappe.get_all("Pricing Rule", filters={'customer': customer, 'priority': target_prio}, fields=['name'])
     
     if not target_prio:

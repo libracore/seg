@@ -10,67 +10,85 @@ from seg.seg.shop import get_recursive_item_groups
 import re
 
 class QuotationPriceList(Document):
-	pass
+    def validate(self):
+        new_items = []
+        imported_templates = []
+        something_to_import = False
+        items = []
 
-@frappe.whitelist()
-def get_new_items(doc):
-    doc = json.loads(doc)
-    
-    new_items = []
-    imported_templates = []
-    something_to_import = False
-    items = []
-    
-    #get items to import
-    for template in doc.get('templates'):
-        if not template.get('items_set') == 1:
-            #get prices for all items
-            prices = get_prices(template.get('item_code'), doc.get('customer'))
-            #check if it is a template or a single item
-            is_template = frappe.get_value("Item", template.get('item_code'), "has_variants")
-            #if it is a template, get all variants
-            if is_template:
-                items = frappe.db.sql("""
-                                        SELECT
-                                            `tabItem`.`item_code`,
-                                            `tabItem`.`variant_of`,
-                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`,
-                                            GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr` SEPARATOR ', ') AS `attribute_value_fr`
-                                        FROM
-                                            `tabItem`
-                                        LEFT JOIN
-                                            `tabItem Variant Attribute` ON `tabItem Variant Attribute`.`parent` = `tabItem`.`name`
-                                        WHERE
-                                            `tabItem`.`variant_of` = '{template}'
-                                        AND
-                                            `tabItem`.`disabled` = 0
-                                        AND
-                                            `tabItem`.`exclude_from_quotation_price_list` = 0
-                                        GROUP BY
-                                            `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
-            #if it is a single item, just add this item
-            else:
-                items = [{'item_code': template.get('item_code'), 'variant_of': template.get('item_code')}]
-        #get price for each item, add item and releated price to new items
-        if len(items) > 0:
-            for item in items:
-                item_price = None
-                for price in prices:
-                    if item.get('item_code') == price.get('item_code'):
-                        item_price = price.get('discounted_rate')
-                        price_list_rate = price.get('price_list_rate')
-                        discount = price.get('discount_percentage')
-                new_items.append({'item_code': item.get('item_code'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
+        #get items to import
+        for template in self.get('templates'):
+            if not template.get('items_set') == 1:
+                #get prices for all items
+                prices = get_prices(template.get('item_code'), self.get('customer'))
+                #check if it is a template or a single item
+                is_template = frappe.get_value("Item", template.get('item_code'), "has_variants")
+                #if it is a template, get all variants
+                if is_template:
+                    items = frappe.db.sql("""
+                                            SELECT
+                                                `tabItem`.`item_code`,
+                                                `tabItem`.`item_name`,
+                                                `tabItem`.`variant_of`,
+                                                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`,
+                                                GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr` SEPARATOR ', ') AS `attribute_value_fr`
+                                            FROM
+                                                `tabItem`
+                                            LEFT JOIN
+                                                `tabItem Variant Attribute` ON `tabItem Variant Attribute`.`parent` = `tabItem`.`name`
+                                            WHERE
+                                                `tabItem`.`variant_of` = '{template}'
+                                            AND
+                                                `tabItem`.`disabled` = 0
+                                            AND
+                                                `tabItem`.`exclude_from_quotation_price_list` = 0
+                                            GROUP BY
+                                                `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
+                #if it is a single item, just add this item
+                else:
+                    items = [{'item_code': template.get('item_code'), 'variant_of': template.get('item_code')}]
+            #get price for each item, add item and releated price to new items
+            if len(items) > 0:
+                for item in items:
+                    item_price = None
+                    for price in prices:
+                        if item.get('item_code') == price.get('item_code'):
+                            item_price = price.get('discounted_rate')
+                            price_list_rate = price.get('price_list_rate')
+                            discount = price.get('discount_percentage')
+                    new_items.append({'item_code': item.get('item_code'), 'item_name': item.get('item_name'), 'variant_of': item.get('variant_of'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
+                
+                #add template to imported templates and set flag for JS
+                imported_templates.append(template.get('name'))
+                something_to_import = True
+        
+        if something_to_import:
+            #create new items
+            for new_item in new_items:
+                item_price_l = 0
+                item_price_kg = 0
+                if new_item.get('kg_price'):
+                    kg_l_prices = get_kg_and_l_price(new_item, j_son=True)
+                    item_price_l = kg_l_prices.get('liter_price')
+                    item_price_kg = kg_l_prices.get('kg_price')
+                
+                self.append("items", {
+                                        'price_list_rate': new_item.get('price_list_rate'),
+                                        'item_code': new_item.get('item_code'),
+                                        'item_name': new_item.get('item_name'),
+                                        'variant_of': new_item.get('variant_of'),
+                                        'item_price': new_item.get('item_price'),
+                                        'kg_price': new_item.get('kg_price'),
+                                        'discount': new_item.get('discount'),
+                                        'variant': new_item.get('variant'),
+                                        'variant_fr': new_item.get('variant_fr'),
+                                        'item_price_l': item_price_l,
+                                        'item_price_kg': item_price_kg
+                                    })
             
-            #add template to imported templates and set flag for JS
-            imported_templates.append(template.get('name'))
-            something_to_import = True
-    
-    return {
-            'something_to_import': something_to_import,
-            'new_items': new_items,
-            'imported_templates': imported_templates
-            }
+            for template in self.templates:
+                if template.get('name') in imported_templates:
+                    template.items_set = 1
 
 @frappe.whitelist()
 def get_prices(item_code, customer):
@@ -122,8 +140,9 @@ def get_prices(item_code, customer):
     return data
 
 @frappe.whitelist()
-def get_kg_and_l_price(row):
-    row = json.loads(row)
+def get_kg_and_l_price(row, j_son=False):
+    if not j_son:
+        row = json.loads(row)
     
     #get item Attribute
     item_attribute = frappe.db.sql("""

@@ -1,66 +1,68 @@
-DocType: Customer,Always pick up,Holt immer ab
-DocType: Customer,Allow Invoice,Rechnung erlauben
-DocType: Customer,Leave Delivery Note Note,Lieferscheinnotiz hinterlassen
-DocType: Customer,Delivery Note Note,Lieferscheinnotiz
-DocType: Customer,Has Custom Labels,Hat eigene Etiketten
-DocType: Webshop Settings,Shipping Item,Versandartikel
-DocType: Customer,Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail
-DocType: Sales Order,Payment Method,Zahlungsmethode
-DocType: Sales Order,Responsible,Verantwortlicher
-DocType: Sales Order,Delivery Note Qty,Anzahl Lieferscheine
-DocType: Delivery Note,Payment Method,Zahlungsmethode
-DocType: Delivery Note,Additional Text,Zusätzlicher Text
-DocType: Delivery Note,Update Barcodes,Barcodes aktualisieren
-DocType: Delivery Note,	In Commission,In Kommissionierung
-DocType: Item,French Attributes,Französische Attribute
-DocType: Item,Shipping Unit,Versandeinheit
-DocType: Item,Calculate kg and l Prices,Liter und kg Preise berechnen
-DocType: Item,Exclude from Quotation Price List,Aus Angebots-Preislisten ausschliessen
-DocType: Item,Order recommendation supplier,Bestellempfehlung Lieferant
-DocType: Item,Default Supplier,Hauptlieferant
-DocType: Item,Changes the Order of Variants in a Template in the Webshop,Ändert die Reihenfolge der Varianten in einem Template im Webshop
-DocType: Item,The marked variant is highlighted in red in the webshop by default,Die markierte Variante wird im Webshop standardmässig in rot markiert
-DocType: Item,Show Carton Qty in Delivery Note,Menge pro Karton in Lieferschein anzeigen
-DocType: Item Price,Freight costs,Frachtkosten
-DocType: Item Price,Currency exchange fees,Währungsspesen
-DocType: Item Price,SEG Purchase Price,SEG Einkaufspreis
-Page: SEG Preisliste,Product Category,Produktkategorie
-Page: SEG Preisliste,Product Subcategory,Produktunterkategorie
-Page: SEG Preisliste,Product Group,Produktgruppe
-DocType: Purchase Order,Drop Ship - please note the attached delivery Note!,Direktlieferung - bitte angefügten Lieferschein beachten!
-DocType: Purchase Order,Is drop ship,Ist Direktlieferung
-DocType: Purchase Order,Drop Ship Reference,Referenz Direktlieferung
-DocType: Purchase Order,Drop Ship Customer,Kunde Direktlieferung
-DocType: Purchase Order,Drop Ship Address,Adresse Direktlieferung
-DocType: Purchase Order,Requested delivery date,Gewünschtes Lieferdatum
-DocType: Purchase Order,Order quantities,Bestellmengen
-DocType: SEG Settings,Purchase Taxes,Mehrwertsteuern Einkauf
-DocType: SEG Settings,Switzerland,Schweiz
-DocType: SEG Settings,Foreign countries,Ausland
-DocType: SEG Settings,Quotation Price List,Angebot-Preisliste
-DocType: SEG Settings,Do Not Update Variants,Varianten nicht aktualisieren
-DocType: SEG Settings,"If an Item Template is saved, these field are copied to all their Variants. This is a copy from the Standard ERP Function in Item Variant Settings. The process is seperated to use Item Variant Settings to copy the Attributes on created and this process to copy the Attributes on safe.","Wird eine Artikelvorlage gespeichert, werden alle diese Felder auf die Varianten kopiert. Dies ist eine Kopie zum Prozess in den Einstellungen zur Artikelvariante. Der Prozess in Einstellungen zur Artikelvariante wird verwendet um die Felder beim erstellen eines Artikels zu übernehmen, dieser Prozess wird verwendet um die Felder bei jedem speichern zu übernehmen."
-DocType: SEG Settings,Fields to Copy,Felder zum kopieren
-DocType: Quotation Price List,Templates,Artikelvorlagen
-Report: Beschaffungsplan,Lead Time in Days,Leadtime in Tagen
-Report: Beschaffungsplan,Avg Consumption per Day,Verbrauch pro Tag
-Report: Beschaffungsplan,To Order,Zu bestellen
-Report: Beschaffungsplan,Create Purchase Order,Bestellung erstellen
-Report: Beschaffungsplan,Stock in SKU,Lagerbestand
-DocType: Purchase Receipt,per piece,pro Stück
-DocType: Delivery Note,Sample Delivery,Mustersendung
-DocType: Quotation Price List,Reset Items,Artikel neu berechnen
-DocType: Pricing Rule,Discount Calculation,Rabattberechnung
-DocType: Pricing Rule,Enter Price to calculate Discount Percentage,Preis eingeben um Rabatt in Prozent zu berechnen
-DocType: Purchaser,Purchaser,Einkäufer
-DocType: Purchaser,Responsible Purchaser,Zuständiger Einkäufer
-Report: Sales Overview,Sales Overview,Verkaufsübersicht
-Report: Sales Overview,Item Group Priority,Priorität aus Artikelgruppe
-Report: Sales Overview,Net Turnover,Nettobetrag
-Report: Sales Overview,Total Purchase Price,EK Total
-Report: Sales Overview,DB on Purchase Price CHF,DB auf EK in CHF
-Report: Sales Overview,DB on Purchase Price %,DB auf EK in %
-Report: Sales Overview,Total SEG Purchase Price,SEG-EK Total
-Report: Sales Overview,DB on SEG Purchase Price CHF,DB auf SEG-EK in CHF
-Report: Sales Overview,DB on SEG Purchase Price %,DB auf SEG-EK in %
-Report: Items ordered from suppliers,Items ordered from suppliers,Bestellte Artikel bei Lieferanten
+Always pick up,Holt immer ab,
+Allow Invoice,Rechnung erlauben,
+Leave Delivery Note Note,Lieferscheinnotiz hinterlassen,
+Delivery Note Note,Lieferscheinnotiz,
+Has Custom Labels,Hat eigene Etiketten,
+Shipping Item,Versandartikel,
+Preferred Invoice E-Mail,Bevorzugte Rechnungen E-Mail,
+Payment Method,Zahlungsmethode,
+Responsible,Verantwortlicher,
+Delivery Note Qty,Anzahl Lieferscheine,
+Payment Method,Zahlungsmethode,
+Additional Text,Zusätzlicher Text,
+Update Barcodes,Barcodes aktualisieren,
+In Commission,In Kommissionierung,
+French Attributes,Französische Attribute,
+Shipping Unit,Versandeinheit,
+Calculate kg and l Prices,Liter und kg Preise berechnen,
+Exclude from Quotation Price List,Aus Angebots-Preislisten ausschliessen,
+Order recommendation supplier,Bestellempfehlung Lieferant,
+Default Supplier,Hauptlieferant,
+Changes the Order of Variants in a Template in the Webshop,Ändert die Reihenfolge der Varianten in einem Template im Webshop,
+The marked variant is highlighted in red in the webshop by default,Die markierte Variante wird im Webshop standardmässig in rot markiert,
+Show Carton Qty in Delivery Note,Menge pro Karton in Lieferschein anzeigen,
+Freight costs,Frachtkosten,
+Currency exchange fees,Währungsspesen,
+SEG Purchase Price,SEG Einkaufspreis,
+Product Category,Produktkategorie,
+Product Subcategory,Produktunterkategorie,
+Product Group,Produktgruppe,
+Drop Ship - please note the attached delivery Note!,Direktlieferung - bitte angefügten Lieferschein beachten!,
+Is drop ship,Ist Direktlieferung,
+Drop Ship Reference,Referenz Direktlieferung,
+Drop Ship Customer,Kunde Direktlieferung,
+Drop Ship Address,Adresse Direktlieferung,
+Requested delivery date,Gewünschtes Lieferdatum,
+Order quantities,Bestellmengen,
+Purchase Taxes,Mehrwertsteuern Einkauf,
+Switzerland,Schweiz,
+Foreign countries,Ausland,
+Quotation Price List,Angebot-Preisliste,
+Do Not Update Variants,Varianten nicht aktualisieren,
+"If an Item Template is saved, these field are copied to all their Variants. This is a copy from the Standard ERP Function in Item Variant Settings. The process is seperated to use Item Variant Settings to copy the Attributes on created and this process to copy the Attributes on safe.","Wird eine Artikelvorlage gespeichert, werden alle diese Felder auf die Varianten kopiert. Dies ist eine Kopie zum Prozess in den Einstellungen zur Artikelvariante. Der Prozess in Einstellungen zur Artikelvariante wird verwendet um die Felder beim erstellen eines Artikels zu übernehmen, dieser Prozess wird verwendet um die Felder bei jedem speichern zu übernehmen.",
+Fields to Copy,Felder zum kopieren,
+Templates,Artikelvorlagen,
+Lead Time in Days,Leadtime in Tagen,
+Avg Consumption per Day,Verbrauch pro Tag,
+To Order,Zu bestellen,
+Create Purchase Order,Bestellung erstellen,
+Stock in SKU,Lagerbestand,
+per piece,pro Stück,
+Sample Delivery,Mustersendung,
+Reset Items,Artikel neu berechnen,
+Discount Calculation,Rabattberechnung,
+Enter Price to calculate Discount Percentage,Preis eingeben um Rabatt in Prozent zu berechnen,
+Purchaser,Einkäufer,
+Responsible Purchaser,Zuständiger Einkäufer,
+Sales Overview,Verkaufsübersicht,
+Item Group Priority,Priorität aus Artikelgruppe,
+Net Turnover,Nettobetrag,
+Total Purchase Price,EK Total,
+DB on Purchase Price CHF,DB auf EK in CHF,
+DB on Purchase Price %,DB auf EK in %,
+Total SEG Purchase Price,SEG-EK Total,
+DB on SEG Purchase Price CHF,DB auf SEG-EK in CHF,
+DB on SEG Purchase Price %,DB auf SEG-EK in %,
+Items ordered from suppliers,Bestellte Artikel bei Lieferanten,
+Based on Purchase Receipts,Basierend auf tatsächlichen Wareneingängen,
+Based on Freight Costs and Currency Fees above,Basierend auf den hier angegeben Frachtkosten und Währungsspesen,

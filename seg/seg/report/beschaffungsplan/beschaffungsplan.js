@@ -33,7 +33,7 @@ function create_purchase_order(report) {
             'callback': function(response) {
                 frappe.dom.unfreeze();
                 if (response.message) {
-                    window.open("desk#Form/Purchase Order/" + response.message, '_blank');
+                    frappe.set_route('Form', 'Purchase Order', response.message);
                 } else {
                     frappe.show_alert('Fehler beim erstellen der Bestellung', 5);
                 }

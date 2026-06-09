@@ -1,3 +1,4 @@
+[pre_model_sync]
 seg.patches.set_french_packaging_type.set_french_packaging_type
 seg.patches.v0_5_1.v0_5_1
 seg.patches.v0_6_0.item_price_supplier
@@ -8,3 +9,8 @@ seg.patches.v0_11_0.pricing_rule_items
 seg.patches.v0_12_0.item_group_priorities
 seg.patches.v0_13_0.french_attribute_values
 seg.patches.v0_14_0.update_seg_prices
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated
+seg.patches.item_price_uom.item_price_uom
+seg.patches.website_specification.website_specification

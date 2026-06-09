@@ -13,7 +13,8 @@ from erpnextswiss.erpnextswiss.datatrans import get_payment_link
 from seg.seg.report.seg_preisliste.seg_preisliste import create_pricing_rule
 from frappe.desk.like import _toggle_like
 from erpnextswiss.erpnextswiss.datatrans import get_payment_status
-from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
+# TODO: make this work again
+#from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from frappe.core.doctype.communication.email import make
 
 PREPAID = "N20"
@@ -32,7 +33,9 @@ def get_matching_variant(item_code, old_selection, new_selection):
             if k not in attributes:
                 attributes[k] = v
         # check if there are multiple variants matching
-        matches = get_next_attribute_and_values(item_code, attributes)
+        # TODO: make this work again
+        # matches = get_next_attribute_and_values(item_code, attributes)
+        matches = []
         if len(matches['filtered_items']) == 1:
             # leave with this variant code
             return list(matches['filtered_items'])[0]
@@ -216,7 +219,6 @@ def get_translated_child_group(item_group, language, root_call=False):
         filters={'parent_item_group': item_group, 'is_group': 0, 'show_in_website': 1},
         order_by='weightage desc',
         fields=['name', 'item_group_name_{0}'.format(language)])
-    frappe.log_error(nodes, "nodes")
     for n in nodes:
         # first item per group
         item = frappe.get_all("Item", filters={'item_group': n['name'], 'disabled': 0, 'show_in_website': 1}, 
@@ -356,12 +358,13 @@ def get_item_details(item_code=None, language="de"):
         
         web_specs = frappe.db.sql("""
             SELECT
-                `label{lang}` AS `label`,
-                `description{lang}` AS `description`,
+                `custom_label{lang}` AS `label`,
+                `custom_description{lang}` AS `description`,
                 `idx`,
                 1 AS `source`
-            FROM `tabItem Website Specification`
+            FROM `tabItem Custom Website Specification`
             WHERE `parent` = "{item_code}"
+            AND `parentfield` = 'website_specifications'
             
             UNION
             
@@ -372,6 +375,7 @@ def get_item_details(item_code=None, language="de"):
                 2 AS `source`
             FROM `tabItem Custom Website Specification`
             WHERE `parent` = "{item_code}"
+            AND `parentfield` = 'custom_website_specifications'
             ORDER BY `source` DESC, `idx` ASC;
         """.format(item_code=item_code, lang = "_fr" if language == "fr" else ""), as_dict=True)
         item_details[0]['website_specification'] = web_specs
@@ -609,12 +613,12 @@ def delete_address(name=None):
     if permitted:
         # delete address: drop links
         address.links = []
-        address.owner = "Nobody"
         try:
             address.save(ignore_permissions=True)
             frappe.db.commit()
         except Exception as err:
             error = err
+        frappe.log_error("3", address.links)
     else:
         error = "Permission error"
     return {'error': error}
@@ -1058,6 +1062,7 @@ def change_password(user=None, new_pass=None, old_pass=None):
     if user == frappe.session.user:
         if user == check_password(user, old_pass):
             update_password(user, new_pass)
+            frappe.db.commit()
             return {'success': 1}
         else:
             return {'success': 0, 'error': 'wrong password'}
@@ -1070,7 +1075,7 @@ def get_datatrans_payment_link(currency, refno, amount, verify=True):
 
 @frappe.whitelist()
 def log_error(message):
-    frappe.log_error(message, "Webshop error")
+    frappe.log_error("Webshop error", message)
     return {'success': 1, 'error': ''}
 
 def get_recursive_item_groups(item_group, language="de"):

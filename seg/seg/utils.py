@@ -16,6 +16,8 @@ from erpnext.setup.utils import get_exchange_rate
 from frappe.utils import flt
 from frappe import _
 import copy
+from erpnext.accounts.party import get_party_account
+
 
 naming_patterns = {
     'Address': {
@@ -393,22 +395,43 @@ def send_email(recipient, message):
 def check_advances(doc, include_unallocated=True):
     doc = json.loads(doc)
     
-    party_account = doc.get('debit_to')
+    party_account = []
+    default_advance_account = None
+    
+    
     party_type = "Customer"
     party = doc.get('customer')
     amount_field = "credit_in_account_currency"
     order_field = "sales_order"
     order_doctype = "Sales Order"
-    order_list = []
-        
-    journal_entries = get_advance_journal_entries(party_type, party, party_account,
-        amount_field, order_doctype, order_list, include_unallocated)
+    party_account.append(doc.get('debit_to'))
+    
+    party_accounts = get_party_account(
+                party_type, party=party, company=doc.get('company'), include_advance=True
+            )
+    
+    if party_accounts:
+                party_account.append(party_accounts[0])
+                default_advance_account = party_accounts[1] if len(party_accounts) == 2 else None
 
-    payment_entries = get_advance_payment_entries(party_type, party, party_account,
-        order_doctype, order_list, include_unallocated)
-
+    order_list = list(set(d.get(order_field) for d in doc.get("items") if d.get(order_field)))
+    
+    journal_entries = get_advance_journal_entries(
+            party_type, party, party_account, amount_field, order_doctype, order_list, include_unallocated
+        )
+    
+    payment_entries = get_advance_payment_entries(
+            party_type,
+            party,
+            party_account,
+            order_doctype,
+            order_list,
+            default_advance_account,
+            include_unallocated,
+        )
+    
     res = journal_entries + payment_entries
-
+    
     return res
 
 #add e-mail recipients to content, to show in Document History
@@ -453,6 +476,11 @@ def update_item_prices(currency, currency_exchange_fee):
     old_fee = frappe.get_value("Currency", currency, "currency_exchange_fee")
     
     if old_fee != currency_exchange_fee:
+        #get actual exchange rate
+        exchange_rate = frappe.get_list("Currency Exchange", filters={'from_currency': currency, 'to_currency': "CHF", 'for_buying': 1}, fields=["exchange_rate", "date"], order_by="date desc", limit=1, as_list=False)
+        if len(exchange_rate) < 1:
+            frappe.throw("Umrechnungskurs konnte nicht gefunden werden, SEG-Preise wurden nicht aktualisiert")
+        
         #Update Item Prices
         affected_prices = frappe.db.sql("""
                         SELECT
@@ -466,8 +494,9 @@ def update_item_prices(currency, currency_exchange_fee):
             price_doc = frappe.get_doc("Item Price", affected_price.get('name'))
             price_doc.currency_exchange_fee = currency_exchange_fee
             frappe.db.set_value("Item Price", price_doc.get('name'), "currency_exchange_fee", currency_exchange_fee)
+
             #recalculate SEG Price
-            new_seg_price = price_doc.price_list_rate + (price_doc.price_list_rate / 100 * currency_exchange_fee) + price_doc.freight_costs
+            new_seg_price = (price_doc.price_list_rate * exchange_rate[0].get('exchange_rate')) + ((price_doc.price_list_rate * exchange_rate[0].get('exchange_rate')) / 100 * currency_exchange_fee) + price_doc.freight_costs
             frappe.db.set_value("Item Price", price_doc.get('name'), "seg_purchase_price", new_seg_price)
         frappe.db.commit()
 

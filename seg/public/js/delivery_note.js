@@ -12,10 +12,10 @@ frappe.ui.form.on('Delivery Note', {
                 update_barcodes(frm);
             });
         }
-        
-        frm.add_custom_button(__("Umlagern"), function() {
-            move_stock(frm);
-        });
+        //Process hidden with v2025 because it seems to go onthe wrong way of item alternatives. Checking if anyone misses it (02.06.2026)
+        //~ frm.add_custom_button(__("Umlagern"), function() {
+            //~ move_stock(frm);
+        //~ });
         if (!frm.doc.ignore_pricing_rule) {
             frm.add_custom_button(__("Detach From Pricing Rule"), function() {
                 modify_item_rate(frm);
@@ -29,7 +29,7 @@ frappe.ui.form.on('Delivery Note', {
             set_only_samples_properties(frm);
             if (frm.doc.customer) {
                 check_pick_up(frm.doc.customer);
-                //~ display_dn_note(frm.doc.customer);
+                display_dn_note(frm.doc.customer);
             } else {
                 cur_frm.set_value("picked_up" , 0)
             }
@@ -38,14 +38,14 @@ frappe.ui.form.on('Delivery Note', {
         }
         
         if (frm.doc.docstatus == 1) {
-            // custom mail dialog (prevent duplicate icons on creation)
-            if (document.getElementsByClassName("fa-envelope-o").length === 0) {
-                cur_frm.page.add_action_icon(__("fa fa-envelope-o"), function() {
-                    custom_mail_dialog(frm);
-                });
-                var target ="span[data-label='" + __("Email") + "']";
-                $(target).parent().parent().remove();   // remove Menu > Email
-            }
+            // custom mail dialog
+            cur_frm.page.add_action_icon("es-line-email", function() {
+                custom_mail_dialog(frm);
+            }, "", "Email");
+            let target = $('span.menu-item-label').filter(function() {
+                return $(this).text().trim() === __('Email');
+            });
+            $(target).parent().parent().remove();   // remove Menu > Email
         }
     
         if ((frm.doc.docstatus === 1) && (cur_frm.attachments.get_attachments().length === 0)) {
@@ -290,18 +290,18 @@ function display_purchase_price_field(frm) {
     });
 }
 
-// mutation observer for item changes
-var totalObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
- 	    getTotalWeight();
-    });
-});
-var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
-var options = {
-    attributes: true,
-    characterData: true
-};
-totalObserver.observe(target, options);
+// mutation observer for item changes -> Removed with v2025
+//~ var totalObserver = new MutationObserver(function(mutations) {
+    //~ mutations.forEach(function(mutation) {
+ 	    //~ getTotalWeight();
+    //~ });
+//~ });
+//~ var target=document.querySelector('div[data-fieldname="total"] .control-input-wrapper .control-value');
+//~ var options = {
+    //~ attributes: true,
+    //~ characterData: true
+//~ };
+//~ totalObserver.observe(target, options);
 
 function update_wir(frm) {
     if (frm.doc.wir_percent > 0) {
@@ -450,7 +450,7 @@ function check_alternative_items(frm) {
                     },
                     function(){
                         // on no
-                        show_alert('Keine Artikel umgebucht!')
+                        frappe.show_alert('Keine Artikel umgebucht!')
                     }
                 );
             }
