@@ -3,7 +3,7 @@
   <table style="width: 100%;">
     <tr>
       <td>SEG</td>
-      <td style="text-align: right;">Sales Report von {{ header_data['actual_date'] }}</td>
+      <td style="text-align: right;">Sales Report vom {{ header_data.get('actual_date') }}</td>
     </tr>
   </table>
 </div>
@@ -20,49 +20,40 @@
 </div>
 
 <!-- CONTENT -->
-<center><h3>Sales Report von {{ header_data['from_date'] }} bis {{ header_data['to_date'] }} für {{ header_data.get('employee') or 'Company' }}</h3></center>
+<center><h3>Sales Report von {{ header_data.get('from_date') }} bis {{ header_data.get('to_date') }} für {{ header_data.get('employee') or 'S.E.G. AG' }}</h3></center>
 <table style="width: 100%;">
   <tr>
-    <th>Produkt</th>
+    <th colspan=2><center></center></th>
+    <th colspan=2><center>Aktuelle Woche</center></th>
+    <th colspan=2><center>Year to Date {{ header_data.get('actual_year') }}</center></th>
+    <th colspan=2><center>Year to Date {{ header_data.get('previous_year') }}</center></th>
+    <th colspan=2><center>Wochenschnitt</center></th>
+  </tr>	
+  <tr>
     <th style="text-align:right; ">Prio</th>
     <th style="text-align:right; ">Artikelgruppe</th>
     <th style="text-align:right; ">Nettobetrag</th>
-    <th style="text-align:right; ">DB auf SEG-EK in %</th>
-    <th style="text-align:right; ">Nettobetrag YtD</th>
-    <th style="text-align:right; ">DB % YtD</th>
-    <th style="text-align:right; ">Nettobetrag YtD {{ header_data['previous_year'] }}</th>
-    <th style="text-align:right; ">DB % YtD {{ header_data['previous_year'] }}</th>
-    <th style="text-align:right; ">Nettobetrag Wochenschnitt {{ header_data['actual_year'] }}</th>
-    <th style="text-align:right; ">Nettobetrag Wochenschnitt {{ header_data['previous_year'] }}</th> 
+    <th style="text-align:right; ">DB auf SEG-EK</th>
+    <th style="text-align:right; ">Nettobetrag</th>
+    <th style="text-align:right; ">DB</th>
+    <th style="text-align:right; ">Nettobetrag</th>
+    <th style="text-align:right; ">DB %</th>
+    <th style="text-align:right; ">{{ header_data.get('actual_year') }}</th>
+    <th style="text-align:right; ">{{ header_data.get('previous_year') }}</th> 
   </tr>
-  {% for n in doc.items %}
+  {% for d in data %}
   <tr>
-    <td style="padding: 1px !important; ">{{ n.description }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_7days }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_7days).replace(",", "'") }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_ytd }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_ytd).replace(",", "'") }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ n.demand_qty_ytd }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.demand_revenue_ytd).replace(",", "'") }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ n.demand_qty_py }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.demand_revenue_py).replace(",", "'") }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_py }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_py).replace(",", "'") }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('priority') }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('item_group') }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('net_turnover') | round(2) }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('db_seg_price') }}%</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('net_year_to_date') }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('db_year_to_date') }}%</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('net_year_to_date_last') }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('db_year_to_date_last') }}%</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('net_week_average') }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ d.get('net_week_average_last') }}</td>
   </tr>
   {% endfor %} 
-  <tr>
-    <th style="padding: 1px !important; ">Summe</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_7days }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_7days).replace(",", "'") }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_ytd }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_ytd).replace(",", "'") }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_demand_qty_ytd }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_demand_revenue_ytd).replace(",", "'") }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_demand_qty_py }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_demand_revenue_py).replace(",", "'") }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_py }}</th>
-    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_py).replace(",", "'") }}</th>
-  </tr>
 </table>
-<p>{{ doc.remarks or '' }}</p>
 
