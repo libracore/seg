@@ -44,6 +44,10 @@ frappe.query_reports["Sales Overview"] = {
         report.page.add_inner_button(__("Berichtsinformationen"), function() {
             show_report_information();
         });
+        
+        report.page.add_inner_button(__("Download PDF"), function() {
+            download_pdf();
+        });
     }
 };
 
@@ -77,4 +81,18 @@ function show_report_information() {
                     Hier kann angegeben bis zu welcher Tiefe die Artikelgruppen anzeigt werden.
                     `
     frappe.msgprint(message, "Berichtsinformationen");
+}
+
+function download_pdf() {
+    frappe.call({
+        'method': 'seg.seg.report.sales_overview.sales_overview.send_report',
+        'args': {
+
+        },
+        'callback': function(response) {
+            if (response.message) {
+                window.open(response.message, "_blank");
+            }
+        }
+    });
 }

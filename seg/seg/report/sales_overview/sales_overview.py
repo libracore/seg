@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils.data import cint
+from frappe.utils.pdf import get_pdf
 
 def execute(filters=None):
     columns = get_columns()
@@ -140,3 +141,23 @@ def get_child_groups(item_group, item_groups):
     for n in nodes:
         item_groups.append(n['name'])
     return item_groups
+
+@frappe.whitelist()
+def send_report():
+    data = "Hallo"
+    header_data = {'from_date': "01.01.2025", 'to_date': "31.01.2025"}
+    overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'data': data, 'header_data': header_data})
+    pdf = get_pdf(overview_html, options={"orientation": "Landscape"})
+    # ~ frappe.local.response.filename = "overview.pdf"
+    # ~ frappe.local.response.filecontent = pdf
+    # ~ frappe.local.response.type = "download"
+    
+    file_doc = frappe.get_doc({
+        "doctype": "File",
+        "file_name": "overview.pdf",
+        "content": pdf,
+        "is_private": 1
+    })
+    file_doc.save(ignore_permissions=True)
+
+    return file_doc.file_url

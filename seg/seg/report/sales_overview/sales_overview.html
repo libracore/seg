@@ -1,0 +1,68 @@
+<!-- HEAD -->
+<div  id="header-html" class="hidden-pdf" >
+  <table style="width: 100%;">
+    <tr>
+      <td>SEG</td>
+      <td style="text-align: right;">Sales Report von {{ header_data['actual_date'] }}</td>
+    </tr>
+  </table>
+</div>
+
+<meta name="pdfkit-orientation" content="Landscape"/>
+<div id="footer-html" class="visible-pdf">
+  <table style="width:100%;" >
+    <tr>
+      <td style="width: 30%;">libracore business software</td>
+      <td style="text-align: center;">Page <span class="page"></span> of <span class="topage"></span></span>
+      <td style="width:30%; text-align: right;">https://www.libracore.com</span></p>
+    </tr>
+  </table>
+</div>
+
+<!-- CONTENT -->
+<center><h3>Sales Report von {{ header_data['from_date'] }} bis {{ header_data['to_date'] }} für {{ header_data.get('employee') or 'Company' }}</h3></center>
+<table style="width: 100%;">
+  <tr>
+    <th>Produkt</th>
+    <th style="text-align:right; ">Prio</th>
+    <th style="text-align:right; ">Artikelgruppe</th>
+    <th style="text-align:right; ">Nettobetrag</th>
+    <th style="text-align:right; ">DB auf SEG-EK in %</th>
+    <th style="text-align:right; ">Nettobetrag YtD</th>
+    <th style="text-align:right; ">DB % YtD</th>
+    <th style="text-align:right; ">Nettobetrag YtD {{ header_data['previous_year'] }}</th>
+    <th style="text-align:right; ">DB % YtD {{ header_data['previous_year'] }}</th>
+    <th style="text-align:right; ">Nettobetrag Wochenschnitt {{ header_data['actual_year'] }}</th>
+    <th style="text-align:right; ">Nettobetrag Wochenschnitt {{ header_data['previous_year'] }}</th> 
+  </tr>
+  {% for n in doc.items %}
+  <tr>
+    <td style="padding: 1px !important; ">{{ n.description }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_7days }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_7days).replace(",", "'") }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_ytd }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_ytd).replace(",", "'") }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ n.demand_qty_ytd }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.demand_revenue_ytd).replace(",", "'") }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ n.demand_qty_py }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.demand_revenue_py).replace(",", "'") }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ n.qty_py }}</td>
+    <td style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(n.revenue_py).replace(",", "'") }}</td>
+  </tr>
+  {% endfor %} 
+  <tr>
+    <th style="padding: 1px !important; ">Summe</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_7days }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_7days).replace(",", "'") }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_ytd }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_ytd).replace(",", "'") }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_demand_qty_ytd }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_demand_revenue_ytd).replace(",", "'") }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_demand_qty_py }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_demand_revenue_py).replace(",", "'") }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ doc.total_qty_py }}</th>
+    <th style="text-align:right; padding: 1px !important; ">{{ "{:,.0f}".format(doc.total_revenue_py).replace(",", "'") }}</th>
+  </tr>
+</table>
+<p>{{ doc.remarks or '' }}</p>
+
