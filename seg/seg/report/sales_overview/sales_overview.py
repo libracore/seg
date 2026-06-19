@@ -146,9 +146,10 @@ def get_child_groups(item_group, item_groups):
 def send_report():
     filters = {'from_date': '2026-01-01', 'to_date': '2026-06-18', 'employee': 'Christian Aeschlimann', 'depth': '3 - Product Subcategory'}
     data = get_data(filters)
-    header_data = {'from_date': "01.01.2025", 'to_date': "31.01.2025", 'actual_year': 2026, 'previous_year': 2025}
+    header_data = {'actual_date': "23.06.2026", 'from_date': "01.01.2025", 'to_date': "31.01.2025", 'actual_year': 2026, 'previous_year': 2025}
     overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'data': data, 'header_data': header_data})
-    pdf = get_pdf(overview_html, options={"orientation": "Landscape"})
+    rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
+    pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})
     # ~ frappe.local.response.filename = "overview.pdf"
     # ~ frappe.local.response.filecontent = pdf
     # ~ frappe.local.response.type = "download"
@@ -162,3 +163,9 @@ def send_report():
     file_doc.save(ignore_permissions=True)
 
     return file_doc.file_url
+    
+# ~ def get_physical_path(file_name):
+    # ~ base_path = os.path.join(frappe.utils.get_bench_path(), "sites", frappe.utils.get_site_path()[2:])
+
+    # ~ return "{0}private/files/{1}".format(base_path, file_name)
+
