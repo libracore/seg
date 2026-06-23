@@ -6,6 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils.data import cint
 from frappe.utils.pdf import get_pdf
+from frappe.utils import add_days, getdate, formatdate
 
 def execute(filters=None):
     columns = get_columns()
@@ -144,9 +145,15 @@ def get_child_groups(item_group, item_groups):
 
 @frappe.whitelist()
 def send_report():
+    #get header and filter data
+    today = frappe.utils.data.today()
+    monday = add_days(today, -4)
+    actual_year = getdate(today).year
+    last_year = actual_year - 1
+    #Collect header data
+    header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year}
     filters = {'from_date': '2026-01-01', 'to_date': '2026-06-18', 'employee': 'Christian Aeschlimann', 'depth': '3 - Product Subcategory'}
     data = get_data(filters)
-    header_data = {'actual_date': "23.06.2026", 'from_date': "01.01.2025", 'to_date': "31.01.2025", 'actual_year': 2026, 'previous_year': 2025}
     overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'data': data, 'header_data': header_data})
     rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
     pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})
@@ -169,3 +176,64 @@ def send_report():
 
     # ~ return "{0}private/files/{1}".format(base_path, file_name)
 
+def get_pdf_data(filters):
+    #Prepare Employee condition
+    if filters.get('employee'):
+        employee_condition = """AND `tabSales Team`.`sales_person` = '{0}'""".format(filters.get('employee'))
+    else:
+        employee_condition = """"""
+    
+    #Get Item Groups
+    if filters.get('item_group'):
+        main_group = filters.get('item_group')
+    else:
+        main_group = "Alle Artikelgruppen"
+    
+    display_groups = get_display_groups(main_group, filters.get('depth')[4:] if filters.get('depth') else filters.get('depth'))
+    
+    #Collect Data
+    datas = []
+    for dp in display_groups:
+        item_groups = [dp]
+        item_groups = get_child_groups(dp, item_groups)
+        
+        data = frappe.db.sql("""
+                                SELECT 
+                                    %(item_group)s AS `item_group`,
+                                    SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `net_turnover`,
+                                    SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)) AS `total_purchase`,
+                                    (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`))) AS `db_purchase_price_chf`,
+                                    ((SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - (SUM(`tabDelivery Note Item`.`qty` * IFNULL(`tabStock Ledger Entry`.`valuation_rate`, `tabItem`.`last_purchase_rate`)))) * 100 / (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) AS `db_purchase_price`,
+                                    SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `total_seg_purchase`,
+                                    (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`) AS `db_seg_price_chf`,
+                                    ((SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) * 100 / (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) AS `db_seg_price`
+                                FROM
+                                    `tabDelivery Note Item`
+                                LEFT JOIN
+                                    `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
+                                LEFT JOIN   
+                                    `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
+                                LEFT JOIN
+                                    `tabSales Team` ON `tabDelivery Note`.`customer` = `tabSales Team`.`parent`
+                                LEFT JOIN
+                                    `tabCustomer` ON `tabDelivery Note`.`customer` = `tabCustomer`.`name`
+                                LEFT JOIN
+                                    `tabStock Ledger Entry` ON `tabStock Ledger Entry`.`voucher_no` = `tabDelivery Note`.`name` 
+                                AND
+                                    `tabStock Ledger Entry`.`voucher_detail_no` = `tabDelivery Note Item`.`name`
+                                WHERE
+                                    `tabDelivery Note`.`docstatus` = 1
+                                AND
+                                    `tabDelivery Note`.`posting_date` BETWEEN %(from_date)s AND %(to_date)s
+                                AND
+                                    `tabItem`.`item_group` IN %(item_groups)s
+                                {employee_condition}
+                                ;""".format(employee_condition=employee_condition), {'item_group': dp, 'from_date': filters.get('from_date'), 'to_date': filters.get('to_date'), 'item_groups': tuple(item_groups), 'employee_condition': employee_condition}, as_dict=True)
+        
+        #Add Item Group Prio
+        data[0]['item_group_prio'] = cint(frappe.get_value("Item Group", dp, "item_group_priority"))
+        
+        if len(data) > 0:
+            datas.append(data[0])
+    
+    return datas
