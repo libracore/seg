@@ -1,9 +1,10 @@
+{% for data in master_data %}
 <!-- HEAD -->
 <div  id="header-html" class="hidden-pdf" >
   <table style="width: 100%;">
     <tr>
       <td>SEG</td>
-      <td style="text-align: right;">Sales Report vom {{ header_data.get('actual_date') }}</td>
+      <td style="text-align: right;">Sales Report vom {{ data.header_data.get('actual_date') }}</td>
     </tr>
   </table>
 </div>
@@ -20,40 +21,41 @@
 </div>
 
 <!-- CONTENT -->
-<center><h3>Sales Report von {{ header_data.get('from_date') }} bis {{ header_data.get('to_date') }} für {{ header_data.get('employee') or 'S.E.G. AG' }}</h3></center>
-<table style="width: 100%;">
-  <tr>
-    <th colspan=2><center></center></th>
-    <th colspan=2><center>Aktuelle Woche</center></th>
-    <th colspan=2><center>Year to Date {{ header_data.get('actual_year') }}</center></th>
-    <th colspan=2><center>Year to Date {{ header_data.get('previous_year') }}</center></th>
-    <th colspan=2><center>Wochenschnitt</center></th>
-  </tr>	
-  <tr>
-    <th style="text-align:right; ">Prio</th>
-    <th style="text-align:right; ">Artikelgruppe</th>
-    <th style="text-align:right; ">Nettobetrag[CHF]</th>
-    <th style="text-align:right; ">DB auf SEG-EK</th>
-    <th style="text-align:right; ">Nettobetrag[CHF]</th>
-    <th style="text-align:right; ">DB</th>
-    <th style="text-align:right; ">Nettobetrag[CHF]</th>
-    <th style="text-align:right; ">DB %</th>
-    <th style="text-align:right; ">{{ header_data.get('actual_year') }}</th>
-    <th style="text-align:right; ">{{ header_data.get('previous_year') }}</th> 
-  </tr>
-  {% for d in data %}
+    <center><h3>Sales Report von {{ data.header_data.get('from_date') }} bis {{ data.header_data.get('to_date') }} für {{ data.header_data.get('employee') or 'S.E.G. AG' }}</h3></center>
+    <table style="width: 100%;">
       <tr>
-        <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group_prio') }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group') }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_turnover') or 0) | round(2) }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_seg_price') or 0) | round(2) }}%</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date') or 0) | round(2) }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date') or 0) | round(2) }}%</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date_last') or 0) | round(2) }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date_last') or 0) | round(2) }}%</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average') or 0) | round(2) }}</td>
-        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average_last') or 0) | round(2) }}</td>
+        <th colspan=2><center></center></th>
+        <th colspan=2><center>Aktuelle Woche</center></th>
+        <th colspan=2><center>Year to Date {{ data.header_data.get('actual_year') }}</center></th>
+        <th colspan=2><center>Year to Date {{ data.header_data.get('previous_year') }}</center></th>
+        <th colspan=2><center>Wochenschnitt</center></th>
+      </tr>	
+      <tr>
+        <th style="text-align:right; ">Prio</th>
+        <th style="text-align:right; ">Artikelgruppe</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB auf SEG-EK</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB %</th>
+        <th style="text-align:right; ">{{ data.header_data.get('actual_year') }}</th>
+        <th style="text-align:right; ">{{ data.header_data.get('previous_year') }}</th> 
       </tr>
-  {% endfor %} 
-</table>
-
+      {% for d in data.data %}
+          <tr>
+            <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group_prio') }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group') }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_turnover') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_seg_price') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date_last') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date_last') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average_last') or 0) | round(2) }}</td>
+          </tr>
+      {% endfor %} 
+    </table>
+    <div style="page-break-after: always;"></div>
+{% endfor %}

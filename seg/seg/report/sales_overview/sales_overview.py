@@ -154,13 +154,9 @@ def send_report():
     header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
     filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
     
-    #Create PDF for Company
-    overview = create_pdf(header_data, filter_data, None)
-    
-    #Create and send PDF for each Employee
-    # ~ sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
-    # ~ for sales_person in sales_persons:
-        # ~ specific_overview = create_pdf(header_data, sales_person.get('name'))
+    #Create Sales Overview PDF
+    sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
+    overview = create_pdf(header_data, filter_data, sales_persons)
         
         #Get User E-Mail
         
@@ -168,29 +164,39 @@ def send_report():
     
     return overview
 
-def create_pdf(header_data, filter_data, employee):
+def create_pdf(header_data, filter_data, sales_persons):
     #Get Item Groups
     display_groups = get_display_groups("Alle Artikelgruppen", header_data.get('depth'))
-    
-    #Get all data for each Item Group
     master_data = []
+    
+    #Get all data for each Item Group for Company
+    frappe.log_error("started report for {0}....".format("SEG"), header_data)
+    company_data = {'header_data': header_data}
+    data = []
     for item_group in display_groups:
-        item_group_data = get_item_group_data(filter_data, item_group, employee)
-        master_data.append(item_group_data)
+        item_group_data = get_item_group_data(filter_data, item_group, None)
+        data.append(item_group_data)
+    company_data['data'] = data
+    master_data.append(company_data)
     
-    
-    overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'data': master_data, 'header_data': header_data})
+    #Get all data for each Item Group for each Employee
+    for sales_person in sales_persons:
+        header_data['employee'] = sales_person.get('name')
+        frappe.log_error("started report for {0}....".format(sales_person.get('name')), header_data)
+        employee_data = {'header_data': header_data}
+        data = []
+        for item_group in display_groups:
+            item_group_data = get_item_group_data(filter_data, item_group, sales_person.get('name'))
+            data.append(item_group_data)
+        employee_data['data'] = data
+        master_data.append(employee_data)
+    frappe.log_error("master_data", master_data)
+    overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'master_data': master_data})
     rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
     pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})
     # ~ frappe.local.response.filename = "overview.pdf"
     # ~ frappe.local.response.filecontent = pdf
     # ~ frappe.local.response.type = "download"
-    
-    if not employee:
-        file_name = "sales_overview_seg.pdf"
-    else:
-        person = map_employee(employee)
-        file_name = "sales_overview_{0}.pdf".format(person)
     
     #Check if File ist already existing, replace it, otherwise create e new one
     file_doc = frappe.get_doc({
@@ -230,10 +236,11 @@ def get_item_group_data(filter_data, item_group, employee):
     today_previous_year = add_years(filter_data.get('to_date'), -1)
     prev_year_to_date = get_pdf_data(first_day_previous_year, today_previous_year, item_group, item_groups, employee_condition)
     
-    #Collect weekly average
+    #Collect weekly averages for this and last year (YtD Turnover / Calendar week)
     weeks = getdate(filter_data.get('to_date')).isocalendar().week
     weekly_average = (year_to_date[0].get('net_turnover') or 0) / weeks
-    # ~ weekly_average_prev_year = 
+    prev_weeks = add_years(getdate(filter_data.get('to_date')), -1).isocalendar().week
+    weekly_average_prev_year = (prev_year_to_date[0].get('net_turnover') or 0) / prev_weeks
     
     #Prepare complete data for Item Group
     return_data = {
@@ -246,7 +253,7 @@ def get_item_group_data(filter_data, item_group, employee):
                     'net_year_to_date_last': prev_year_to_date[0].get('net_turnover'),
                     'db_year_to_date_last': prev_year_to_date[0].get('db_seg_price'),
                     'net_week_average': weekly_average,
-                    'net_week_average_last': 0
+                    'net_week_average_last': weekly_average_prev_year
                 }
     
     return return_data
@@ -279,9 +286,6 @@ def get_pdf_data(from_date, to_date, item_group, item_groups, employee_condition
                                 `tabItem`.`item_group` IN %(item_groups)s
                             {employee_condition}
                             ;""".format(employee_condition=employee_condition), {'item_group': item_group, 'from_date': from_date, 'to_date': to_date, 'item_groups': tuple(item_groups)}, as_dict=True)
-    frappe.log_error("data", data)
-    #Add Item Group Prio
-    # ~ data[0]['item_group_prio'] = cint(frappe.get_value("Item Group", item_group, "item_group_priority"))
     
     return data
 
