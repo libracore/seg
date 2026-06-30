@@ -42,18 +42,18 @@
     <th style="text-align:right; ">{{ header_data.get('previous_year') }}</th> 
   </tr>
   {% for d in data %}
-  <tr>
-    <td style="text-align:right; padding: 1px !important; ">{{ d.get('item_group_prio') }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ d.get('item_group') }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('net_turnover') or 0) | round(2) }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('db_seg_price') or 0) | round(2) }}%</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('net_year_to_date') or 0) | round(2) }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('db_year_to_date') or 0) | round(2) }}%</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('net_year_to_date_last') or 0) | round(2) }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('db_year_to_date_last') or 0) | round(2) }}%</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('net_week_average') or 0) | round(2) }}</td>
-    <td style="text-align:right; padding: 1px !important; ">{{ (d.get('net_week_average_last') or 0) | round(2) }}</td>
-  </tr>
+      <tr>
+        <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group_prio') }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ d.get('item_group') }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_turnover') or 0) | round(2) }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_seg_price') or 0) | round(2) }}%</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date') or 0) | round(2) }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date') or 0) | round(2) }}%</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_year_to_date_last') or 0) | round(2) }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('db_year_to_date_last') or 0) | round(2) }}%</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average') or 0) | round(2) }}</td>
+        <td style="text-align:right; padding: 1px !important;">{{ (d.get('net_week_average_last') or 0) | round(2) }}</td>
+      </tr>
   {% endfor %} 
 </table>
 

@@ -100,7 +100,6 @@ def get_display_groups(main_group, depth):
     
     display_groups = [main_group]
     display_groups = get_child_display_groups(main_group, display_types, display_groups)
-    
     return display_groups
 
 def get_child_display_groups(item_group, display_types, display_groups):
@@ -152,29 +151,31 @@ def send_report():
     last_year = actual_year - 1
     
     #Collect header data
-    header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year}
-    filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': '3 - Product Subcategory'}
+    header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
+    filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
     
     #Create PDF for Company
-    overview = create_pdf(header_data, None)
+    overview = create_pdf(header_data, filter_data, None)
     
     #Create and send PDF for each Employee
-    sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
-    for sales_person in sales_persons:
-        specific_overview = create_pdf(header_data, sales_person.get('name'))
+    # ~ sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
+    # ~ for sales_person in sales_persons:
+        # ~ specific_overview = create_pdf(header_data, sales_person.get('name'))
         
         #Get User E-Mail
         
         #Send E-Mail with Overview for User and Company
+    
+    return overview
 
-def create_pdf(header_data, employee):
+def create_pdf(header_data, filter_data, employee):
     #Get Item Groups
     display_groups = get_display_groups("Alle Artikelgruppen", header_data.get('depth'))
     
     #Get all data for each Item Group
     master_data = []
     for item_group in display_groups:
-        item_group_data = get_item_group_data(header_data, item_group, employee)
+        item_group_data = get_item_group_data(filter_data, item_group, employee)
         master_data.append(item_group_data)
     
     
@@ -207,7 +208,7 @@ def create_pdf(header_data, employee):
 
     # ~ return "{0}private/files/{1}".format(base_path, file_name)
     
-def get_item_group_data(header_data, item_group, employee)
+def get_item_group_data(filter_data, item_group, employee):
     #Prepare Employee condition
     if employee:
         employee_condition = """AND `tabSales Team`.`sales_person` = '{0}'""".format(employee)
@@ -218,33 +219,33 @@ def get_item_group_data(header_data, item_group, employee)
     item_groups = get_child_groups(item_group, item_groups)
     
     #Collect Item Group, Priority, Net Turnover for current Week, DB for Current Week
-    main_data = get_pdf_data(header_data.get('from_date'), header_data.get('to_date'), item_group, item_groups, employee_condition)
+    main_data = get_pdf_data(filter_data.get('from_date'), filter_data.get('to_date'), item_group, item_groups, employee_condition)
     
     #Collect Year To Date Data
-    first_day_of_year = "{0}-01-01".format(header_data.get('actual_year'))
-    year_to_date = get_pdf_data(first_day_of_year, header_data.get('to_date'), item_group, item_groups, employee_condition)
+    first_day_of_year = "{0}-01-01".format(filter_data.get('actual_year'))
+    year_to_date = get_pdf_data(first_day_of_year, filter_data.get('to_date'), item_group, item_groups, employee_condition)
     
     #Collect Year To Date Data from Last Year
-    first_day_previous_year = "{0}-01-01".format(header_data.get('previous_year'))
-    today_previous_year = add_years(header_data.get('to_date'), -1)
+    first_day_previous_year = "{0}-01-01".format(filter_data.get('previous_year'))
+    today_previous_year = add_years(filter_data.get('to_date'), -1)
     prev_year_to_date = get_pdf_data(first_day_previous_year, today_previous_year, item_group, item_groups, employee_condition)
     
     #Collect weekly average
-    # ~ weeks = header_data.get('to_date').isocalendar().week
-    # ~ weekly_average = 
+    weeks = getdate(filter_data.get('to_date')).isocalendar().week
+    weekly_average = (year_to_date[0].get('net_turnover') or 0) / weeks
     # ~ weekly_average_prev_year = 
     
     #Prepare complete data for Item Group
     return_data = {
-                    'item_group_prio': main_data.get('item_group_prio'),
-                    'item_group': main_data.get('item_group'),
-                    'net_turnover': main_data.get('net_turnover'),
-                    'db_seg_price': main_data.get('db_seg_price'),
-                    'net_year_to_date': year_to_date.get('net_turnover'),
-                    'db_year_to_date': year_to_date.get('db_seg_price'),
-                    'net_year_to_date_last': prev_year_to_date.get('net_turnover'),
-                    'db_year_to_date_last': prev_year_to_date.get('db_seg_price'),
-                    'net_week_average': 0,
+                    'item_group_prio': frappe.get_value("Item Group", main_data[0].get('item_group'), "item_group_priority"),
+                    'item_group': main_data[0].get('item_group'),
+                    'net_turnover': main_data[0].get('net_turnover'),
+                    'db_seg_price': main_data[0].get('db_seg_price'),
+                    'net_year_to_date': year_to_date[0].get('net_turnover'),
+                    'db_year_to_date': year_to_date[0].get('db_seg_price'),
+                    'net_year_to_date_last': prev_year_to_date[0].get('net_turnover'),
+                    'db_year_to_date_last': prev_year_to_date[0].get('db_seg_price'),
+                    'net_week_average': weekly_average,
                     'net_week_average_last': 0
                 }
     
@@ -278,8 +279,11 @@ def get_pdf_data(from_date, to_date, item_group, item_groups, employee_condition
                                 `tabItem`.`item_group` IN %(item_groups)s
                             {employee_condition}
                             ;""".format(employee_condition=employee_condition), {'item_group': item_group, 'from_date': from_date, 'to_date': to_date, 'item_groups': tuple(item_groups)}, as_dict=True)
-    
+    frappe.log_error("data", data)
     #Add Item Group Prio
-    data[0]['item_group_prio'] = cint(frappe.get_value("Item Group", dp, "item_group_priority"))
+    # ~ data[0]['item_group_prio'] = cint(frappe.get_value("Item Group", item_group, "item_group_priority"))
     
     return data
+
+def map_employee(employee):
+   return "test"
