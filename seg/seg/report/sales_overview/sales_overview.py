@@ -165,12 +165,12 @@ def send_report():
     return overview
 
 def create_pdf(header_data, filter_data, sales_persons):
+    import copy
     #Get Item Groups
     display_groups = get_display_groups("Alle Artikelgruppen", header_data.get('depth'))
     master_data = []
     
     #Get all data for each Item Group for Company
-    frappe.log_error("started report for {0}....".format("SEG"), header_data)
     company_data = {'header_data': header_data}
     data = []
     for item_group in display_groups:
@@ -178,19 +178,17 @@ def create_pdf(header_data, filter_data, sales_persons):
         data.append(item_group_data)
     company_data['data'] = data
     master_data.append(company_data)
-    
     #Get all data for each Item Group for each Employee
     for sales_person in sales_persons:
-        header_data['employee'] = sales_person.get('name')
-        frappe.log_error("started report for {0}....".format(sales_person.get('name')), header_data)
-        employee_data = {'header_data': header_data}
+        employee_header = copy.deepcopy(header_data)
+        employee_header['employee'] = sales_person.get('name')
+        employee_data = {'header_data': employee_header}
         data = []
         for item_group in display_groups:
             item_group_data = get_item_group_data(filter_data, item_group, sales_person.get('name'))
             data.append(item_group_data)
         employee_data['data'] = data
         master_data.append(employee_data)
-    frappe.log_error("master_data", master_data)
     overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'master_data': master_data})
     rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
     pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})
