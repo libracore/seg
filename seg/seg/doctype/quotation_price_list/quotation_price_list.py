@@ -72,7 +72,7 @@ class QuotationPriceList(Document):
                     kg_l_prices = get_kg_and_l_price(new_item, j_son=True)
                     item_price_l = kg_l_prices.get('liter_price')
                     item_price_kg = kg_l_prices.get('kg_price')
-                frappe.log_error
+                
                 self.append("items", {
                                         'price_list_rate': new_item.get('price_list_rate'),
                                         'item_code': new_item.get('item_code'),
