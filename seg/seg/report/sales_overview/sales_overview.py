@@ -143,7 +143,7 @@ def get_child_groups(item_group, item_groups):
     return item_groups
 
 @frappe.whitelist()
-def send_report():
+def send_report(download=False):
     #get header and filter data
     today = frappe.utils.data.today()
     monday = add_days(today, -4)
@@ -157,12 +157,24 @@ def send_report():
     #Create Sales Overview PDF
     sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
     overview = create_pdf(header_data, filter_data, sales_persons)
-        
-        #Get User E-Mail
-        
-        #Send E-Mail with Overview for User and Company
     
-    return overview
+    if download:
+        #Return PDF to be opened
+        return overview.file_url
+    else:
+        #Send E-Mail to all Sales Person
+        for sales_person in sales_persons:
+            #E-Mail Address
+            employee = frappe.get_value("Sales Person", sales_person.get('name'), "employee")
+            if employee:
+                user_id = frappe.get_value("Employee", employee, "user_id")
+                if user_id:
+                    frappe.sendmail(
+                        recipients=user_id,
+                        subject="Aktueller Sales Report",
+                        message="Guten Tag<br><br>Im Anhang erhälst du den Sales Report für diese Woche.",
+                        attachments=[overview]
+                    )
 
 def create_pdf(header_data, filter_data, sales_persons):
     import copy
@@ -195,6 +207,15 @@ def create_pdf(header_data, filter_data, sales_persons):
     # ~ frappe.local.response.filename = "overview.pdf"
     # ~ frappe.local.response.filecontent = pdf
     # ~ frappe.local.response.type = "download"
+    #Delete Existing File if it is existing
+    file_doc_name = frappe.db.get_value(
+        "File",
+        {"file_name": "overview.pdf"},
+        "name"
+    )
+    
+    if file_doc_name:
+        frappe.delete_doc("File", file_doc_name)
     
     #Check if File ist already existing, replace it, otherwise create e new one
     file_doc = frappe.get_doc({
@@ -205,7 +226,7 @@ def create_pdf(header_data, filter_data, sales_persons):
     })
     file_doc.save(ignore_permissions=True)
 
-    return file_doc.file_url
+    return file_doc
     
 # ~ def get_physical_path(file_name):
     # ~ base_path = os.path.join(frappe.utils.get_bench_path(), "sites", frappe.utils.get_site_path()[2:])

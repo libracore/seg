@@ -87,7 +87,7 @@ function download_pdf() {
     frappe.call({
         'method': 'seg.seg.report.sales_overview.sales_overview.send_report',
         'args': {
-
+            'download': true
         },
         'callback': function(response) {
             if (response.message) {
