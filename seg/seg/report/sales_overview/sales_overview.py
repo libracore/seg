@@ -173,7 +173,10 @@ def send_report(download=False):
                         recipients=user_id,
                         subject="Aktueller Sales Report",
                         message="Guten Tag<br><br>Im Anhang erhälst du den Sales Report für diese Woche.",
-                        attachments=[overview]
+                        attachments=[{
+                                        "fname": overview.file_name,
+                                        "fcontent": overview.get_content()
+                                    }]
                     )
 
 def create_pdf(header_data, filter_data, sales_persons):
