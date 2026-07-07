@@ -174,8 +174,7 @@ def send_report(download=False):
                         subject="Aktueller Sales Report",
                         message="Guten Tag<br><br>Im Anhang erhälst du den Sales Report für diese Woche.",
                         attachments=[{
-                                        "fname": overview.file_name,
-                                        "fcontent": overview.get_content()
+                                        "fid": overview.name
                                     }]
                     )
 
