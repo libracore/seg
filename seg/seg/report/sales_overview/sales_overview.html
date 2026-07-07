@@ -1,0 +1,68 @@
+{% for data in master_data %}
+<!-- HEAD -->
+<div  id="header-html" class="hidden-pdf" >
+  <table style="width: 100%;">
+    <tr>
+      <td>SEG</td>
+      <td style="text-align: right;">Sales Report vom {{ data.header_data.get('actual_date') }}</td>
+    </tr>
+  </table>
+</div>
+
+<meta name="pdfkit-orientation" content="Landscape"/>
+<div id="footer-html" class="visible-pdf">
+  <table style="width:100%;" >
+    <tr>
+      <td style="width: 30%;">libracore business software</td>
+      <td style="text-align: center;">Page <span class="page"></span> of <span class="topage"></span></span>
+      <td style="width:30%; text-align: right;">https://www.libracore.com</span></p>
+    </tr>
+  </table>
+</div>
+
+<!-- CONTENT -->
+    <center><h3>Sales Report von {{ data.header_data.get('from_date') }} bis {{ data.header_data.get('to_date') }} für {{ data.header_data.get('employee') or 'S.E.G. AG' }}</h3></center>
+    <table style="width: 100%;">
+      <tr>
+        <th colspan=2><center></center></th>
+        <th colspan=2><center>Aktuelle Woche</center></th>
+        <th colspan=2><center>Year to Date {{ data.header_data.get('actual_year') }}</center></th>
+        <th colspan=2><center>Year to Date {{ data.header_data.get('previous_year') }}</center></th>
+        <th colspan=2><center>Wochenschnitt</center></th>
+      </tr>	
+      <tr>
+        <th style="text-align:right; ">Prio</th>
+        <th style="text-align:right; ">Artikelgruppe</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB auf SEG-EK</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB</th>
+        <th style="text-align:right; ">Nettobetrag[CHF]</th>
+        <th style="text-align:right; ">DB %</th>
+        <th style="text-align:right; ">{{ data.header_data.get('actual_year') }}</th>
+        <th style="text-align:right; ">{{ data.header_data.get('previous_year') }}</th> 
+      </tr>
+      {% for d in data.data %}
+      {% if d.item_group_prio == 2 %}
+          {% set style = " font-weight: bold;" %}
+      {% elif d.item_group_prio == 5 %}
+          {% set style = " color: red;" %}
+      {% else %}
+          {% set style = "" %}
+      {% endif %}
+          <tr>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ d.get('item_group_prio') }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ d.get('item_group') }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('net_turnover') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('db_seg_price') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('net_year_to_date') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('db_year_to_date') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('net_year_to_date_last') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('db_year_to_date_last') or 0) | round(2) }}%</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('net_week_average') or 0) | round(2) }}</td>
+            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ (d.get('net_week_average_last') or 0) | round(2) }}</td>
+          </tr>
+      {% endfor %} 
+    </table>
+    <div style="page-break-after: always;"></div>
+{% endfor %}

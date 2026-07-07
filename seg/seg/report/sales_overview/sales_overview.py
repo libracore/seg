@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils.data import cint
+from frappe.utils.pdf import get_pdf
+from frappe.utils import add_days, getdate, formatdate, add_years
 
 def execute(filters=None):
     columns = get_columns()
@@ -98,7 +100,6 @@ def get_display_groups(main_group, depth):
     
     display_groups = [main_group]
     display_groups = get_child_display_groups(main_group, display_types, display_groups)
-    
     return display_groups
 
 def get_child_display_groups(item_group, display_types, display_groups):
@@ -140,3 +141,174 @@ def get_child_groups(item_group, item_groups):
     for n in nodes:
         item_groups.append(n['name'])
     return item_groups
+
+@frappe.whitelist()
+def send_report(download=False):
+    #get header and filter data
+    today = frappe.utils.data.today()
+    monday = add_days(today, -4)
+    actual_year = getdate(today).year
+    last_year = actual_year - 1
+    
+    #Collect header data
+    header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
+    filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
+    
+    #Create Sales Overview PDF
+    sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
+    overview = create_pdf(header_data, filter_data, sales_persons)
+    
+    if download:
+        #Return PDF to be opened
+        return overview.file_url
+    else:
+        #Send E-Mail to all Sales Person
+        for sales_person in sales_persons:
+            #E-Mail Address
+            employee = frappe.get_value("Sales Person", sales_person.get('name'), "employee")
+            if employee:
+                user_id = frappe.get_value("Employee", employee, "user_id")
+                if user_id:
+                    frappe.sendmail(
+                        recipients=user_id,
+                        subject="Aktueller Sales Report",
+                        message="Guten Tag<br><br>Im Anhang erhälst du den Sales Report für diese Woche.",
+                        attachments=[{
+                                        "fid": overview.name
+                                    }]
+                    )
+
+def create_pdf(header_data, filter_data, sales_persons):
+    import copy
+    #Get Item Groups
+    display_groups = get_display_groups("Alle Artikelgruppen", header_data.get('depth'))
+    master_data = []
+    
+    #Get all data for each Item Group for Company
+    company_data = {'header_data': header_data}
+    data = []
+    for item_group in display_groups:
+        item_group_data = get_item_group_data(filter_data, item_group, None)
+        data.append(item_group_data)
+    company_data['data'] = data
+    master_data.append(company_data)
+    #Get all data for each Item Group for each Employee
+    for sales_person in sales_persons:
+        employee_header = copy.deepcopy(header_data)
+        employee_header['employee'] = sales_person.get('name')
+        employee_data = {'header_data': employee_header}
+        data = []
+        for item_group in display_groups:
+            item_group_data = get_item_group_data(filter_data, item_group, sales_person.get('name'))
+            data.append(item_group_data)
+        employee_data['data'] = data
+        master_data.append(employee_data)
+    overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'master_data': master_data})
+    rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
+    pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})
+    # ~ frappe.local.response.filename = "overview.pdf"
+    # ~ frappe.local.response.filecontent = pdf
+    # ~ frappe.local.response.type = "download"
+    #Delete Existing File if it is existing
+    file_doc_name = frappe.db.get_value(
+        "File",
+        {"file_name": "overview.pdf"},
+        "name"
+    )
+    
+    if file_doc_name:
+        frappe.delete_doc("File", file_doc_name)
+    
+    #Check if File ist already existing, replace it, otherwise create e new one
+    file_doc = frappe.get_doc({
+        "doctype": "File",
+        "file_name": "overview.pdf",
+        "content": pdf,
+        "is_private": 1
+    })
+    file_doc.save(ignore_permissions=True)
+
+    return file_doc
+    
+# ~ def get_physical_path(file_name):
+    # ~ base_path = os.path.join(frappe.utils.get_bench_path(), "sites", frappe.utils.get_site_path()[2:])
+
+    # ~ return "{0}private/files/{1}".format(base_path, file_name)
+    
+def get_item_group_data(filter_data, item_group, employee):
+    #Prepare Employee condition
+    if employee:
+        employee_condition = """AND `tabSales Team`.`sales_person` = '{0}'""".format(employee)
+    else:
+        employee_condition = """"""
+    
+    item_groups = [item_group]
+    item_groups = get_child_groups(item_group, item_groups)
+    
+    #Collect Item Group, Priority, Net Turnover for current Week, DB for Current Week
+    main_data = get_pdf_data(filter_data.get('from_date'), filter_data.get('to_date'), item_group, item_groups, employee_condition)
+    
+    #Collect Year To Date Data
+    first_day_of_year = "{0}-01-01".format(filter_data.get('actual_year'))
+    year_to_date = get_pdf_data(first_day_of_year, filter_data.get('to_date'), item_group, item_groups, employee_condition)
+    
+    #Collect Year To Date Data from Last Year
+    first_day_previous_year = "{0}-01-01".format(filter_data.get('previous_year'))
+    today_previous_year = add_years(filter_data.get('to_date'), -1)
+    prev_year_to_date = get_pdf_data(first_day_previous_year, today_previous_year, item_group, item_groups, employee_condition)
+    
+    #Collect weekly averages for this and last year (YtD Turnover / Calendar week)
+    weeks = getdate(filter_data.get('to_date')).isocalendar().week
+    weekly_average = (year_to_date[0].get('net_turnover') or 0) / weeks
+    prev_weeks = add_years(getdate(filter_data.get('to_date')), -1).isocalendar().week
+    weekly_average_prev_year = (prev_year_to_date[0].get('net_turnover') or 0) / prev_weeks
+    
+    #Prepare complete data for Item Group
+    return_data = {
+                    'item_group_prio': frappe.get_value("Item Group", main_data[0].get('item_group'), "item_group_priority"),
+                    'item_group': main_data[0].get('item_group'),
+                    'net_turnover': main_data[0].get('net_turnover'),
+                    'db_seg_price': main_data[0].get('db_seg_price'),
+                    'net_year_to_date': year_to_date[0].get('net_turnover'),
+                    'db_year_to_date': year_to_date[0].get('db_seg_price'),
+                    'net_year_to_date_last': prev_year_to_date[0].get('net_turnover'),
+                    'db_year_to_date_last': prev_year_to_date[0].get('db_seg_price'),
+                    'net_week_average': weekly_average,
+                    'net_week_average_last': weekly_average_prev_year
+                }
+    
+    return return_data
+
+def get_pdf_data(from_date, to_date, item_group, item_groups, employee_condition):
+    data = frappe.db.sql("""
+                            SELECT 
+                                %(item_group)s AS `item_group`,
+                                SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100)) AS `net_turnover`,
+                                ((SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) - SUM(`tabDelivery Note Item`.`qty` * `tabItem`.`seg_purchase_price`)) * 100 / (SUM((`tabDelivery Note Item`.`net_amount`) * ((100 - `tabCustomer`.`rueckverguetung`) / 100))) AS `db_seg_price`
+                            FROM
+                                `tabDelivery Note Item`
+                            LEFT JOIN
+                                `tabItem` ON `tabItem`.`item_code` = `tabDelivery Note Item`.`item_code`
+                            LEFT JOIN   
+                                `tabDelivery Note` ON `tabDelivery Note`.`name` = `tabDelivery Note Item`.`parent`
+                            LEFT JOIN
+                                `tabSales Team` ON `tabDelivery Note`.`customer` = `tabSales Team`.`parent`
+                            LEFT JOIN
+                                `tabCustomer` ON `tabDelivery Note`.`customer` = `tabCustomer`.`name`
+                            LEFT JOIN
+                                `tabStock Ledger Entry` ON `tabStock Ledger Entry`.`voucher_no` = `tabDelivery Note`.`name` 
+                            AND
+                                `tabStock Ledger Entry`.`voucher_detail_no` = `tabDelivery Note Item`.`name`
+                            WHERE
+                                `tabDelivery Note`.`docstatus` = 1
+                            AND
+                                `tabDelivery Note`.`posting_date` BETWEEN %(from_date)s AND %(to_date)s
+                            AND
+                                `tabItem`.`item_group` IN %(item_groups)s
+                            {employee_condition}
+                            ;""".format(employee_condition=employee_condition), {'item_group': item_group, 'from_date': from_date, 'to_date': to_date, 'item_groups': tuple(item_groups)}, as_dict=True)
+    
+    return data
+
+def map_employee(employee):
+   return "test"
