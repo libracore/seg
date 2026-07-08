@@ -144,24 +144,33 @@ def get_child_groups(item_group, item_groups):
 
 @frappe.whitelist()
 def send_report(download=False):
-    #get header and filter data
-    today = frappe.utils.data.today()
-    monday = add_days(today, -4)
-    actual_year = getdate(today).year
-    last_year = actual_year - 1
-    
-    #Collect header data
-    header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
-    filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
-    
-    #Create Sales Overview PDF
-    sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
-    overview = create_pdf(header_data, filter_data, sales_persons)
-    
     if download:
         #Return PDF to be opened
-        return overview.file_url
+        file_doc_url = frappe.db.get_value(
+            "File",
+            {"file_name": "overview.pdf"},
+            "file_url"
+        )
+        
+        if file_doc_url:
+            return file_doc_url
+        
+        return None
     else:
+        #get header and filter data
+        today = frappe.utils.data.today()
+        monday = add_days(today, -4)
+        actual_year = getdate(today).year
+        last_year = actual_year - 1
+        
+        #Collect header data
+        header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
+        filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
+        
+        #Create Sales Overview PDF
+        sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
+        overview = create_pdf(header_data, filter_data, sales_persons)
+    
         #Send E-Mail to all Sales Person
         for sales_person in sales_persons:
             #E-Mail Address

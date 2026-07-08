@@ -45,7 +45,7 @@ frappe.query_reports["Sales Overview"] = {
             show_report_information();
         });
         
-        report.page.add_inner_button(__("Download PDF"), function() {
+        report.page.add_inner_button(__("Aktuellen Bericht herunterladen"), function() {
             download_pdf();
         });
     }
