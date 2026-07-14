@@ -109,9 +109,6 @@ frappe.ui.form.on('Sales Order',  {
     wir_percent: function(frm) {
         update_wir(frm);
     },
-    //~ validate: function(frm) {
-        //~ update_wir(frm);
-    //~ },
     set_manual_wir_amount: function(frm) {
         toggle_wir_amount(frm);
     },
@@ -139,44 +136,6 @@ function check_cash_discount(frm) {
             }
         }
     });
-}
-
-function update_wir(frm) {
-    if (!frm.doc.set_manual_wir_amount) {
-        cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
-    }
-}
-
-function set_fixed_wir_percentage(frm) {
-    if (frm.doc.customer) {
-        frappe.call({
-            'method': "frappe.client.get",
-            'args': {
-                'doctype': "Customer",
-                'name': frm.doc.customer
-            },
-            'callback': function(response) {
-                if (response.message) {
-                    cur_frm.set_value("wir_percent", response.message.fixed_wir_share);
-                }
-            }
-        });
-    } else {
-        cur_frm.set_value("wir_percent", 0);
-    }
-}
-
-function toggle_wir_amount(frm, refresh=false) {
-    if (!frm.doc.set_manual_wir_amount) {
-        console.log("unset");
-        cur_frm.set_df_property('wir_amount', 'read_only', 1);
-        if (!refresh) {
-            update_wir(frm);
-        }
-    } else {
-        console.log("set");
-        cur_frm.set_df_property('wir_amount', 'read_only', 0);
-    }
 }
 
 function set_sample_rates(frm) {
