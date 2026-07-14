@@ -6,13 +6,14 @@ frappe.ui.form.on('Sales Invoice',  {
             cur_frm.set_value("mahnsperre", 0);
         }
         check_email_invoice(frm);
+        
+        //Set fixed WIR Percentage from Customer
+        set_fixed_wir_percentage(frm);
     },
     before_save: function(frm) {
         if (frm.doc.is_return === 0) {
             // update VOC
             update_voc(frm);
-            // update wir_discount
-            update_wir_discount(frm);
         }
         
         update_discout(frm);
@@ -86,6 +87,9 @@ frappe.ui.form.on('Sales Invoice',  {
         }
         
         check_email_invoice(frm);
+        
+        //Set Property of WIR fields
+        toggle_wir_amount(frm, true);
     },
     is_return: function(frm) {
         if (frm.doc.__islocal) {
@@ -94,6 +98,18 @@ frappe.ui.form.on('Sales Invoice',  {
     },
     on_submit: function(frm) {
         attach_pdf(frm);
+    },
+    validate: function(frm) {
+        //Update WIR Amount
+        update_wir(frm);
+    },
+    wir_percent: function(frm) {
+        //Update WIR Amount
+        update_wir(frm);
+    },
+    set_manual_wir_amount: function(frm) {
+        //Set Property of WIR fields
+        toggle_wir_amount(frm);
     }
 });
 

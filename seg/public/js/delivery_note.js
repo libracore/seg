@@ -5,7 +5,8 @@ var flag = 0;
 frappe.ui.form.on('Delivery Note', {
     refresh(frm) {
         display_purchase_price_field(frm);
-        
+        //Set Property of WIR fields
+        toggle_wir_amount(frm, true);
         if (frm.doc.docstatus == 0) {
             frm.add_custom_button(__("Update Barcodes"), function() {
                 //Update Barcode, if they have changed in item meanwhile
@@ -76,13 +77,6 @@ frappe.ui.form.on('Delivery Note', {
         
         //Set Rates for Sample Sales Order
         set_sample_rates(frm);
-        
-        // calculate wir amount from percent
-        update_wir(frm);
-        //calculate the wir_percent and wir_amount for each item
-        if (frm.doc.wir_percent > 0) {
-            update_wir_for_each_item(frm);
-        }
     },
     ignore_pricing_rule: function(frm) {
         // When unchecking the "Ignore Pricing Rule" after "Deatch Prices" the rate with the rule remains so this will bring back the original selling rate
@@ -97,6 +91,8 @@ frappe.ui.form.on('Delivery Note', {
         } else {
             cur_frm.set_value("picked_up" , 0)
         }
+        //Set fixed WIR Percentage from Customer
+        set_fixed_wir_percentage(frm);
     },
     validate: function(frm) {
       // write delivery reference into the items to trace them later
@@ -117,8 +113,11 @@ frappe.ui.form.on('Delivery Note', {
         }
         
         check_alternative_items(frm);
+        //Update WIR Amount
+        update_wir(frm);
     },
     wir_percent: function(frm) {
+        //Update WIR Amount
         update_wir(frm);
     },
     on_submit: function(frm) {
@@ -130,13 +129,11 @@ frappe.ui.form.on('Delivery Note', {
         } else if (!frm.doc.only_samples) {
             cur_frm.set_value("ignore_pricing_rule", 0);
         }
+    },
+    set_manual_wir_amount: function(frm) {
+        //Set Property of WIR fields
+        toggle_wir_amount(frm);
     }
-    /*onload: function(frm) {
-        if (flag === 0) {
-            cur_frm.set_value("ignore_pricing_rule", 0);
-            flag = 1;
-        }
-    },*/
 })
 
 //~ frappe.ui.form.on('Delivery Note Item', {
@@ -306,11 +303,11 @@ function display_purchase_price_field(frm) {
 //~ };
 //~ totalObserver.observe(target, options);
 
-function update_wir(frm) {
-    if (frm.doc.wir_percent > 0) {
-        cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
-    }
-}
+//~ function update_wir(frm) {
+    //~ if (frm.doc.wir_percent > 0) {
+        //~ cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+    //~ }
+//~ }
 
 function attach_pdf(frm) {
     frappe.call({

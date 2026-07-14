@@ -202,3 +202,39 @@ function modify_item_rate(frm) {
     });
     cur_frm.set_value("ignore_pricing_rule", 1);
 }
+
+function update_wir(frm) {
+    if (!frm.doc.set_manual_wir_amount) {
+        cur_frm.set_value("wir_amount", frm.doc.net_total * (frm.doc.wir_percent / 100));
+    }
+}
+
+function set_fixed_wir_percentage(frm) {
+    if (frm.doc.customer) {
+        frappe.call({
+            'method': "frappe.client.get",
+            'args': {
+                'doctype': "Customer",
+                'name': frm.doc.customer
+            },
+            'callback': function(response) {
+                if (response.message) {
+                    cur_frm.set_value("wir_percent", response.message.fixed_wir_share);
+                }
+            }
+        });
+    } else {
+        cur_frm.set_value("wir_percent", 0);
+    }
+}
+
+function toggle_wir_amount(frm, refresh=false) {
+    if (!frm.doc.set_manual_wir_amount) {
+        cur_frm.set_df_property('wir_amount', 'read_only', 1);
+        if (!refresh) {
+            update_wir(frm);
+        }
+    } else {
+        cur_frm.set_df_property('wir_amount', 'read_only', 0);
+    }
+}
