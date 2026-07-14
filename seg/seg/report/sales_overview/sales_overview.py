@@ -159,13 +159,13 @@ def send_report(download=False):
     else:
         #get header and filter data
         today = frappe.utils.data.today()
-        monday = add_days(today, -4)
+        saturday = add_days(today, -6)
         actual_year = getdate(today).year
         last_year = actual_year - 1
         
         #Collect header data
-        header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
-        filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
+        header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(saturday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
+        filter_data = {'actual_date': today, 'from_date': saturday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
         
         #Create Sales Overview PDF
         sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
