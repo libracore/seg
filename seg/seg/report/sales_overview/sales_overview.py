@@ -159,16 +159,16 @@ def send_report(download=False):
     else:
         #get header and filter data
         today = frappe.utils.data.today()
-        monday = add_days(today, -4)
+        saturday = add_days(today, -6)
         actual_year = getdate(today).year
         last_year = actual_year - 1
         
         #Collect header data
-        header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(monday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
-        filter_data = {'actual_date': today, 'from_date': monday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
+        header_data = {'actual_date': formatdate(today, "dd.MM.yyyy"), 'from_date': formatdate(saturday, "dd.MM.yyyy"), 'to_date': formatdate(today, "dd.MM.yyyy"), 'actual_year': actual_year, 'previous_year': last_year, 'depth': "Product Subcategory"}
+        filter_data = {'actual_date': today, 'from_date': saturday, 'to_date': today, 'actual_year': actual_year, 'previous_year': last_year, 'depth': 'Product Subcategory'}
         
         #Create Sales Overview PDF
-        sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee"])
+        sales_persons = frappe.get_list("Sales Person", filters={'enabled': 1}, fields=["name", "employee", "no_sales_report"])
         overview = create_pdf(header_data, filter_data, sales_persons)
     
         #Send E-Mail to all Sales Person
@@ -203,15 +203,17 @@ def create_pdf(header_data, filter_data, sales_persons):
     master_data.append(company_data)
     #Get all data for each Item Group for each Employee
     for sales_person in sales_persons:
-        employee_header = copy.deepcopy(header_data)
-        employee_header['employee'] = sales_person.get('name')
-        employee_data = {'header_data': employee_header}
-        data = []
-        for item_group in display_groups:
-            item_group_data = get_item_group_data(filter_data, item_group, sales_person.get('name'))
-            data.append(item_group_data)
-        employee_data['data'] = data
-        master_data.append(employee_data)
+        if not sales_person.get('no_sales_report'):
+            employee_header = copy.deepcopy(header_data)
+            employee_header['employee'] = sales_person.get('name')
+            employee_data = {'header_data': employee_header}
+            data = []
+            for item_group in display_groups:
+                item_group_data = get_item_group_data(filter_data, item_group, sales_person.get('name'))
+                data.append(item_group_data)
+            employee_data['data'] = data
+            master_data.append(employee_data)
+    
     overview_html = frappe.render_template("seg/seg/report/sales_overview/sales_overview.html", {'master_data': master_data})
     rendered_html = frappe.render_template("seg/templates/pages/print.html", {'html': overview_html})
     pdf = get_pdf(rendered_html, options={"orientation": "Landscape"})

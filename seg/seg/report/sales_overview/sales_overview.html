@@ -52,13 +52,13 @@
       {% endif %}
           <tr>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ d.get('item_group_prio') }}</td>
-            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ d.get('item_group') }}</td>
+            <td style="text-align:right; padding: 1px !important; border-right: 1px solid black;{{ style }}">{{ d.get('item_group') }}</td>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('net_turnover') or 0).replace(",", "'") }}</td>
-            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('db_seg_price') or 0).replace(",", "'") }}%</td>
+            <td style="text-align:right; padding: 1px !important; border-right: 1px solid black;{{ style }}">{{ "{:,.1f}".format(d.get('db_seg_price') or 0).replace(",", "'") }}%</td>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('net_year_to_date') or 0).replace(",", "'") }}</td>
-            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('db_year_to_date') or 0).replace(",", "'") }}%</td>
+            <td style="text-align:right; padding: 1px !important; border-right: 1px solid black;{{ style }}">{{ "{:,.1f}".format(d.get('db_year_to_date') or 0).replace(",", "'") }}%</td>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('net_year_to_date_last') or 0).replace(",", "'") }}</td>
-            <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('db_year_to_date_last') or 0).replace(",", "'") }}%</td>
+            <td style="text-align:right; padding: 1px !important; border-right: 1px solid black;{{ style }}">{{ "{:,.1f}".format(d.get('db_year_to_date_last') or 0).replace(",", "'") }}%</td>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('net_week_average') or 0).replace(",", "'") }}</td>
             <td style="text-align:right; padding: 1px !important;{{ style }}">{{ "{:,.1f}".format(d.get('net_week_average_last') or 0).replace(",", "'") }}</td>
           </tr>
