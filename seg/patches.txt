@@ -14,3 +14,4 @@ seg.patches.v0_14_0.update_seg_prices
 # Patches added in this section will be executed after doctypes are migrated
 seg.patches.item_price_uom.item_price_uom
 #seg.patches.website_specification.website_specification
+seg.patches.v1_1_0.remove_verkaufsteam_from_sales_report
