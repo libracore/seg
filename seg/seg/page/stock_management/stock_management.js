@@ -133,6 +133,6 @@ class StockEnterPage extends StockManagementClass {
     }
     
     get_entry_warehouse_items() {
-        this.items = [{'picture': "PIC1", 'content': {'qty': 12, 'item_name': "Scheidemesser"}}, {'picture': "PIC2", 'content': {'qty': 24, 'item_name': "Cutter"}}]
+        this.items = [{'picture': "PIC1", 'content': {'qty': 12, 'item_name': "Scheidemesser", 'locations': "Lagerplätze", 'stored_qty': 6}}, {'picture': "PIC2", 'content': {'qty': 24, 'item_name': "Cutter", 'locations': "Blocklager", 'stored_qty': 0 }}]
     }
 }
