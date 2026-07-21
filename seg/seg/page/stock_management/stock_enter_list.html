@@ -1,0 +1,10 @@
+<section class="list-content">
+    <table>
+    {% for item in items %}
+        <tr>
+            <td>{{ item.picture }}</td>
+            <td>{{ item.content.qty }}x {{ item.content.item_name }}</td>
+        </tr>
+    {% endfor %}
+    </table>
+</section>
