@@ -53,6 +53,7 @@ doctype_list_js = {
     "Quotation" : "public/js/quotation_list.js",
     "Payment Reminder" :"public/js/payment_reminder_list.js",
     "Stock Reconciliation": "public/js/purchase_invoice_list.js"
+    # ~ "Item": "public/js/item_list.js"
 }
 
 
