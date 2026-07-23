@@ -238,3 +238,29 @@ function toggle_wir_amount(frm, refresh=false) {
         cur_frm.set_df_property('wir_amount', 'read_only', 0);
     }
 }
+
+function update_barcodes(frm) {
+    frappe.call({
+        'method': 'seg.seg.delivery.check_barcodes',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message) {
+                let new_barcodes = response.message;
+                let removed_barcodes = "";
+                for (let i = 0; i < new_barcodes.length; i++) {
+                    if (!new_barcodes[i].barcode) {
+                        removed_barcodes = removed_barcodes + "<br>" +  new_barcodes[i].item_code;
+                    } else {
+                        frappe.model.set_value(frm.doc.items[0].doctype, new_barcodes[i].line_name, "barcode", new_barcodes[i].barcode);
+                    }
+                }
+                frappe.show_alert("Barcodes wurden aktualisiert", 3);
+                if (removed_barcodes.length > 0) {
+                    frappe.msgprint("Folgende Artikel müssen manuell bearbeitet werden, da der Barcode komplett entfernt wurde <br>" + removed_barcodes);
+                }
+            }
+        }
+    });
+}

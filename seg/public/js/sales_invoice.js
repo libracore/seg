@@ -40,6 +40,13 @@ frappe.ui.form.on('Sales Invoice',  {
         get_total_weight();
     },
     refresh: function(frm) {
+        if (frm.doc.docstatus == 0) {
+            frm.add_custom_button(__("Update Barcodes"), function() {
+                //Update Barcode, if they have changed in item meanwhile
+                update_barcodes(frm);
+            });
+        }
+        
         if ((frm.doc.__islocal) && (frm.doc.is_return === 0)) {
             // apply tax template
             cur_frm.set_value("taxes_and_charges", "MwSt, LSVA und VOC 2024 - SEG");
