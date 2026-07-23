@@ -19,8 +19,8 @@
 }
 
 .item-image {
-    width: 15%;
-    padding: 12px;
+    width: 30%;
+    padding: 3px !important;
     text-align: center;
     vertical-align: middle;
 }
@@ -30,7 +30,7 @@
     max-width: 60px;
     height: auto;
     display: block;
-    margin: auto;
+    margin: 0;
 }
 
 .item-details {

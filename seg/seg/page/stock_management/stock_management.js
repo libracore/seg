@@ -1,3 +1,6 @@
+// Copyright (c) 2026, libracore AG and contributors
+// For license information, please see license.txt
+
 frappe.pages['stock-management'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
@@ -28,7 +31,6 @@ frappe.stock_management = {
 		content_el.innerHTML = tab_content;
 
 		tab_instance.init();
-		tab_instance.on_show();
 		this.current_tab = tab_instance;
 	},
 
@@ -45,7 +47,6 @@ class StockManagementClass {
 	}
     
 	render() {
-        console.log("I am rednering");
 		return frappe.render_template(this.key, {});
 	}
     
@@ -77,7 +78,6 @@ class HomePage extends StockManagementClass {
     //Add Event Listeners
     add_event_listeners() {
 		document.getElementById("stock-enter-icon").addEventListener("click", () => {
-            console.log("Hallo Velo");
             frappe.stock_management.load_tab(this.tab_instances[1]);
 		});
     }
@@ -104,8 +104,8 @@ class StockEnterPage extends StockManagementClass {
 	}
 
 	init() {
-        this.get_entry_warehouse_items()
-        this.add_event_listeners()
+        this.get_entry_warehouse_items();
+        this.add_event_listeners();
 	}
 
 	on_show() {
@@ -114,10 +114,7 @@ class StockEnterPage extends StockManagementClass {
     
     //Add Event Listeners
     add_event_listeners() {
-		//~ document.getElementById("stock-enter-icon").addEventListener("click", () => {
-            //~ console.log("Hallo Velo");
-            //~ frappe.stock_management.load_tab(this.tab_instances[1]);
-		//~ });
+        
     }
     
     show_subsections() {
@@ -130,9 +127,34 @@ class StockEnterPage extends StockManagementClass {
         const header_menu_section = document.getElementById('stock-enter-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
         header_menu_section.innerHTML = header_menu_section_content;
+        
+		document.getElementById("dummy-button").addEventListener("click", () => {
+            this.update_stocked_amount("201835-B1", 2);
+		});
+        
     }
     
     get_entry_warehouse_items() {
-        this.items = [{'picture': "PIC1", 'content': {'qty': 12, 'item_name': "Scheidemesser", 'locations': "Lagerplätze", 'stored_qty': 6}}, {'picture': "PIC2", 'content': {'qty': 24, 'item_name': "Cutter", 'locations': "Blocklager", 'stored_qty': 0 }}]
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.get_entry_warehouse_items',
+            'args': {
+                //No args yet
+            },
+            'callback': (response) => {
+                this.items = response.message;
+                this.on_show();
+            }
+        });
+    }
+    
+    update_stocked_amount(item_code, new_amount) {
+        const target_item = this.items.find(item => item.item_code === item_code);
+        target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
+        this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
+    }
+    
+    refresh_stocked_amount(item_code, qty, new_amount) {
+        const progress_div = document.getElementById(item_code + "_amount");
+        progress_div.innerText = new_amount + "/" + qty;
     }
 }

@@ -4,7 +4,7 @@
         <tr class="item-row">
 
             <td class="item-image">
-                {{ item.picture }}
+                <img src="{{ item.picture }}">
             </td>
 
             <td class="item-details">
@@ -17,7 +17,7 @@
                     {{ item.content.locations }}
                 </div>
 
-                <div class="item-progress progress-open">
+                <div id="{{ item.item_code }}_amount" class="item-progress progress-open">
                     {{ item.content.stored_qty }}/{{ item.content.qty }}
                 </div>
 
