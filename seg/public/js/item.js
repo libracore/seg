@@ -15,10 +15,11 @@ frappe.ui.form.on('Item',  {
             cur_frm.set_value("seg_purchase_price", 0);
             cur_frm.set_value("considered_qty", 0);
         }
-        
-        frm.add_custom_button(__("SEG-Preis Info"),  function(){
-            show_seg_price_information()
-        });
+        if (frappe.user.has_role("Accounts Manager")) {
+            frm.add_custom_button(__("SEG-Preis Info"),  function(){
+                show_seg_price_information()
+            });
+        }
     },
     before_save: function(frm) {
         //Set default supplier (first from supplier_items List)
