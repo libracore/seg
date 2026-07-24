@@ -1,3 +1,296 @@
+/*-----Home-----*/
+.home-content {
+
+    width: 100%;
+    height: 100%;
+
+    background: #ffffff;
+}
+
+
+.home-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+
+    width: 100%;
+    height: 100%;
+}
+
+
+/* Einzelne Kachel */
+
+.home-tile {
+
+    border: 1px solid #ececec;
+
+    background: #ffffff;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: flex-start;
+
+
+    /*
+       Position der Inhalte innerhalb
+       der Kachel
+    */
+    padding-top: 22%;
+
+
+    cursor: pointer;
+
+    transition: background-color 0.15s;
+
+    appearance: none;
+}
+
+
+/* Touch Feedback */
+
+.home-tile:active {
+
+    background: #f5f5f5;
+}
+
+
+/*
+   Icon Hintergrund
+*/
+
+.home-icon {
+
+    width: 115px;
+    height: 115px;
+
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+
+    border-radius: 28px;
+
+
+    margin-bottom: 28px;
+}
+
+
+/*
+   Icon selbst
+*/
+
+.home-icon i {
+
+    font-size: 58px;
+}
+
+
+/*
+   Text
+*/
+
+.home-tile span {
+
+    font-size: 20px;
+
+    font-weight: 600;
+
+    color: #333333;
+
+    text-align: center;
+
+    line-height: 1.35;
+
+    padding: 0 12px;
+}
+
+
+/*
+   Kleine Animation beim Drücken
+*/
+
+.home-tile:active .home-icon {
+
+    transform: scale(0.95);
+}
+
+
+
+/*
+   Farben
+*/
+
+
+/* Wareneingang */
+
+#goods-receipt .home-icon {
+
+    background: #e3f2fd;
+}
+
+
+#goods-receipt i {
+
+    color: #1976d2;
+}
+
+
+
+/* Einlagern */
+
+#stock-enter-icon .home-icon {
+
+    background: #e8f5e9;
+}
+
+
+#stock-enter-icon i {
+
+    color: #43a047;
+}
+
+
+
+/* Umlagern */
+
+#stock-transfer .home-icon {
+
+    background: #fff3e0;
+}
+
+
+#stock-transfer i {
+
+    color: #fb8c00;
+}
+
+
+
+/* Kommissionieren */
+
+#picking .home-icon {
+
+    background: #f3e5f5;
+}
+
+
+#picking i {
+
+    color: #8e24aa;
+}
+
+
+
+/* Auftrag erstellen */
+
+#sales-order .home-icon {
+
+    background: #e0f2f1;
+}
+
+
+#sales-order i {
+
+    color: #00897b;
+}
+
+
+
+/* Leeres Feld */
+
+.home-empty {
+
+    border: 1px solid #ececec;
+
+    background: #ffffff;
+}
+
+
+/*-----Stock Enter-----*/
+.stock-enter-content {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: calc(100vh - 90px);
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* Navbar */
+#stock-enter-navbar {
+    flex: 0 0 auto;
+
+    width: 100%;
+}
+
+
+/* Eingabe */
+#stock-enter-input {
+    flex: 0 0 auto;
+
+    width: 100%;
+}
+
+
+/* Liste */
+#stock-enter-list {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    width: 100%;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* Button unten */
+#stock-enter-button {
+    flex: 0 0 auto;
+
+    width: 100%;
+
+    padding: 8px 10px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* Frappe Abstände entfernen */
+.page-content,
+.layout-main-section,
+.layout-main {
+    padding: 0 !important;
+    margin: 0 !important;
+
+    overflow: hidden;
+}
+
+
+.stock-enter-content *,
+.stock-enter-content {
+    box-sizing: border-box;
+}
+
+/*-----Stock Enter List-----*/
+
 .list-content {
     width: 100%;
     background: #ffffff;
@@ -83,7 +376,7 @@
     color: #15803d;
 }
 
-/* Navbar */
+/*-----Navbar-----*/
 .mobile-navbar {
     position: sticky;
     top: 0;
@@ -155,7 +448,7 @@
     user-select: none;
 }
 
-/* Item Input */
+/*-----Item Input-----*/
 .scan-container {
 
     display: grid;
@@ -366,4 +659,49 @@
 #input-extra-container {
 
     flex: 1;
+}
+
+/*-----Bottom Butto-----*/
+
+.action-button {
+
+    width: 100%;
+    height: 42px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #d32f2f;
+    color: white;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 17px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: 0 2px 5px rgba(0,0,0,.15);
+
+    transition:
+        background-color .15s ease,
+        transform .1s ease;
+}
+
+
+.action-button:active {
+
+    background: #b71c1c;
+
+    transform: scale(.98);
+}
+
+
+#action-button-text {
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
