@@ -118,15 +118,20 @@ class StockEnterPage extends StockManagementClass {
     }
     
     show_subsections() {
-        //Show Item Table
-        const list_section = document.getElementById('stock-enter-list');
-        const list_section_content = frappe.render_template("stock_enter_list", {'items': this.items});
-        list_section.innerHTML = list_section_content;
-        
         //Show Navbar
         const header_menu_section = document.getElementById('stock-enter-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
         header_menu_section.innerHTML = header_menu_section_content;
+        
+        //Show Item Input
+        const item_input = document.getElementById('stock-enter-input');
+        const item_input_content = frappe.render_template("item_input", {'title': this.label});
+        item_input.innerHTML = item_input_content;
+        
+        //Show Item Table
+        const list_section = document.getElementById('stock-enter-list');
+        const list_section_content = frappe.render_template("stock_enter_list", {'items': this.items});
+        list_section.innerHTML = list_section_content;
         
 		document.getElementById("dummy-button").addEventListener("click", () => {
             this.update_stocked_amount("201835-B1", 2);

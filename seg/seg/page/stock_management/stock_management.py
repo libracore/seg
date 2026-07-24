@@ -2,6 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
+from frappe.utils import cint
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -44,10 +45,10 @@ def get_item_locations(item_code):
     if len(warehouses) > 0:
         wh_info = ""
         for index, wh in enumerate(warehouses):
-            if index == 1:
-                wh_info += "{0}({1})".format(wh.get('warehouse'), wh.get('actual_qty'))
+            if index == 0:
+                wh_info += "{0}({1})".format(wh.get('warehouse'), cint(wh.get('actual_qty')))
             else:
-                wh_info += ", {0}({1})".format(wh.get('warehouse'), wh.get('actual_qty'))
+                wh_info += ", {0}({1})".format(wh.get('warehouse'), cint(wh.get('actual_qty')))
     else:
         wh_info = None
     
