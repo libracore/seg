@@ -44,6 +44,10 @@ class StockManagementClass {
 	constructor(key, label) {
 		this.key = key;
 		this.label = label;
+        this.colors = {
+                    'purchase_receipt': "#1976d2",
+                    'stock_enter': "#43a047"
+                }
 	}
     
 	render() {
@@ -114,7 +118,7 @@ class StockEnterPage extends StockManagementClass {
 
 	on_show() {
         this.show_subsections();
-        this.show_dynamic_text();
+        this.show_dynamic_content();
         this.add_event_listeners();
 	}
     
@@ -211,13 +215,16 @@ class StockEnterPage extends StockManagementClass {
         progress_div.innerText = new_amount + "/" + qty;
     }
     
-    show_dynamic_text() {
+    show_dynamic_content() {
         console.log("show_dynamic_text");
         document.getElementById("nav-title").textContent = "Artikel einlagern";
         document.getElementById("action-button").textContent = "Einlagerung abschliessen";
+        document.getElementById("nav-back").style.backgroundColor = this.colors.stock_enter;
+        document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_enter;
+        document.getElementById("ok-button").style.backgroundColor = this.colors.stock_enter;
+        document.getElementById("action-button").style.backgroundColor = this.colors.stock_enter;
     }
 }
-
 //~ class StockEnterList extends StockEnterPage {
 	//~ constructor() {
 		//~ super('stock_enter_list', "Stock Enter List");
