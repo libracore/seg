@@ -50,7 +50,12 @@ class StockManagementClass {
 		return frappe.render_template(this.key, {});
 	}
     
-    
+    add_general_event_handlers() {
+        //Home Button
+        document.getElementById("nav-home").addEventListener("click", () => {
+            frappe.stock_management.load_tab(new HomePage());
+        });
+    }
 }
 
 class HomePage extends StockManagementClass {
@@ -115,13 +120,11 @@ class StockEnterPage extends StockManagementClass {
     
     //Add Event Listeners
     add_event_listeners() {
+        //Add General Event handlers
+        this.add_general_event_handlers()
+        
         //Go back to Home <-
 		document.getElementById("nav-back").addEventListener("click", () => {
-            frappe.stock_management.load_tab(new HomePage());
-		});
-        
-        //Go to Home
-		document.getElementById("nav-home").addEventListener("click", () => {
             frappe.stock_management.load_tab(new HomePage());
 		});
         
