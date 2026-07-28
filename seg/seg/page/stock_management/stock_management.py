@@ -7,14 +7,13 @@ from frappe.utils import cint
 @frappe.whitelist()
 def get_entry_warehouse_items():
     #Get Entry Warehouse
-    entry_warehouse = frappe.db.get_single_value("SEG Settings", "entry_warehouse")
+    entry_warehouse = get_entry_warehouse()
     
     #Get all Items in Entry Warehouse
     items = frappe.get_all("Bin", filters={"warehouse": entry_warehouse}, fields=["item_code", "actual_qty"])
     frappe.log_error("items", items)
     #Prepare response
     if len(items) > 0:
-        frappe.log_error("entered_items", items)
         response = []
         for item in items:
             #Get Item Doc
@@ -25,7 +24,7 @@ def get_entry_warehouse_items():
                         'item_code': item.get('item_code'),
                         'picture': item_doc.get('image') or "",
                         'content': {
-                            'qty': item.get('actual_qty'),
+                            'qty_on_entry_wh': item.get('actual_qty'),
                             'item_name': item_doc.get('item_name'),
                             'locations': get_item_locations(item.get('item_code')),
                             'stored_qty': 0
@@ -53,3 +52,39 @@ def get_item_locations(item_code):
         wh_info = None
     
     return wh_info
+
+@frappe.whitelist()
+def get_single_item_information(item):
+    #Get Entry Warehouse
+    entry_warehouse = get_entry_warehouse()
+    
+    item_information = frappe.db.sql("""
+                                    SELECT
+                                        `tabItem`.`item_code` AS `item_code`,
+                                        `tabItem`.`item_name` AS `item_name`,
+                                        `tabItem`.`image` AS `image`,
+                                        `tabBin`.`actual_qty` AS `qty_on_entry_wh`
+                                    FROM
+                                        `tabItem`
+                                    LEFT JOIN
+                                        `tabBin` ON `tabItem`.`item_code` = `tabItem`.`item_code`
+                                    WHERE
+                                        `tabItem`.`item_code` = %(item)s
+                                    AND
+                                        `tabBin`.`warehouse` = %(warehouse)s;""", {'item': item, 'warehouse': entry_warehouse}, as_dict=True)
+    if len(item_information) > 0:
+        response = [{
+                    'item_code': item_information[0].get('item_code'),
+                    'picture': item_information[0].get('image') or "",
+                    'content': {
+                        'qty_on_entry_wh': item_information[0].get('qty_on_entry_wh'),
+                        'item_name': item_information[0].get('item_name'),
+                        'locations': get_item_locations(item_information[0].get('item_code'))
+                    }}]
+        frappe.log_error("Item Information", response)
+        return response
+    return None
+
+def get_entry_warehouse():
+    entry_warehouse = frappe.db.get_single_value("SEG Settings", "entry_warehouse")
+    return entry_warehouse
