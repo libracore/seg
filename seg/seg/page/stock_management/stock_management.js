@@ -42,6 +42,7 @@ frappe.stock_management = {
 
 class StockManagementClass {
 	constructor(key, label) {
+        console.log(key, label);
 		this.key = key;
 		this.label = label;
         this.colors = {
@@ -67,7 +68,7 @@ class HomePage extends StockManagementClass {
 		super('home', "Home");
         this.tab_instances = [
             new PurchaseRecieptPage(),
-            new StockEnterPage(),
+            new StockEnterPage("stock_enter", "Artikel einlagern"),
             //~ new TransferPage(),
             //~ new PickingPage(),
             //~ new CreateOrderPage()
@@ -139,8 +140,9 @@ class PurchaseRecieptPage extends StockManagementClass {
 }
 
 class StockEnterPage extends StockManagementClass {
-	constructor() {
-		super('stock_enter', " Artikel Einlagern");
+	constructor(key, label) {
+        console.log(key, label);
+		super(key, label);
         this.items;
 	}
 
@@ -257,6 +259,7 @@ class StockEnterPage extends StockManagementClass {
     show_specific_dynamic_content() {
         document.getElementById("action-button").textContent = "Einlagerung abschliessen";
         document.getElementById("action-button").style.backgroundColor = this.colors.stock_enter;
+        document.getElementById("ok-button").style.backgroundColor = this.colors.stock_enter;
         this.show_dynamic_content()
     }
     
@@ -264,7 +267,6 @@ class StockEnterPage extends StockManagementClass {
         document.getElementById("nav-title").textContent = this.label;
         document.getElementById("nav-back").style.backgroundColor = this.colors.stock_enter;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_enter;
-        document.getElementById("ok-button").style.backgroundColor = this.colors.stock_enter;
     }
 }
 //~ class StockEnterList extends StockEnterPage {
@@ -283,7 +285,8 @@ class StockEnterPage extends StockManagementClass {
 
 class StockEnterItem extends StockEnterPage {
 	constructor(item) {
-		super('stock_enter_item', "Lagerplatz");
+        console.log(item);
+		super('stock_enter_item', "Zielplatz");
         this.item = item;
         this.items;
 	}
@@ -308,30 +311,30 @@ class StockEnterItem extends StockEnterPage {
             frappe.stock_management.load_tab(this.tab_instances[1]);
 		});
         
-        //~ document.getElementById("clear-article").addEventListener("click", () => {
-            //~ const articleInput = document.getElementById("article-input");
+        document.getElementById("clear-warehouse").addEventListener("click", () => {
+            const warehouseInput = document.getElementById("warehouse-input");
 
-            //~ articleInput.value = "";
-            //~ articleInput.focus();
-        //~ });
+            warehouseInput.value = "";
+            warehouseInput.focus();
+        });
         
-        //~ document.getElementById("qty-plus").addEventListener("click", () => {
-            //~ const quantityInput = document.getElementById("quantity-input");
+        document.getElementById("wh-qty-plus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("wh-quantity-input");
 
-            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
+            const quantity = parseInt(quantityInput.value, 10) || 1;
 
-            //~ quantityInput.value = quantity + 1;
-        //~ });
+            quantityInput.value = quantity + 1;
+        });
 
-        //~ document.getElementById("qty-minus").addEventListener("click", () => {
-            //~ const quantityInput = document.getElementById("quantity-input");
+        document.getElementById("wh-qty-minus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("wh-quantity-input");
 
-            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
+            const quantity = parseInt(quantityInput.value, 10) || 1;
 
-            //~ if (quantity > 1) {
-                //~ quantityInput.value = quantity - 1;
-            //~ }
-        //~ });
+            if (quantity > 1) {
+                quantityInput.value = quantity - 1;
+            }
+        });
     }
     
     show_subsections() {
@@ -339,19 +342,19 @@ class StockEnterItem extends StockEnterPage {
         console.log(this.item);
         console.log(this.items);
         //Show Navbar
-        const header_menu_section = document.getElementById('stock-enter-navbar');
+        const header_menu_section = document.getElementById('stock-enter-item-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
         header_menu_section.innerHTML = header_menu_section_content;
         
         //Show Item Input
-        const item_input = document.getElementById('stock-enter-input');
+        const item_input = document.getElementById('stock-enter-item-input');
         const item_input_content = frappe.render_template("warehouse_input", {'title': this.label});
         item_input.innerHTML = item_input_content;
         
         //Show Single Item Table
         const list_section = document.getElementById('stock-enter-item-list');
         const list_section_content = frappe.render_template("stock_enter_item_list", {'items': this.items});
-        item_list_section.innerHTML = list_section_content;
+        list_section.innerHTML = list_section_content;
         
         //~ //Show Bottom Button
         //~ const bottom_button = document.getElementById('stock-enter-button');
@@ -376,7 +379,8 @@ class StockEnterItem extends StockEnterPage {
     //~ }
     
     show_specific_dynamic_content() {
-        document.getElementById("nav-title").textContent = "Zielplatz";
+        //~ document.getElementById("nav-title").textContent = "Zielplatz";
+        document.getElementById("wh-ok-button").style.backgroundColor = this.colors.stock_enter;
         this.show_dynamic_content()
     }
     
@@ -387,7 +391,7 @@ class StockEnterItem extends StockEnterPage {
                 'args': {
                     'item': this.item
                 },
-                'callback': function(response) {
+                'callback': (response) => {
                     this.items = response.message;
                     this.on_show();
                 }
