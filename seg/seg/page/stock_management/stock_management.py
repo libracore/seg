@@ -10,7 +10,7 @@ def get_entry_warehouse_items():
     entry_warehouse = get_entry_warehouse()
     
     #Get all Items in Entry Warehouse
-    items = frappe.get_all("Bin", filters={"warehouse": entry_warehouse}, fields=["item_code", "actual_qty"])
+    items = frappe.get_all("Bin", filters={'warehouse': entry_warehouse,  'actual_qty': [">", 0]}, fields=["item_code", "actual_qty"])
     frappe.log_error("items", items)
     #Prepare response
     if len(items) > 0:
@@ -57,7 +57,7 @@ def get_item_locations(item_code):
 def get_single_item_information(item):
     #Get Entry Warehouse
     entry_warehouse = get_entry_warehouse()
-    
+    frappe.log_error("entry_warehouse", entry_warehouse)
     item_information = frappe.db.sql("""
                                     SELECT
                                         `tabItem`.`item_code` AS `item_code`,
@@ -67,12 +67,13 @@ def get_single_item_information(item):
                                     FROM
                                         `tabItem`
                                     LEFT JOIN
-                                        `tabBin` ON `tabItem`.`item_code` = `tabItem`.`item_code`
+                                        `tabBin` ON `tabItem`.`item_code` = `tabBin`.`item_code`
                                     WHERE
                                         `tabItem`.`item_code` = %(item)s
                                     AND
                                         `tabBin`.`warehouse` = %(warehouse)s;""", {'item': item, 'warehouse': entry_warehouse}, as_dict=True)
     if len(item_information) > 0:
+        frappe.log_error("item_information", item_information)
         response = [{
                     'item_code': item_information[0].get('item_code'),
                     'picture': item_information[0].get('image') or "",
@@ -121,4 +122,64 @@ def get_item_warehouse(item):
     return warehouses
 
 def get_free_warehouse():
-    return None
+    warehouses = frappe.db.sql("""
+                                SELECT
+                                    `tabWarehouse`.`name` AS `warehouse`,
+                                    `tabWarehouse`.`warehouse_type` AS `warehouse_type`,
+                                    IFNULL(
+                                        (
+                                            SELECT SUM(`actual_qty`)
+                                            FROM `tabBin`
+                                            WHERE `tabBin`.`warehouse` = `tabWarehouse`.`name`
+                                        ),
+                                        0
+                                    ) AS `total`
+                                FROM
+                                    `tabWarehouse`
+                                WHERE
+                                    `disabled` = 0;
+                            """, as_dict=True)
+    empty_wh = []
+    if len(warehouses) > 0:
+        for wh in warehouses:
+            if not wh.get('total') or wh.get('total') < 1:
+                empty_wh.append(wh)
+    
+    return empty_wh
+
+#Create Stock Entries from "Eingangslager"
+@frappe.whitelist()
+def create_enter_stock_entry(item, target_warehouse, qty):
+    #Check Parameter
+    if not frappe.db.exists("Item", item):
+        return {'success': False, 'error': "Artikel existiert nicht."}
+    
+    if not frappe.db.exists("Warehouse", target_warehouse):
+        return {'success': False, 'error': "Lagerplatz existiert nicht."}
+    
+    #Get Sorce Warehouse (Eingangslager)
+    source_warehouse = get_entry_warehouse()
+    
+    stock_entry = create_stock_entry("Material Transfer", item, qty, source_warehouse, target_warehouse)
+    
+    return {'success': True, 'error': None}
+    
+def create_stock_entry(entry_type, item, qty, source_warehouse=None, target_warehouse=None):
+    stock_entry = frappe.new_doc("Stock Entry")
+
+    stock_entry.stock_entry_type = entry_type
+
+    stock_entry.append("items", {
+        'item_code': item,
+        'qty': qty,
+        's_warehouse': source_warehouse,
+        't_warehouse': target_warehouse
+    })
+    
+    try:
+        stock_entry.insert()
+        stock_entry.submit()
+        return stock_entry.name
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
