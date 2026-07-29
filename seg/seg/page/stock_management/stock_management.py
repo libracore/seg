@@ -88,3 +88,37 @@ def get_single_item_information(item):
 def get_entry_warehouse():
     entry_warehouse = frappe.db.get_single_value("SEG Settings", "entry_warehouse")
     return entry_warehouse
+
+@frappe.whitelist()
+def get_warehouse_overview(item):
+    #Get all Warehouses for specific Item
+    item_warehouses = get_item_warehouse(item)
+    
+    #Get all Free Warehouses
+    free_warehouses = get_free_warehouse()
+    
+    #return dict with all warehouses
+    warehouse_dict = {'item_warehouses': item_warehouses, 'free_warehouses': free_warehouses}
+    frappe.log_error("warehouse_dict", warehouse_dict)
+    return warehouse_dict
+    
+def get_item_warehouse(item):
+    warehouses = frappe.db.sql("""
+                                SELECT
+                                    `tabBin`.`item_code` AS `item_code`,
+                                    `tabBin`.`warehouse`,
+                                    `tabWarehouse`.`warehouse_type`
+                                    
+                                FROM
+                                    `tabBin`
+                                LEFT JOIN
+                                    `tabWarehouse` ON `tabWarehouse`.`name` = `tabBin`.`warehouse`
+                                WHERE
+                                    `item_code` = %(item)s
+                                AND
+                                    `actual_qty` > 0;""", {'item': item}, as_dict=True)
+    
+    return warehouses
+
+def get_free_warehouse():
+    return None

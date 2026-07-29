@@ -356,30 +356,12 @@ class StockEnterItem extends StockEnterPage {
         const list_section_content = frappe.render_template("stock_enter_item_list", {'items': this.items});
         list_section.innerHTML = list_section_content;
         
-        //~ //Show Bottom Button
-        //~ const bottom_button = document.getElementById('stock-enter-button');
-        //~ const bottom_button_content = frappe.render_template("bottom_button", {'items': this.items});
-        //~ bottom_button.innerHTML = bottom_button_content;
-        
-		//~ document.getElementById("dummy-button").addEventListener("click", () => {
-            //~ this.update_stocked_amount("201835-B1", 2);
-		//~ });
-        
+        //Show Warehouse Overview
+        this.warehouses;
+        this.get_item_warehouses(this.item)
     }
     
-    //~ update_stocked_amount(item_code, new_amount) {
-        //~ const target_item = this.items.find(item => item.item_code === item_code);
-        //~ target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
-        //~ this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
-    //~ }
-    
-    //~ refresh_stocked_amount(item_code, qty, new_amount) {
-        //~ const progress_div = document.getElementById(item_code + "_amount");
-        //~ progress_div.innerText = new_amount + "/" + qty;
-    //~ }
-    
     show_specific_dynamic_content() {
-        //~ document.getElementById("nav-title").textContent = "Zielplatz";
         document.getElementById("wh-ok-button").style.backgroundColor = this.colors.stock_enter;
         this.show_dynamic_content()
     }
@@ -396,8 +378,24 @@ class StockEnterItem extends StockEnterPage {
                     this.on_show();
                 }
             });
-        } else {
-            return false
+        }
+    }
+    
+    get_item_warehouses(item) {
+        if (item) {
+            frappe.call({
+                'method': 'seg.seg.page.stock_management.stock_management.get_warehouse_overview',
+                'args': {
+                    'item': item
+                },
+                'callback': (response) => {
+                    this.warehouses = response.message;
+                    console.log(this.warehouses);
+                    const warehouse_overview = document.getElementById('stock-enter-item-wh-overview');
+                    const warehouse_overview_content = frappe.render_template("warehouse_overview", {'warehouses': this.warehouses});
+                    warehouse_overview.innerHTML = warehouse_overview_content;
+                }
+            });
         }
     }
 }
