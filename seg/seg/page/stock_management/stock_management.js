@@ -311,6 +311,7 @@ class StockEnterItem extends StockEnterPage {
             frappe.stock_management.load_tab(this.tab_instances[1]);
 		});
         
+        //Cleare Warehouse
         document.getElementById("clear-warehouse").addEventListener("click", () => {
             const warehouseInput = document.getElementById("warehouse-input");
 
@@ -318,6 +319,7 @@ class StockEnterItem extends StockEnterPage {
             warehouseInput.focus();
         });
         
+        //Add Quantity
         document.getElementById("wh-qty-plus").addEventListener("click", () => {
             const quantityInput = document.getElementById("wh-quantity-input");
 
@@ -325,7 +327,8 @@ class StockEnterItem extends StockEnterPage {
 
             quantityInput.value = quantity + 1;
         });
-
+        
+        //Remove Quantity
         document.getElementById("wh-qty-minus").addEventListener("click", () => {
             const quantityInput = document.getElementById("wh-quantity-input");
 
@@ -335,6 +338,13 @@ class StockEnterItem extends StockEnterPage {
                 quantityInput.value = quantity - 1;
             }
         });
+        
+        //Submit Stock Entry
+		document.getElementById("wh-ok-button").addEventListener("click", () => {
+            const warehouse = document.getElementById("warehouse-input").value;
+            const quantity = document.getElementById("wh-quantity-input").value;
+            this.create_stock_entry(this.item, warehouse, quantity)
+		});
     }
     
     show_subsections() {
@@ -397,5 +407,9 @@ class StockEnterItem extends StockEnterPage {
                 }
             });
         }
+    }
+    
+    create_stock_entry(item, warehouse, quantity) {
+        console.log(item, warehouse, quantity);
     }
 }
