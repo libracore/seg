@@ -212,6 +212,7 @@ class StockEnterPage extends StockManagementClass {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
 		});
         
+        //Delete Item Field
         document.getElementById("clear-article").addEventListener("click", () => {
             const articleInput = document.getElementById("article-input");
 
@@ -219,6 +220,7 @@ class StockEnterPage extends StockManagementClass {
             articleInput.focus();
         });
         
+        //Add Quantity
         document.getElementById("qty-plus").addEventListener("click", () => {
             const quantityInput = document.getElementById("quantity-input");
 
@@ -226,7 +228,8 @@ class StockEnterPage extends StockManagementClass {
 
             quantityInput.value = quantity + 1;
         });
-
+        
+        //remove Quantity
         document.getElementById("qty-minus").addEventListener("click", () => {
             const quantityInput = document.getElementById("quantity-input");
 
@@ -240,7 +243,8 @@ class StockEnterPage extends StockManagementClass {
         //Open Item Tab
 		document.getElementById("ok-button").addEventListener("click", () => {
             let item = document.getElementById("article-input").value;
-            frappe.stock_management.load_tab(new StockEnterItem(item, this));
+            let qty = document.getElementById("quantity-input").value;
+            frappe.stock_management.load_tab(new StockEnterItem(item, qty, this));
 		});
     }
     
@@ -298,6 +302,17 @@ class StockEnterPage extends StockManagementClass {
         document.getElementById("nav-back").style.backgroundColor = this.colors.stock_enter;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_enter;
     }
+    
+    update_stocked_amount(item_code, new_amount) {
+        const target_item = this.items.find(item => item.item_code === item_code);
+        target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
+        this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
+    }
+    
+    refresh_stocked_amount(item_code, qty, new_amount) {
+        const progress_div = document.getElementById(item_code + "_amount");
+        progress_div.innerText = new_amount + "/" + qty;
+    }
 }
 //~ class StockEnterList extends StockEnterPage {
 	//~ constructor() {
@@ -314,10 +329,11 @@ class StockEnterPage extends StockManagementClass {
 //~ }
 
 class StockEnterItem extends StockEnterPage {
-	constructor(item, parent_this) {
+	constructor(item, qty, parent_this) {
         console.log(item);
 		super('stock_enter_item', "Zielplatz");
         this.item = item;
+        this.starting_qty = qty;
         this.item_dict;
         this.parent_this = parent_this;
 	}
@@ -404,6 +420,8 @@ class StockEnterItem extends StockEnterPage {
     
     show_specific_dynamic_content() {
         document.getElementById("wh-ok-button").style.backgroundColor = this.colors.stock_enter;
+        console.log(this.starting_qty);
+        document.getElementById("wh-quantity-input").value = this.starting_qty;
         this.show_dynamic_content()
     }
     
@@ -454,7 +472,7 @@ class StockEnterItem extends StockEnterPage {
                     if (response.message.success) {
                         console.log("sucess");
                         this.show_success("Artikel wurde erfolgreich eingelagert.", "wh-message");
-                        this.update_stocked_amount(item, qty);
+                        this.parent_this.update_stocked_amount(item, qty);
                     } else {
                         console.log("error");
                         this.show_error(response.message.error, "wh-message");
@@ -464,16 +482,5 @@ class StockEnterItem extends StockEnterPage {
                 }
             }
         });
-    }
-    
-    update_stocked_amount(item_code, new_amount) {
-        const target_item = this.parent_this.items.find(item => item.item_code === item_code);
-        target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
-        this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
-    }
-    
-    refresh_stocked_amount(item_code, qty, new_amount) {
-        const progress_div = document.getElementById(item_code + "_amount");
-        progress_div.innerText = new_amount + "/" + qty;
     }
 }
