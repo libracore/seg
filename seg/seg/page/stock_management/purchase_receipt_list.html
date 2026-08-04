@@ -1,0 +1,41 @@
+<section class="list-content">
+
+    <table class="item-table">
+
+        {% for order in orders %}
+
+        <tr class="order-row">
+
+            <td class="order-details">
+
+                <div class="order-title">
+                    {{ order.name }}
+                </div>
+
+                <div class="order-supplier">
+                    {{ order.supplier }}
+                </div>
+
+            </td>
+
+            <td class="order-dates">
+
+                <div class="order-date">
+                    <span class="order-date-label">Bestellt</span><br>
+                    {{ order.transaction_date }}
+                </div>
+
+                <div class="order-date">
+                    <span class="order-date-label">Lieferung</span><br>
+                    {{ order.schedule_date }}
+                </div>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+</section>

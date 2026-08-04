@@ -183,3 +183,28 @@ def create_stock_entry(entry_type, item, qty, source_warehouse=None, target_ware
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
         frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
+
+@frappe.whitelist()
+def get_open_orders(supplier):
+    supplier_condition = """"""
+    if supplier:
+        supplier_condition = """AND `supplier` = '{0}'""".format(supplier)
+    
+    open_orders = frappe.db.sql("""
+                                SELECT
+                                    `name`,
+                                    DATE_FORMAT(transaction_date, '%d.%m.%Y') AS `transaction_date`,
+                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `schedule_date`,
+                                    `supplier`
+                                FROM
+                                    `tabPurchase Order`
+                                WHERE
+                                    `per_received` < 100
+                                AND
+                                    `docstatus` = 1
+                                AND
+                                    `status` != 'Closed'
+                                {supplier_condition}
+                                ORDER BY
+                                    `schedule_date` ASC;""".format(supplier_condition=supplier_condition), as_dict=True)
+    return open_orders

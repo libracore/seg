@@ -211,6 +211,87 @@
     border: 1px solid #ececec;
 
     background: #ffffff;
+    
+}
+
+/*-----Purchase Receipt List-----*/
+
+
+.order-row {
+
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.order-row:last-child {
+
+    border-bottom: none;
+}
+
+.order-details {
+
+    width: 72%;
+
+    padding: 12px 10px;
+
+    vertical-align: top;
+}
+
+.order-title {
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+    color: #222222;
+}
+
+.order-supplier {
+
+    margin-top: 4px;
+
+    font-size: 14px;
+
+    color: #888888;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.order-dates {
+
+    width: 28%;
+
+    padding: 12px 10px;
+
+    text-align: right;
+
+    vertical-align: middle;
+
+    color: #888888;
+
+    font-size: 13px;
+
+    white-space: nowrap;
+}
+
+.order-date {
+
+    margin-bottom: 6px;
+}
+
+.order-date:last-child {
+
+    margin-bottom: 0;
+}
+
+.order-date-label {
+
+    font-weight: 600;
+
+    color: #777777;
 }
 
 
