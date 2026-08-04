@@ -201,14 +201,15 @@ class PurchaseReceiptPage extends StockManagementClass {
         
         //Open Item Tab
 		document.getElementById("purchase-order-ok-button").addEventListener("click", () => {
-            let item = document.getElementById("purchase-order-input").value;
-            //~ frappe.stock_management.load_tab(new StockEnterItem(item, qty, this));
+            let order = document.getElementById("purchase-order-input").value;
+            frappe.stock_management.load_tab(new PurchaseReceiptOrder(order, this));
 		});
     }
     
     //Show Dynamic Content specific for this Site
     show_specific_dynamic_content() {
         document.getElementById("nav-title").textContent = this.label;
+        document.getElementById("purchase-order-ok-button").style.backgroundColor = this.colors.purchase_receipt;
         this.show_dynamic_content()
     }
     
@@ -218,15 +219,17 @@ class PurchaseReceiptPage extends StockManagementClass {
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.purchase_receipt;
         //~ document.getElementById("action-button").textContent = "Einlagerung abschliessen";
         //~ document.getElementById("action-button").style.backgroundColor = this.colors.stock_enter;
-        document.getElementById("purchase-order-ok-button").style.backgroundColor = this.colors.purchase_receipt;
+        
     }
     
     get_open_orders() {
         const supplier = document.getElementById("supplier-input")?.value ?? "";
+        const order = document.getElementById("purchase-order-input")?.value ?? "";
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_orders',
             'args': {
-                'supplier': supplier
+                'supplier': supplier,
+                'order': order
             },
             'callback': (response) => {
                 this.orders = response.message;
@@ -257,28 +260,25 @@ class PurchaseReceiptPage extends StockManagementClass {
     }
 }
 
-//~ class StockEnterItem extends StockEnterPage {
-	//~ constructor(item, qty, parent_this) {
-        //~ console.log(item);
-		//~ super('stock_enter_item', "Zielplatz");
-        //~ this.item = item;
-        //~ this.starting_qty = qty;
-        //~ this.item_dict;
-        //~ this.parent_this = parent_this;
-	//~ }
+class PurchaseReceiptOrder extends PurchaseReceiptPage {
+	constructor(order, parent_this) {
+		super('purchase_receipt_order', "Wareneingang");
+        this.order = order;
+        this.parent_this = parent_this;
+	}
 
-	//~ init() {
-        //~ this.get_item_information(this.item);
-	//~ }
+	init() {
+        this.get_order_items(this.order);
+	}
 
-	//~ on_show() {
-        //~ this.show_subsections();
-        //~ this.show_specific_dynamic_content();
+	on_show() {
+        this.show_subsections();
+        this.show_specific_dynamic_content();
         //~ this.add_event_listeners();
-	//~ }
+	}
     
-    //~ //Add Event Listeners
-    //~ add_event_listeners() {
+    //Add Event Listeners
+    add_event_listeners() {
         //~ //Add General Event handlers
         //~ this.add_general_event_handlers()
         
@@ -321,54 +321,60 @@ class PurchaseReceiptPage extends StockManagementClass {
             //~ const quantity = document.getElementById("wh-quantity-input").value;
             //~ this.create_stock_entry(this.item, warehouse, quantity)
 		//~ });
-    //~ }
+        
+        //Select Purchase Order ANJA -> PO ins Feld setzten
+        //~ document.querySelectorAll(".order-row").forEach(row => {
+
+            //~ row.addEventListener("click", () => {
+
+                //~ document.getElementById("purchase-order-input").value =
+                    //~ row.dataset.order;
+
+            //~ });
+
+        //~ });
+    }
     
-    //~ show_subsections() {
-        //~ console.log("show_subsections_item");
-        //~ console.log(this.item);
-        //~ console.log(this.item_dict);
-        //~ //Show Navbar
-        //~ const header_menu_section = document.getElementById('stock-enter-item-navbar');
-        //~ const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
-        //~ header_menu_section.innerHTML = header_menu_section_content;
+    show_subsections() {
+        //Show Navbar
+        const header_menu_section = document.getElementById('purchase-receipt-navbar');
+        const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
+        header_menu_section.innerHTML = header_menu_section_content;
         
-        //~ //Show Item Input
-        //~ const item_input = document.getElementById('stock-enter-item-input');
-        //~ const item_input_content = frappe.render_template("warehouse_input", {'title': this.label});
-        //~ item_input.innerHTML = item_input_content;
+        //Show Item Input
+        const item_input = document.getElementById('purchase-receipt-input');
+        const item_input_content = frappe.render_template("item_input", {'title': this.label});
+        item_input.innerHTML = item_input_content;
         
-        //~ //Show Single Item Table
-        //~ const list_section = document.getElementById('stock-enter-item-list');
-        //~ const list_section_content = frappe.render_template("stock_enter_item_list", {'items': this.item_dict});
-        //~ list_section.innerHTML = list_section_content;
+        //Show Item Table
+        const list_section = document.getElementById('purchase-receipt-list');
+        const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.items});
+        list_section.innerHTML = list_section_content;
         
         //~ //Show Warehouse Overview
         //~ this.warehouses;
         //~ this.get_item_warehouses(this.item)
-    //~ }
+    }
     
-    //~ show_specific_dynamic_content() {
-        //~ document.getElementById("wh-ok-button").style.backgroundColor = this.colors.stock_enter;
-        //~ console.log(this.starting_qty);
-        //~ document.getElementById("wh-quantity-input").value = this.starting_qty;
-        //~ this.show_dynamic_content()
-    //~ }
+    show_specific_dynamic_content() {
+        document.getElementById("ok-button").style.backgroundColor = this.colors.purchase_receipt;
+        this.show_dynamic_content()
+    }
     
-    //~ get_item_information(item) {
-        //~ if (item) {
-            //~ frappe.call({
-                //~ 'method': 'seg.seg.page.stock_management.stock_management.get_single_item_information',
-                //~ 'args': {
-                    //~ 'item': this.item
-                //~ },
-                //~ 'callback': (response) => {
-                    //~ console.log(response.message);
-                    //~ this.item_dict = response.message;
-                    //~ this.on_show();
-                //~ }
-            //~ });
-        //~ }
-    //~ }
+    get_order_items(order) {
+        if (order) {
+            frappe.call({
+                'method': 'seg.seg.page.stock_management.stock_management.get_order_items',
+                'args': {
+                    'order': this.order
+                },
+                'callback': (response) => {
+                    this.items = response.message;
+                    this.on_show();
+                }
+            });
+        }
+    }
     
     //~ get_item_warehouses(item) {
         //~ if (item) {
@@ -412,7 +418,7 @@ class PurchaseReceiptPage extends StockManagementClass {
             //~ }
         //~ });
     //~ }
-//~ }
+}
 
 class StockEnterPage extends StockManagementClass {
 	constructor(key, label) {
@@ -497,7 +503,7 @@ class StockEnterPage extends StockManagementClass {
         //Show Item Table
         console.log(this.items);
         const list_section = document.getElementById('stock-enter-list');
-        const list_section_content = frappe.render_template("stock_enter_list", {'items': this.items});
+        const list_section_content = frappe.render_template("items_list", {'items': this.items});
         list_section.innerHTML = list_section_content;
         
         //Show Bottom Button

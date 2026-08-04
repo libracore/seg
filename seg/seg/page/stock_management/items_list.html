@@ -1,0 +1,29 @@
+<section class="list-content">
+    <table class="item-table">
+        {% for item in items %}
+        <tr class="item-row">
+
+            <td class="item-image">
+                <img src="{{ item.picture }}">
+            </td>
+
+            <td class="item-details">
+
+                <div class="item-title">
+                    {{ item.content.qty_on_entry_wh }}x {{ item.content.item_name }}
+                </div>
+
+                <div class="item-location">
+                    {{ item.content.locations }}
+                </div>
+
+                <div id="{{ item.item_code }}_amount" class="item-progress progress-open">
+                    {{ item.content.stored_qty }}/{{ item.content.qty_on_entry_wh }}
+                </div>
+
+            </td>
+
+        </tr>
+        {% endfor %}
+    </table>
+</section>

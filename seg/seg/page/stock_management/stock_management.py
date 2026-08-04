@@ -24,7 +24,7 @@ def get_entry_warehouse_items():
                         'item_code': item.get('item_code'),
                         'picture': item_doc.get('image') or "",
                         'content': {
-                            'qty_on_entry_wh': item.get('actual_qty'),
+                            'qty': item.get('actual_qty'),
                             'item_name': item_doc.get('item_name'),
                             'locations': get_item_locations(item.get('item_code')),
                             'stored_qty': 0
@@ -184,17 +184,24 @@ def create_stock_entry(entry_type, item, qty, source_warehouse=None, target_ware
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
         frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
 
+#Get Open Orders for Purchase Receipt
 @frappe.whitelist()
-def get_open_orders(supplier):
+def get_open_orders(supplier, order):
+    #Prepare condition
     supplier_condition = """"""
     if supplier:
         supplier_condition = """AND `supplier` = '{0}'""".format(supplier)
     
+    order_condition = """"""
+    if order:
+        order_condition = """AND `name` = '{0}'""".format(order)
+    
+    #Get orders
     open_orders = frappe.db.sql("""
                                 SELECT
                                     `name`,
                                     DATE_FORMAT(transaction_date, '%d.%m.%Y') AS `transaction_date`,
-                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `schedule_date`,
+                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `formatted_schedule_date`,
                                     `supplier`
                                 FROM
                                     `tabPurchase Order`
@@ -205,6 +212,49 @@ def get_open_orders(supplier):
                                 AND
                                     `status` != 'Closed'
                                 {supplier_condition}
+                                {order_condition}
                                 ORDER BY
-                                    `schedule_date` ASC;""".format(supplier_condition=supplier_condition), as_dict=True)
+                                    `schedule_date` ASC;""".format(supplier_condition=supplier_condition, order_condition=order_condition), as_dict=True)
+    
     return open_orders
+
+#Get Items from Open Order
+@frappe.whitelist()
+def get_order_items(order):
+    items = frappe.db.sql("""
+                            SELECT
+                                `tabPurchase Order Item`.`item_code` AS `item_code`,
+                                `tabPurchase Order Item`.`item_name` AS `item_name`,
+                                (`tabPurchase Order Item`.`qty` - `tabPurchase Order Item`.`received_qty`) AS `qty`,
+                                `tabItem`.`image` AS `image`
+                            FROM
+                                `tabPurchase Order Item`
+                            LEFT JOIN
+                                `tabPurchase Order` ON `tabPurchase Order`.`name` = `tabPurchase Order Item`.`parent`
+                            LEFT JOIN
+                                `tabItem` ON `tabItem`.`name` = `tabPurchase Order Item`.`item_code`
+                            WHERE
+                                `tabPurchase Order`.`name` = %(po)s;""", {'po': order}, as_dict=True)
+    
+        #Prepare response
+    if len(items) > 0:
+        response = []
+        for item in items:
+            #Add Information for this item to response
+            item_response = {
+                        'item_code': item.get('item_code'),
+                        'picture': item.get('image') or "",
+                        'content': {
+                            'qty_on_entry_wh': item.get('qty'),
+                            'item_name': item.get('item_name'),
+                            'locations': get_item_locations(item.get('item_code')),
+                            'stored_qty': 0
+                        }}
+        
+            response.append(item_response)
+    else:
+        response = None
+    
+    return response
+    
+    return items

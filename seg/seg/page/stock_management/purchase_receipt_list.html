@@ -4,35 +4,35 @@
 
         {% for order in orders %}
 
-        <tr class="order-row">
+            <tr class="order-row" data-order="{{ order.name }}">
 
-            <td class="order-details">
+                <td class="order-details">
 
-                <div class="order-title">
-                    {{ order.name }}
-                </div>
+                    <div class="order-title">
+                        {{ order.name }}
+                    </div>
 
-                <div class="order-supplier">
-                    {{ order.supplier }}
-                </div>
+                    <div class="order-supplier">
+                        {{ order.supplier }}
+                    </div>
 
-            </td>
+                </td>
 
-            <td class="order-dates">
+                <td class="order-dates">
 
-                <div class="order-date">
-                    <span class="order-date-label">Bestellt</span><br>
-                    {{ order.transaction_date }}
-                </div>
+                    <div class="order-date">
+                        <span class="order-date-label">Bestellt</span><br>
+                        {{ order.transaction_date }}
+                    </div>
 
-                <div class="order-date">
-                    <span class="order-date-label">Lieferung</span><br>
-                    {{ order.schedule_date }}
-                </div>
+                    <div class="order-date">
+                        <span class="order-date-label">Lieferung</span><br>
+                        {{ order.schedule_date }}
+                    </div>
 
-            </td>
+                </td>
 
-        </tr>
+            </tr>
 
         {% endfor %}
 
