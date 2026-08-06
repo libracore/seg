@@ -10,7 +10,7 @@
             <td class="item-details">
 
                 <div class="item-title">
-                    {{ item.content.qty_on_entry_wh }}x {{ item.content.item_name }}
+                    {{ item.content.qty }}x {{ item.content.item_name }}
                 </div>
 
                 <div class="item-location">
@@ -18,7 +18,7 @@
                 </div>
 
                 <div id="{{ item.item_code }}_amount" class="item-progress progress-open">
-                    {{ item.content.stored_qty }}/{{ item.content.qty_on_entry_wh }}
+                    {{ item.content.stored_qty }}/{{ item.content.qty }}
                 </div>
 
             </td>

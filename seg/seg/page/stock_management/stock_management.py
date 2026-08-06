@@ -3,6 +3,8 @@
 
 import frappe
 from frappe.utils import cint
+from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
+from seg.seg.purchasing import get_updated_seg_prices
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -221,6 +223,7 @@ def get_open_orders(supplier, order):
 #Get Items from Open Order
 @frappe.whitelist()
 def get_order_items(order):
+    frappe.log_error("order", order)
     items = frappe.db.sql("""
                             SELECT
                                 `tabPurchase Order Item`.`item_code` AS `item_code`,
@@ -230,31 +233,35 @@ def get_order_items(order):
                             FROM
                                 `tabPurchase Order Item`
                             LEFT JOIN
-                                `tabPurchase Order` ON `tabPurchase Order`.`name` = `tabPurchase Order Item`.`parent`
-                            LEFT JOIN
                                 `tabItem` ON `tabItem`.`name` = `tabPurchase Order Item`.`item_code`
                             WHERE
-                                `tabPurchase Order`.`name` = %(po)s;""", {'po': order}, as_dict=True)
-    
+                                `tabPurchase Order Item`.`parent` = %(po)s;""", {'po': order}, as_dict=True)
+    frappe.log_error("items", items)
         #Prepare response
     if len(items) > 0:
         response = []
         for item in items:
             #Add Information for this item to response
-            item_response = {
-                        'item_code': item.get('item_code'),
-                        'picture': item.get('image') or "",
-                        'content': {
-                            'qty_on_entry_wh': item.get('qty'),
-                            'item_name': item.get('item_name'),
-                            'locations': get_item_locations(item.get('item_code')),
-                            'stored_qty': 0
-                        }}
-        
-            response.append(item_response)
+            if item.get('qty') > 0:
+                item_response = {
+                            'item_code': item.get('item_code'),
+                            'picture': item.get('image') or "",
+                            'content': {
+                                'qty': item.get('qty'),
+                                'item_name': item.get('item_name'),
+                                'locations': get_item_locations(item.get('item_code')),
+                                'stored_qty': 0
+                            }}
+                
+                response.append(item_response)
     else:
         response = None
     
     return response
     
     return items
+
+@frappe.whitelist()
+def store_everything(order):
+    purchase_receipt = make_purchase_receipt(order)
+    get_updated_seg_prices

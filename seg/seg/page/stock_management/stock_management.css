@@ -295,6 +295,73 @@
 }
 
 
+/*-----Purchase Receipt Order-----*/
+
+.purchase-receipt-order-content {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: calc(100vh - 90px);
+
+    overflow: hidden;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* Navbar */
+#purchase-receipt-order-navbar {
+    flex: 0 0 auto;
+
+    width: 100%;
+}
+
+
+/* Eingabe */
+#purchase-receipt-order-input {
+    flex: 0 0 auto;
+
+    width: 100%;
+}
+
+
+/* Liste */
+#purchase-receipt-order-list {
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    width: 100%;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+/* Button unten */
+#purchase-receipt-order-button {
+    flex: 0 0 auto;
+
+    width: 100%;
+
+    padding: 8px 10px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
+
+/* Nur für diese Seite */
+.purchase-receipt-order-content,
+.purchase-receipt-order-content * {
+    box-sizing: border-box;
+}
+
+
 /*-----Stock Enter-----*/
 .stock-enter-content {
     display: flex;
