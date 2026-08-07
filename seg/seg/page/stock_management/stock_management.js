@@ -208,7 +208,7 @@ class PurchaseReceiptPage extends StockManagementClass {
         //Open Pruchase Order Tab
 		document.getElementById("purchase-order-ok-button").addEventListener("click", () => {
             let order = document.getElementById("purchase-order-input").value;
-            frappe.stock_management.load_tab(new PurchaseReceiptOrder(order, this));
+            frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", order, this));
 		});
     }
     
@@ -276,8 +276,8 @@ class PurchaseReceiptPage extends StockManagementClass {
 }
 
 class PurchaseReceiptOrder extends PurchaseReceiptPage {
-	constructor(order, parent_this) {
-		super('purchase_receipt_order', "Wareneingang");
+	constructor(key, label, order, parent_this) {
+		super(key, label);
         this.order = order;
         this.parent_this = parent_this;
 	}
@@ -415,7 +415,6 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
 
 class PurchaseReceiptItem extends PurchaseReceiptOrder {
 	constructor(item, qty, parent_this, grandparent_this) {
-        console.log(item);
 		super('stock_enter_item', "Zielplatz");
         this.item = item;
         this.starting_qty = qty;
