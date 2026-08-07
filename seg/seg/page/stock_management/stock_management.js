@@ -148,6 +148,7 @@ class PurchaseReceiptPage extends StockManagementClass {
 	constructor(key, label) {
 		super(key, label);
         this.orders;
+        this.selected_supplier;
 	}
 
 	init() {
@@ -156,9 +157,9 @@ class PurchaseReceiptPage extends StockManagementClass {
 
 	on_show() {
         this.show_subsections();
-        this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
+        this.show_specific_dynamic_content();
 	}
     
     show_subsections() {
@@ -173,10 +174,8 @@ class PurchaseReceiptPage extends StockManagementClass {
         const pruchase_order_content = frappe.render_template("purchase_order_input", {'title': this.label});
         pruchase_order_input.innerHTML = pruchase_order_content;
         
-        //~ //Show Purchase Order Table
-        const list_section = document.getElementById('purchase-receipt-list');
-        const list_section_content = frappe.render_template("purchase_receipt_list", {'orders': this.orders});
-        list_section.innerHTML = list_section_content;
+        //Show Purchase Order Table
+        this.display_orders()
     }
     
     //Add Event Listeners
@@ -193,16 +192,16 @@ class PurchaseReceiptPage extends StockManagementClass {
         document.getElementById("clear-purchase-order").addEventListener("click", () => {
             const articleInput = document.getElementById("purchase-order-input");
 
-            articleInput.value = "";
-            articleInput.focus();
+            this.purchase_order_link_field.set_value("");
+            this.purchase_order_link_field.set_focus();
         });
         
         //Delete Supplier Field
         document.getElementById("clear-supplier").addEventListener("click", () => {
-            const articleInput = document.getElementById("supplier-input");
+        
+            this.supplier_link_field.set_value("");
+            this.supplier_link_field.set_focus();
 
-            articleInput.value = "";
-            articleInput.focus();
         });
         
         //Open Pruchase Order Tab
@@ -225,9 +224,10 @@ class PurchaseReceiptPage extends StockManagementClass {
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.purchase_receipt;
     }
     
-    get_open_orders() {
-        const supplier = document.getElementById("supplier-input")?.value ?? "";
+    get_open_orders(refresh=false) {
+        const supplier = this.selected_supplier ?? "";
         const order = document.getElementById("purchase-order-input")?.value ?? "";
+        console.log(supplier);
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_orders',
             'args': {
@@ -236,30 +236,67 @@ class PurchaseReceiptPage extends StockManagementClass {
             },
             'callback': (response) => {
                 this.orders = response.message;
-                this.on_show();
+                console.log(this.orders);
+                if (!refresh) {
+                    this.on_show();
+                } else {
+                    this.refresh_order_list()
+                }
             }
         });
     }
     
     create_link_fields() {
-        console.log("creating Link field....");
+        //Pruchase Order
+        const order_container = document.getElementById("purchase-order-input");
+
+        this.purchase_order_link_field = frappe.ui.form.make_control({
+            parent: order_container,
+            df: {
+                fieldtype: "Link",
+                options: "Purchase Order",
+                fieldname: "purchase_order",
+				change: () => {
+					this.selected_supplier = this.supplier_link_field.get_value();
+                    document.activeElement.blur();
+                    this.get_open_orders(true)
+				}
+            },
+            only_input: true
+        });
+
+        this.purchase_order_link_field.make();
+        this.purchase_order_link_field.refresh();
+        
+        //Supplier
 		const container = document.getElementById("supplier-input");
 
-		let supplier_link_field = frappe.ui.form.make_control({
+		this.supplier_link_field = frappe.ui.form.make_control({
 			parent: container,
 			df: {
 				fieldtype: "Link",
 				options: "Supplier",
 				name: "supplier",
 				change: () => {
-					const selected_supplier = supplier_link_field.get_value();
-                    this.get_open_orders()
+					this.selected_supplier = this.supplier_link_field.get_value();
+                    document.activeElement.blur();
+                    this.get_open_orders(true)
 				}
 			},
 			only_input: true
 		});
-        supplier_link_field.make()
-		supplier_link_field.refresh();
+        this.supplier_link_field.make()
+		this.supplier_link_field.refresh();
+    }
+    
+    refresh_order_list() {
+        this.display_orders()
+    }
+    
+    display_orders() {
+        const list_section = document.getElementById('purchase-receipt-list');
+        const list_section_content = frappe.render_template("purchase_receipt_list", {'orders': this.orders});
+        list_section.innerHTML = list_section_content;
     }
     
     //Select Purchase Order ANJA -> PO ins Feld setzten
@@ -711,19 +748,6 @@ class StockEnterPage extends StockManagementClass {
         progress_div.innerText = new_amount + "/" + qty;
     }
 }
-//~ class StockEnterList extends StockEnterPage {
-	//~ constructor() {
-		//~ super('stock_enter_list', "Stock Enter List");
-	//~ }
-    
-	//~ on_show() {
-        //~ this.show_dynamic_text();
-	//~ }
-    
-    //~ show_dynamic_text() {
-        //~ document.getElementById("dummy-button")
-    //~ }
-//~ }
 
 class StockEnterItem extends StockEnterPage {
 	constructor(item, qty, parent_this) {

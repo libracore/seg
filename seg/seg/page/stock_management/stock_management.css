@@ -982,3 +982,76 @@
 
     color: #d32f2f;
 }
+
+/* --------------------------------
+   Frappe Link Field
+-------------------------------- */
+
+.link-field-container {
+    flex: 1;
+    min-width: 0;
+}
+
+
+/* Frappe Wrapper entfernen */
+.link-field-container .form-group.frappe-control {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    width: 100%;
+    max-width: none !important;
+}
+
+
+/* Link Field */
+.link-field-container .link-field {
+    width: 100%;
+
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
+/* Awesomplete */
+.link-field-container .awesomplete {
+    width: 100%;
+}
+
+
+/* Frappe Input */
+.link-field-container .form-control {
+    width: 100%;
+
+    height: 100%;
+
+    background: transparent !important;
+
+    padding: 4px 45px 4px 12px;
+    border: 1px solid #d8d8d8;
+    font-size: 20px;
+
+    color: #222;
+
+    box-sizing: border-box;
+}
+
+
+/* Fokus */
+.link-field-container .form-control:focus {
+    outline: none !important;
+    box-shadow: none !important;
+
+    background: transparent !important;
+}
+
+
+/* Frappe Tooltips ausblenden */
+.link-field-container .tooltip-content {
+    display: none !important;
+}
+
+
+/* Autocomplete */
+.link-field-container .awesomplete > ul {
+    z-index: 1000;
+}
