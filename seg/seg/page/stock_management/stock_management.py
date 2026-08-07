@@ -88,6 +88,7 @@ def get_single_item_information(item):
         return response
     return None
 
+@frappe.whitelist()
 def get_entry_warehouse():
     entry_warehouse = frappe.db.get_single_value("SEG Settings", "entry_warehouse")
     return entry_warehouse
@@ -276,7 +277,7 @@ def store_everything(order):
     #insert receipt
     try:
         purchase_receipt.insert()
-        return {'success': True, 'error': None, 'message': "Wareneingang <b>{0}</b> wurde erfolgreich erstellt.".format(purchase_receipt.name) }
+        return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich erstellt.".format(purchase_receipt.name) }
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
         frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
