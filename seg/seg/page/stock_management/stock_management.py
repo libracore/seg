@@ -4,7 +4,7 @@
 import frappe
 from frappe.utils import cint
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
-from seg.seg.purchasing import get_updated_seg_prices
+from erpnext.setup.utils import get_exchange_rate
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -263,5 +263,49 @@ def get_order_items(order):
 
 @frappe.whitelist()
 def store_everything(order):
+    #get entry warehouse
+    entry_warehouse = get_entry_warehouse()
+    #create purchase receipt
     purchase_receipt = make_purchase_receipt(order)
-    # ~ get_updated_seg_prices ->
+    #update items with seg price values
+    updated_items = get_updated_seg_prices(purchase_receipt.get('items'), purchase_receipt.get('buying_price_list'), purchase_receipt.get('currency'))
+    purchase_receipt.set("items", updated_items)
+    #set entry warehouse
+    for item in purchase_receipt.items:
+        item.warehouse = entry_warehouse
+    #insert receipt
+    try:
+        purchase_receipt.insert()
+        return {'success': True, 'error': None, 'message': "Wareneingang <b>{0}</b> wurde erfolgreich erstellt.".format(purchase_receipt.name) }
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
+
+
+def get_updated_seg_prices(items, price_list, currency):
+    if currency != "CHF":
+        exchange_rate = get_exchange_rate(currency, "CHF")
+    for item in items:
+        item_price = frappe.get_all(
+            "Item Price",
+            filters={
+                        'item_code': item.get('item_code'),
+                        'price_list': price_list,
+                        'supplier': ""},
+            fields=["name"]
+            )
+
+        
+        if len(item_price) > 0:
+            item_price_doc = frappe.get_doc("Item Price", item_price[0])
+            item.freight_costs = item_price_doc.get('freight_costs') or 0
+            item.currency_exchange_fees = item_price_doc.get('currency_exchange_fee') or 0
+            if currency != "CHF":
+                price_with_fee = item.get('rate') + (item.get('rate') / 100 * item_price_doc.get('currency_exchange_fee') or 0)
+                price_in_chf = price_with_fee * exchange_rate
+            else:
+                price_in_chf = item.get('rate')
+            seg_purchase_price = price_in_chf + item_price_doc.get('freight_costs') or 0
+            item.seg_purchase_price = seg_purchase_price
+            item.seg_amount = seg_purchase_price * item.qty
+    return items

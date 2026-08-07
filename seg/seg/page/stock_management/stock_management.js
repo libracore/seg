@@ -389,13 +389,10 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
                 if (response.message) {
                     if (response.message.success) {
                         console.log("sucess");
-                        //~ this.show_success("Artikel wurde erfolgreich eingelagert.", "button-message");
-                    } else {
-                        console.log("error");
-                        this.show_error(response.message.error, "wh-message");
+                        this.show_success(response.message.message, "button-message");
                     }
                 } else {
-                    this.show_error("Beim einlagern ist ein Fehler aufgetreten.", "wh-message");
+                    this.show_error("Beim einlagern ist ein Fehler aufgetreten.", "button-message");
                 }
             }
         });
