@@ -264,4 +264,4 @@ def get_order_items(order):
 @frappe.whitelist()
 def store_everything(order):
     purchase_receipt = make_purchase_receipt(order)
-    get_updated_seg_prices
+    # ~ get_updated_seg_prices
