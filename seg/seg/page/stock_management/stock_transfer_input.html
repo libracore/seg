@@ -1,70 +1,135 @@
 <section class="scan-container">
 
-    <div class="field-group article-group">
+    <div class="transfer-inputs">
+        
+        <!-- Artikel -->
+        <div class="transfer-field">
 
-        <label class="field-label" for="from-warehouse-input">
-            Ausgangslager
-        </label>
+            <label class="field-label" for="transfer-article-input">
+                Artikel
+            </label>
 
-        <div class="input-wrapper">
-            <input
-                id="from-warehouse-input"
-                class="text-input"
-                type="text"
-                autocomplete="off">
+            <div class="input-wrapper">
 
-            <button id="clear-from-warehouse" class="clear-button" type="button">
-                ✕
-            </button>
+                <input
+                    id="transfer-article-input"
+                    class="text-input"
+                    type="text"
+                    autocomplete="off">
+
+                <button
+                    id="clear-transfer-article"
+                    class="clear-button"
+                    type="button">
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Ausgangslager -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="from-warehouse-input">
+                Ausgangslager
+            </label>
+
+            <div class="input-wrapper">
+
+                <input
+                    id="from-warehouse-input"
+                    class="text-input"
+                    type="text"
+                    autocomplete="off">
+
+                <button
+                    id="clear-from-warehouse"
+                    class="clear-button"
+                    type="button">
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Eingangslager -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="to-warehouse-input">
+                Eingangslager
+            </label>
+
+            <div class="input-wrapper">
+
+                <input
+                    id="to-warehouse-input"
+                    class="text-input"
+                    type="text"
+                    autocomplete="off">
+
+                <button
+                    id="clear-to-warehouse"
+                    class="clear-button"
+                    type="button">
+                    ✕
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Menge -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="transfer-quantity-input">
+                Menge
+            </label>
+
+            <div class="quantity-row">
+
+                <div class="quantity-selector">
+
+                    <button
+                        id="transfer-qty-minus"
+                        class="qty-button"
+                        type="button">
+                        −
+                    </button>
+
+                    <input
+                        id="transfer-quantity-input"
+                        class="quantity-input"
+                        type="number"
+                        value="1"
+                        min="1">
+
+                    <button
+                        id="transfer-qty-plus"
+                        class="qty-button"
+                        type="button">
+                        +
+                    </button>
+
+                </div>
+
+            </div>
+
         </div>
 
     </div>
 
 
-    <div class="field-group article-group">
+    <button
+        id="transfer-ok-button"
+        class="ok-button"
+        type="button">
 
-        <label class="field-label" for="to-warehouse-input">
-            Eingangslager
-        </label>
-
-        <div class="input-wrapper">
-            <input
-                id="to-warehouse-input"
-                class="text-input"
-                type="text"
-                autocomplete="off">
-
-            <button id="clear-to-warehouse" class="clear-button" type="button">
-                ✕
-            </button>
-        </div>
-
-    </div>
-
-
-    <div class="field-group article-group">
-
-        <label class="field-label" for="transfer-article-input">
-            Artikel
-        </label>
-
-        <div class="input-wrapper">
-            <input
-                id="transfer-article-input"
-                class="text-input"
-                type="text"
-                autocomplete="off">
-
-            <button id="clear-transfer-article" class="clear-button" type="button">
-                ✕
-            </button>
-        </div>
-
-    </div>
-
-
-    <button id="transfer-ok-button" class="ok-button" type="button">
         <i class="fa fa-check"></i>
+
     </button>
 
 </section>
