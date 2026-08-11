@@ -5,6 +5,7 @@ import frappe
 from frappe.utils import cint
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
+import json
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -162,11 +163,11 @@ def create_enter_stock_entry(item, target_warehouse, qty):
     #Get Sorce Warehouse (Eingangslager)
     source_warehouse = get_entry_warehouse()
     
-    stock_entry = create_stock_entry("Material Transfer", item, qty, source_warehouse, target_warehouse)
+    stock_entry = create_single_stock_entry("Material Transfer", item, qty, source_warehouse, target_warehouse)
     
     return {'success': True, 'error': None}
     
-def create_stock_entry(entry_type, item, qty, source_warehouse=None, target_warehouse=None):
+def create_single_stock_entry(entry_type, item, qty, source_warehouse=None, target_warehouse=None):
     stock_entry = frappe.new_doc("Stock Entry")
 
     stock_entry.stock_entry_type = entry_type
@@ -320,8 +321,8 @@ def get_item_code(barcode):
     else:
         return None
 
+@frappe.whitelist()
 def get_single_item_basic_information(item):
-    #Get Entry Warehouse
     item_information = frappe.get_all("Item", {'name': item}, ['item_code', 'item_name', 'image'])
 
     if len(item_information) > 0:
@@ -333,3 +334,61 @@ def get_single_item_basic_information(item):
                     }}]
         return response
     return None
+
+#Return Items Dict by Warehouse
+@frappe.whitelist()
+def get_item_information_by_warehouse(warehouse):
+    #CHeck if Entry Warehouse
+    if warehouse == "entry_warehouse":
+        warehouse = get_entry_warehouse()
+    
+    #Get all Items in Entry Warehouse
+    items = frappe.get_all("Bin", filters={'warehouse': warehouse,  'actual_qty': [">", 0]}, fields=["item_code", "actual_qty"])
+    
+    #Prepare response
+    if len(items) > 0:
+        response = []
+        for item in items:
+            #Get Item Doc
+            item_doc = frappe.get_doc("Item", item.get('item_code'))
+            
+            #Add Information for this item to response
+            item_response = {
+                        'item_code': item.get('item_code'),
+                        'picture': item_doc.get('image') or "",
+                        'content': {
+                            'qty': item.get('actual_qty'),
+                            'item_name': item_doc.get('item_name'),
+                            'locations': get_item_locations(item.get('item_code')),
+                            'stored_qty': 0
+                        }}
+        
+            response.append(item_response)
+    else:
+        response = None
+    
+    return response
+
+@frappe.whitelist()
+def create_stock_entry(items, entry_type):
+    items = json.loads(items)
+    
+    stock_entry = frappe.new_doc("Stock Entry")
+
+    stock_entry.stock_entry_type = entry_type
+    
+    for item in items:
+        stock_entry.append("items", {
+            'item_code': item.get('item_code'),
+            'qty': item.get('qty'),
+            's_warehouse': item.get('from_warehouse'),
+            't_warehouse': item.get('to_warehouse')
+        })
+    
+    try:
+        stock_entry.insert()
+        stock_entry.submit()
+        return {'stock_entry': stock_entry.name, 'success': 1}
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        return {'stock_entry': stock_entry.name, 'success': 1, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
