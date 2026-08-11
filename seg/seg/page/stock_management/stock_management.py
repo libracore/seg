@@ -103,7 +103,6 @@ def get_warehouse_overview(item):
     
     #return dict with all warehouses
     warehouse_dict = {'item_warehouses': item_warehouses, 'free_warehouses': free_warehouses}
-    frappe.log_error("warehouse_dict", warehouse_dict)
     return warehouse_dict
     
 def get_item_warehouse(item):
@@ -310,3 +309,27 @@ def get_updated_seg_prices(items, price_list, currency):
             item.seg_purchase_price = seg_purchase_price
             item.seg_amount = seg_purchase_price * item.qty
     return items
+
+#Translate Barcode to Item Code
+@frappe.whitelist()
+def get_item_code(barcode):
+    item = frappe.get_all("Item", {'barcode': barcode, 'barcode_type': "EAN"}, "name")
+    if len(item) > 0:
+        item_dict = get_single_item_basic_information(item[0].name)
+        return item_dict
+    else:
+        return None
+
+def get_single_item_basic_information(item):
+    #Get Entry Warehouse
+    item_information = frappe.get_all("Item", {'name': item}, ['item_code', 'item_name', 'image'])
+
+    if len(item_information) > 0:
+        response = [{
+                    'item_code': item_information[0].get('item_code'),
+                    'picture': item_information[0].get('image') or "",
+                    'content': {
+                        'item_name': item_information[0].get('item_name')
+                    }}]
+        return response
+    return None
