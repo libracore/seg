@@ -149,15 +149,35 @@ class StockManagementClass {
     }
     
     //Handle Scan Inputs
+    //~ setup_scanner() {
+        //~ var me = this;
+        //~ let scan_buffer = "";
+        //~ document.addEventListener("keydown", (event) => {
+            //~ if (event.key === "Enter") {
+                //~ me.handle_scan(scan_buffer);
+                //~ scan_buffer = "";
+                //~ return;
+            //~ }
+            //~ scan_buffer += event.key;
+        //~ });
+    //~ }
+    //Provide Scan Inputs
     setup_scanner() {
         var me = this;
         let scan_buffer = "";
+
         document.addEventListener("keydown", (event) => {
+
             if (event.key === "Enter") {
                 me.handle_scan(scan_buffer);
                 scan_buffer = "";
                 return;
             }
+
+            if (event.key === "Shift") {
+                return;
+            }
+
             scan_buffer += event.key;
         });
     }
@@ -1034,28 +1054,30 @@ class StockTransferPage extends StockManagementClass {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
 		});
         
-        //Delete PO Field
+        // Delete From Warehouse
         document.getElementById("clear-from-warehouse").addEventListener("click", () => {
-            const fromWHInput = document.getElementById("from-warehouse-input");
 
-            fromWHInput.value = "";
-            fromWHInput.focus();
+            this.from_wh_link_field.set_value("");
+            this.from_wh_link_field.set_focus();
+
         });
-        
-        //Delete PO Field
+
+
+        // Delete To Warehouse
         document.getElementById("clear-to-warehouse").addEventListener("click", () => {
-            const toWHInput = document.getElementById("to-warehouse-input");
 
-            toWHInput.value = "";
-            toWHInput.focus();
+            this.to_wh_link_field.set_value("");
+            this.to_wh_link_field.set_focus();
+
         });
-        
-        //Delete PO Field
-        document.getElementById("clear-transfer-article").addEventListener("click", () => {
-            const toWHInput = document.getElementById("transfer-article-input");
 
-            toWHInput.value = "";
-            toWHInput.focus();
+
+        // Delete Item
+        document.getElementById("clear-transfer-article").addEventListener("click", () => {
+
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
+
         });
         
         //Add Quantity
@@ -1078,25 +1100,14 @@ class StockTransferPage extends StockManagementClass {
             }
         });
         
-        const warehouse_input = document.getElementById("from-warehouse-input");
-        warehouse_input.addEventListener("change", () => {
-            const warehouse = warehouse_input.value;
-            if (!this.item) {
-                this.display_items_by_warehouse(warehouse);
-            }
-        });
-        
         //Restock Item
 		document.getElementById("transfer-ok-button").addEventListener("click", () => {
-            let item = this.item_link_field.get_value();
-            let from_warehouse = document.getElementById("from-warehouse-input").value;
-            let to_warehouse = document.getElementById("to-warehouse-input").value;
             let qty = document.getElementById("transfer-quantity-input").value;
-            if ((!item) || (!from_warehouse) || (!to_warehouse)) {
+            if ((!this.item) || (!this.from_warehouse) || (!this.to_warehouse)) {
                 this.show_error("Bitte zuerst alle Felder befüllen.", "transfer-message")
             } else {
                 //Prepare Items
-                let items = [{'item_code': item, 'qty': qty, 'from_warehouse': from_warehouse, 'to_warehouse': to_warehouse}]
+                let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
                 //Create Stock Entry
                 this.create_stock_entry(items, "Material Transfer", "transfer-message");
             }
@@ -1113,28 +1124,49 @@ class StockTransferPage extends StockManagementClass {
     }
     
     async display_items_and_warehouses() {
-        //Get Item Dict
-        this.item_dict = await this.create_item_dict(this.item);
+        const warehouse_overview = document.getElementById("stock-transfer-wh-overview");
+        if (this.item) {
+            //Get Item Dict
+            this.item_dict = await this.create_item_dict(this.item);
+            //Get Warehouse Information
+            this.warehouses = await this.get_warehouse_overview(this.item_dict[0].item_code);
+            warehouse_overview.style.display = "";
+        } else {
+            //Remove Information
+            this.item_dict = []
+            this.warehouses = []
+            warehouse_overview.style.display = "none";
+        }
         //Show Item Table
         const list_section = document.getElementById('stock-transfer-list');
         const list_section_content = frappe.render_template("item_list_without_qty", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
-        //Get Warehouse Information
-        this.warehouses = await this.get_warehouse_overview(this.item_dict[0].item_code);
+        
         //Show Warehouse Information
-        const warehouse_overview = document.getElementById('stock-transfer-wh-overview');
         const warehouse_overview_content = frappe.render_template("warehouse_overview", {'warehouses': this.warehouses});
         warehouse_overview.innerHTML = warehouse_overview_content;
     }
     
-    handle_scan(scan_buffer) {
-        //Get Item Information
-        //~ const barcode = document.getElementById("transfer-article-input").value;
-        //~ this.item_dict = await this.translate_item_barcode(barcode);
-        
-        //~ warehouse_input.value = scan;
-        //~ warehouse_input.dispatchEvent(new Event("change"));
-        
+    //Check if an Item or Warehouse has been scanned and set value to the right field
+    async handle_scan(scan_buffer) {
+        const input = document.getElementById("scan-test-input");
+        if (/^\d+$/.test(scan_buffer)) {
+            this.item_dict;
+            this.item_dict = await this.translate_item_barcode(scan_buffer);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+            } else {
+                this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
+            }
+        } else {
+            let warehouse = scan_buffer + " - SEG"
+            input.value = warehouse;
+            if (!this.from_wh_link_field.get_value()) {
+                this.from_wh_link_field.set_value(warehouse);
+            } else {
+                this.to_wh_link_field.set_value(warehouse);
+            }
+        }
     }
     
     create_link_fields() {
@@ -1159,10 +1191,62 @@ class StockTransferPage extends StockManagementClass {
 
         this.item_link_field.make();
         this.item_link_field.refresh();
+        
+        //From Warehouse
+        const from_wh_container = document.getElementById("from-warehouse-input");
+
+        this.from_wh_link_field = frappe.ui.form.make_control({
+            parent: from_wh_container,
+            df: {
+                fieldtype: "Link",
+                options: "Warehouse",
+                fieldname: "from_warehouse",
+				change: () => {
+                    document.activeElement.blur();
+                    //Show All Items on Warehouse, when Warehouse has been selected first
+                    this.from_warehouse = this.from_wh_link_field.get_value();
+                    if (!this.item) {
+                        //~ const warehouse_overview = document.getElementById("stock-transfer-wh-overview");
+                        //~ warehouse_overview.style.display = "";
+                        //~ const warehouse = warehouse_input.value;
+                        this.display_items_by_warehouse(this.from_warehouse);
+                    }
+                    
+				}
+            },
+            only_input: true
+        });
+
+        this.from_wh_link_field.make();
+        this.from_wh_link_field.refresh();
+        
+        //To Warehouse
+        const to_wh_container = document.getElementById("to-warehouse-input");
+
+        this.to_wh_link_field = frappe.ui.form.make_control({
+            parent: to_wh_container,
+            df: {
+                fieldtype: "Link",
+                options: "Warehouse",
+                fieldname: "to_warehouse",
+				change: () => {
+                    document.activeElement.blur();
+                    this.to_warehouse = this.to_wh_link_field.get_value();
+				}
+            },
+            only_input: true
+        });
+
+        this.to_wh_link_field.make();
+        this.to_wh_link_field.refresh();
     }
     
     async display_items_by_warehouse(warehouse) {
-        this.item_dict = await this.create_item_dict_by_warehouse(warehouse);
+        if (warehouse) {
+            this.item_dict = await this.create_item_dict_by_warehouse(warehouse);
+        } else {
+            this.item_dict = []
+        }
         //Show Item Table
         const list_section = document.getElementById('stock-transfer-list');
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});

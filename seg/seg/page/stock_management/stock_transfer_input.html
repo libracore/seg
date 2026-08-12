@@ -26,6 +26,7 @@
 
     </div>
 
+
     <div class="transfer-inputs">
 
         <!-- Ausgangslager -->
@@ -37,17 +38,18 @@
 
             <div class="input-wrapper">
 
-                <input
+                <div
                     id="from-warehouse-input"
-                    class="text-input"
-                    type="text"
-                    autocomplete="off">
+                    class="link-field-container">
+                </div>
 
                 <button
                     id="clear-from-warehouse"
                     class="clear-button"
                     type="button">
+
                     ✕
+
                 </button>
 
             </div>
@@ -64,17 +66,18 @@
 
             <div class="input-wrapper">
 
-                <input
+                <div
                     id="to-warehouse-input"
-                    class="text-input"
-                    type="text"
-                    autocomplete="off">
+                    class="link-field-container">
+                </div>
 
                 <button
                     id="clear-to-warehouse"
                     class="clear-button"
                     type="button">
+
                     ✕
+
                 </button>
 
             </div>
@@ -136,3 +139,9 @@
 
 
 <div id="transfer-message" class="scan-message"></div>
+
+<input
+    id="scan-test-input"
+    type="text"
+    placeholder="Scan hier etwas..."
+    autocomplete="off">

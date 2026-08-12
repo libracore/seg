@@ -314,9 +314,12 @@ def get_updated_seg_prices(items, price_list, currency):
 #Translate Barcode to Item Code
 @frappe.whitelist()
 def get_item_code(barcode):
-    item = frappe.get_all("Item", {'barcode': barcode, 'barcode_type': "EAN"}, "name")
+    frappe.log_error("barcode", barcode)
+    item = frappe.get_all("Item Barcode", filters={'barcode': barcode,'barcode_type': "EAN"}, fields=["parent"])
+    frappe.log_error("item", item)
     if len(item) > 0:
-        item_dict = get_single_item_basic_information(item[0].name)
+        item_dict = get_single_item_basic_information(item[0].parent)
+        frappe.log_error("item_dict", item_dict)
         return item_dict
     else:
         return None
@@ -324,7 +327,7 @@ def get_item_code(barcode):
 @frappe.whitelist()
 def get_single_item_basic_information(item):
     item_information = frappe.get_all("Item", {'name': item}, ['item_code', 'item_name', 'image'])
-
+    
     if len(item_information) > 0:
         response = [{
                     'item_code': item_information[0].get('item_code'),
