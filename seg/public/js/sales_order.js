@@ -187,6 +187,18 @@ function set_doc_owner() {
 }
 
 function create_picking_list(frm) {
-    console.log("Hallo");
+    frappe.call({
+        'method': 'seg.seg.delivery.create_pircking_list',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message.success) {
+                frappe.set_route("Form", "Picking List", response.message.name);
+            } else {
+                frappe.msgprint("Es ist ein Fehler beim erstellen der Picking List aufgetreten, ein Fehlerbericht wurde erstellt.")
+            }
+        }
+    });
 }
 
