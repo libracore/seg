@@ -62,6 +62,11 @@ frappe.ui.form.on('Sales Order',  {
                 modify_item_rate(frm);
             });
         }
+        
+        //Add Button to create Picking List
+        if (frm.doc.docstatus == 1) {
+            frm.add_custom_button(__("Picking List"), () => create_picking_list(frm), __("Create"));
+        }
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
@@ -179,5 +184,9 @@ function set_doc_owner() {
             }
         }
     });
+}
+
+function create_picking_list(frm) {
+    console.log("Hallo");
 }
 
