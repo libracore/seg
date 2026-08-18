@@ -106,7 +106,7 @@ def update_delivery_note_qty(self, event):
             handeled_so.append(item.against_sales_order)
 
 @frappe.whitelist()
-def create_pircking_list(doc):
+def create_picking_list(doc):
     so_doc = json.loads(doc)
     
     picking_list = frappe.new_doc("Picking List")
@@ -114,13 +114,14 @@ def create_pircking_list(doc):
     picking_list.sales_order = so_doc['name']
     
     for item in so_doc.get('items'):
-        picking_list_qty = item.get('qty') - item.get('qty')
-        picking_list.append("items", {
-            'item_code': item.get('item_code'),
-            'qty': item.get('qty'),
-            'uom': item.get('uom'),
-            'so_detail': item.get('name')
-        })
+        picking_list_qty = item.get('qty') - item.get('picking_list_qty')
+        if picking_list_qty > 0:
+            picking_list.append("items", {
+                'item_code': item.get('item_code'),
+                'qty': picking_list_qty,
+                'uom': item.get('uom'),
+                'so_detail': item.get('name')
+            })
         
     try:
         picking_list.insert()

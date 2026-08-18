@@ -160,6 +160,10 @@ doc_events = {
     "Purchase Receipt": {
         "on_submit": "seg.seg.purchasing.update_item_seg_price",
         "on_cancel": "seg.seg.purchasing.update_item_seg_price"
+    },
+    "Picking List": {
+        "on_submit": "seg.seg.doctype.picking_list.picking_list.update_so",
+        "on_cancel": "seg.seg.doctype.picking_list.picking_list.update_so"
     }
 }
 

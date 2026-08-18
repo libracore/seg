@@ -188,7 +188,7 @@ function set_doc_owner() {
 
 function create_picking_list(frm) {
     frappe.call({
-        'method': 'seg.seg.delivery.create_pircking_list',
+        'method': 'seg.seg.delivery.create_picking_list',
         'args': {
             'doc': frm.doc
         },
