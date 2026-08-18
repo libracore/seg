@@ -15,3 +15,4 @@ seg.patches.v0_14_0.update_seg_prices
 seg.patches.item_price_uom.item_price_uom
 #seg.patches.website_specification.website_specification
 seg.patches.v1_1_0.remove_verkaufsteam_from_sales_report
+seg.patches.v1_1_1.update_pricing_rule_prios
