@@ -28,7 +28,7 @@ frappe.stock_management = {
         this.tab_instances.purchase_receipt = new PurchaseReceiptPage("purchase_receipt", "Wareneingang");
         this.tab_instances.stock_enter = new StockEnterPage("stock_enter", "Artikel einlagern");
         this.tab_instances.stock_transfer = new StockTransferPage("stock_transfer", "Artikel umlagern");
-        //~ this.tab_instances.picking = new PickingPage();
+        this.tab_instances.picking = new PickingPage("picking", "Artikel Kommissionieren");
         //~ this.tab_instances.create_order = new CreateOrderPage();
     },
         //~ [
@@ -67,7 +67,8 @@ class StockManagementClass {
         this.colors = {
                     'purchase_receipt': "#1976d2",
                     'stock_enter': "#43a047",
-                    'stock_transfer': "#fb8c00"
+                    'stock_transfer': "#fb8c00",
+                    'picking': "#7B4DFF"
                 }
 	}
     
@@ -251,16 +252,24 @@ class HomePage extends StockManagementClass {
     
     //Add Event Listeners
     add_event_listeners() {
+        //Open Receipt
 		document.getElementById("goods-receipt").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.purchase_receipt);
 		});
         
+        //Open Stock Enter
 		document.getElementById("stock-enter-icon").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.stock_enter);
 		});
         
+        //Open Stock Transfer
 		document.getElementById("stock-transfer").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.stock_transfer);
+		});
+        
+        //Open Picking
+		document.getElementById("picking").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking);
 		});
     }
 }
@@ -312,8 +321,6 @@ class PurchaseReceiptPage extends StockManagementClass {
         
         //Delete PO Field
         document.getElementById("clear-purchase-order").addEventListener("click", () => {
-            const articleInput = document.getElementById("purchase-order-input");
-
             this.purchase_order_link_field.set_value("");
             this.purchase_order_link_field.set_focus();
         });
@@ -1253,4 +1260,155 @@ class StockTransferPage extends StockManagementClass {
         list_section.innerHTML = list_section_content;
     }
     
+}
+
+//Picking Page
+class PickingPage extends StockManagementClass {
+	constructor(key, label) {
+		super(key, label);
+        this.picking_lists;
+        this.selected_customer;
+	}
+
+	init() {
+		this.get_open_picking_lists()
+	}
+
+	on_show() {
+        this.show_subsections();
+        this.add_event_listeners();
+        this.create_link_fields();
+        //~ this.show_specific_dynamic_content();
+	}
+    
+    show_subsections() {
+        //Show Navbar
+        const header_menu_section = document.getElementById('picking-navbar');
+        const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
+        header_menu_section.innerHTML = header_menu_section_content;
+        
+        //Show Picking Input
+        const picking_input = document.getElementById('picking-input');
+        const picking_content = frappe.render_template("picking_input", {'title': this.label});
+        picking_input.innerHTML = picking_content;
+        
+        //Show Picking List Table
+        this.display_picking_lists()
+    }
+    
+    //Add Event Listeners
+    add_event_listeners() {
+        //Add General Event handlers
+        this.add_general_event_handlers()
+        
+        //Go back to Home <-
+		document.getElementById("nav-back").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+		});
+        
+        //Delete PO Field
+        document.getElementById("clear-picking-list").addEventListener("click", () => {
+            this.picking_list_link_field.set_value("");
+            this.picking_list_link_field.set_focus();
+        });
+        
+        //Delete Supplier Field
+        document.getElementById("clear-customer").addEventListener("click", () => {
+        
+            this.customer_link_field.set_value("");
+            this.customer_link_field.set_focus();
+
+        });
+        
+        //~ //Open Pruchase Order Tab
+		//~ document.getElementById("purchase-order-ok-button").addEventListener("click", () => {
+            //~ let order = this.purchase_order_link_field.get_value()
+            //~ frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", order, this));
+		//~ });
+    }
+    
+    //~ //Show Dynamic Content specific for this Site
+    //~ show_specific_dynamic_content() {
+        //~ document.getElementById("nav-title").textContent = this.label;
+        //~ document.getElementById("purchase-order-ok-button").style.backgroundColor = this.colors.purchase_receipt;
+        //~ this.show_dynamic_content()
+    //~ }
+    
+    //~ //Show Dynmic Content for whole Purchase Receipt Classes
+    //~ show_dynamic_content() {
+        //~ document.getElementById("nav-back").style.backgroundColor = this.colors.purchase_receipt;
+        //~ document.getElementById("mobile-navbar").style.backgroundColor = this.colors.purchase_receipt;
+    //~ }
+    
+    get_open_picking_lists(refresh=false) {
+        const customer = this.selected_customer ?? "";
+        const picking_list = document.getElementById("picking-list-input")?.value ?? "";
+        
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.get_open_picking_lists',
+            'args': {
+                'customer': customer,
+                'picking_list': picking_list
+            },
+            'callback': (response) => {
+                this.pickings_lists = response.message;
+                if (!refresh) {
+                    this.on_show();
+                } else {
+                    this.refresh_picking_list_list()
+                }
+            }
+        });
+    }
+    
+    create_link_fields() {
+        //Picking List
+        const picking_list_container = document.getElementById("picking-list-input");
+
+        this.picking_list_link_field = frappe.ui.form.make_control({
+            parent: picking_list_container,
+            df: {
+                fieldtype: "Link",
+                options: "Picking List",
+                fieldname: "picking_list",
+				change: () => {
+                    document.activeElement.blur();
+				}
+            },
+            only_input: true
+        });
+
+        this.picking_list_link_field.make();
+        this.picking_list_link_field.refresh();
+        
+        //Customer
+		const customer_container = document.getElementById("customer-input");
+
+		this.customer_link_field = frappe.ui.form.make_control({
+			parent: customer_container,
+			df: {
+				fieldtype: "Link",
+				options: "Customer",
+				name: "customer",
+				change: () => {
+					this.selected_customer = this.customer_link_field.get_value();
+                    document.activeElement.blur();
+                    this.get_open_picking_lists(true)
+				}
+			},
+			only_input: true
+		});
+        this.customer_link_field.make()
+		this.customer_link_field.refresh();
+    }
+    
+    refresh_picking_list_list() {
+        this.display_picking_lists()
+    }
+    
+    display_picking_lists() {
+        const list_section = document.getElementById('picking-list');
+        const list_section_content = frappe.render_template("picking_list_list", {'pickings_lists': this.pickings_lists});
+        list_section.innerHTML = list_section_content;
+    }
 }

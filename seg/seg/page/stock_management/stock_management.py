@@ -395,3 +395,36 @@ def create_stock_entry(items, entry_type):
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
         return {'stock_entry': stock_entry.name, 'success': 1, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
+
+
+#Get Open Orders for Purchase Receipt
+@frappe.whitelist()
+def get_open_picking_lists(customer, picking_list):
+    #Prepare condition
+    customer_condition = """"""
+    if customer:
+        customer_condition = """AND `customer` = '{0}'""".format(customer)
+    
+    picking_list_condition = """"""
+    if picking_list:
+        picking_list_condition = """AND `name` = '{0}'""".format(picking_list)
+    
+    #Get orders
+    open_picking_lists = frappe.db.sql("""
+                                SELECT
+                                    `name`,
+                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `formatted_schedule_date`,
+                                    `customer_name`,
+                                    `sales_order`
+                                FROM
+                                    `tabPicking List`
+                                WHERE
+                                    `status` = 'Open'
+                                AND
+                                    `docstatus` = 1
+                                {customer_condition}
+                                {picking_list_condition}
+                                ORDER BY
+                                    `schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
+    
+    return open_picking_lists

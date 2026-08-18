@@ -1134,3 +1134,15 @@
 
     box-sizing: border-box;
 }
+
+
+/* --------------------------------
+   No Items Message
+-------------------------------- */
+
+.no-items-message {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    padding-top: 30px;
+}
