@@ -4,7 +4,7 @@
 import frappe
 from frappe import _
 from frappe.modules.utils import sync_customizations
-from frappe. utils import cint
+from frappe.utils import cint
 
 def execute():
     sync_customizations("seg")
