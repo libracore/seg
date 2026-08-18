@@ -1,4 +1,4 @@
-# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
+# Copyright (c) 2026, libracore AG
 # License: GNU General Public License v3. See license.txt
 
 import frappe
