@@ -356,7 +356,6 @@ class PurchaseReceiptPage extends StockManagementClass {
     get_open_orders(refresh=false) {
         const supplier = this.selected_supplier ?? "";
         const order = document.getElementById("purchase-order-input")?.value ?? "";
-        console.log(supplier);
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_orders',
             'args': {
@@ -1278,7 +1277,7 @@ class PickingPage extends StockManagementClass {
         this.show_subsections();
         this.add_event_listeners();
         this.create_link_fields();
-        //~ this.show_specific_dynamic_content();
+        this.show_specific_dynamic_content();
 	}
     
     show_subsections() {
@@ -1320,29 +1319,33 @@ class PickingPage extends StockManagementClass {
 
         });
         
-        //~ //Open Pruchase Order Tab
-		//~ document.getElementById("purchase-order-ok-button").addEventListener("click", () => {
-            //~ let order = this.purchase_order_link_field.get_value()
-            //~ frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", order, this));
-		//~ });
+        //Open Pruchase Order Tab
+		document.getElementById("picking-list-ok-button").addEventListener("click", () => {
+            let picking_list = this.selected_picking_list ?? "";
+            if (picking_list) {
+                frappe.stock_management.load_tab(new PickingList('picking_list', "Artikel Kommissionieren", picking_list, this));
+            } else {
+                this.show_error("Bitte einen Rüstschein wählen", "picking-message");
+            }
+		});
     }
     
-    //~ //Show Dynamic Content specific for this Site
-    //~ show_specific_dynamic_content() {
-        //~ document.getElementById("nav-title").textContent = this.label;
-        //~ document.getElementById("purchase-order-ok-button").style.backgroundColor = this.colors.purchase_receipt;
-        //~ this.show_dynamic_content()
-    //~ }
+    //Show Dynamic Content specific for this Site
+    show_specific_dynamic_content() {
+        document.getElementById("picking-list-ok-button").style.backgroundColor = this.colors.picking;
+        this.show_dynamic_content()
+    }
     
-    //~ //Show Dynmic Content for whole Purchase Receipt Classes
-    //~ show_dynamic_content() {
-        //~ document.getElementById("nav-back").style.backgroundColor = this.colors.purchase_receipt;
-        //~ document.getElementById("mobile-navbar").style.backgroundColor = this.colors.purchase_receipt;
-    //~ }
+    //Show Dynmic Content for whole Purchase Receipt Classes
+    show_dynamic_content() {
+        document.getElementById("nav-back").style.backgroundColor = this.colors.picking;
+        document.getElementById("mobile-navbar").style.backgroundColor = this.colors.picking;
+        document.getElementById("nav-title").textContent = this.label;
+    }
     
     get_open_picking_lists(refresh=false) {
         const customer = this.selected_customer ?? "";
-        const picking_list = document.getElementById("picking-list-input")?.value ?? "";
+        const picking_list = this.selected_picking_list ?? "";
         
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_picking_lists',
@@ -1371,8 +1374,26 @@ class PickingPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Picking List",
                 fieldname: "picking_list",
+                
+                get_query: () => {
+                    const filters = {
+                        'docstatus': 1,
+                        'status': "Open"
+                    }
+                    
+                    if (this.selected_customer) {
+                        filters.customer = this.selected_customer
+                    }
+                    
+                    return {
+                        filters: filters
+                    };
+                },
+                
 				change: () => {
+                    this.selected_picking_list = this.picking_list_link_field.get_value();
                     document.activeElement.blur();
+                    this.get_open_picking_lists(true)
 				}
             },
             only_input: true
@@ -1411,4 +1432,147 @@ class PickingPage extends StockManagementClass {
         const list_section_content = frappe.render_template("picking_list_list", {'pickings_lists': this.pickings_lists});
         list_section.innerHTML = list_section_content;
     }
+}
+
+
+//Purchase Receipt - Show Orders with Items to Receive - Pick Items
+class PurchaseReceiptOrder extends PurchaseReceiptPage {
+	constructor(key, label, order, parent_this) {
+		super(key, label);
+        this.order = order;
+        this.parent_this = parent_this;
+	}
+
+	//~ init() {
+        //~ console.log(this);
+        //~ this.get_order_items();
+	//~ }
+
+	//~ on_show() {
+        //~ console.log(this);
+        //~ this.show_subsections();
+        //~ this.show_specific_dynamic_content();
+        //~ this.add_event_listeners();
+	//~ }
+    
+    //~ //Add Event Listeners
+    //~ add_event_listeners() {
+        //~ //Add General Event handlers
+        //~ this.add_general_event_handlers()
+        
+        //~ //Go back to Stock Enter Page <-
+		//~ document.getElementById("nav-back").addEventListener("click", () => {
+            //~ frappe.stock_management.load_tab(frappe.stock_management.tab_instances.purchase_receipt);
+		//~ });
+        
+        //~ //Cleare Item
+        //~ document.getElementById("clear-article").addEventListener("click", () => {
+            //~ const warehouseInput = document.getElementById("article-input");
+
+            //~ warehouseInput.value = "";
+            //~ warehouseInput.focus();
+        //~ });
+        
+        //~ //Add Quantity
+        //~ document.getElementById("qty-plus").addEventListener("click", () => {
+            //~ const quantityInput = document.getElementById("quantity-input");
+
+            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
+
+            //~ quantityInput.value = quantity + 1;
+        //~ });
+        
+        //~ //remove Quantity
+        //~ document.getElementById("qty-minus").addEventListener("click", () => {
+            //~ const quantityInput = document.getElementById("quantity-input");
+
+            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
+
+            //~ if (quantity > 1) {
+                //~ quantityInput.value = quantity - 1;
+            //~ }
+        //~ });
+        
+        //~ //Submit Stock Entry
+		//~ document.getElementById("action-button").addEventListener("click", () => {
+            //~ console.log(this.order);
+            //~ this.store_everything(this.order);
+		//~ });
+        
+        //~ //Open Item Tab
+		//~ document.getElementById("ok-button").addEventListener("click", () => {
+            //~ let item = document.getElementById("article-input").value;
+            //~ let qty = document.getElementById("quantity-input").value;
+            //~ frappe.stock_management.load_tab(new PurchaseReceiptItem(item, qty, this, this.parent_this));
+		//~ });
+        
+    //~ }
+    
+    //~ show_subsections() {
+        //~ //Show Navbar
+        //~ const header_menu_section = document.getElementById('purchase-receipt-order-navbar');
+        //~ const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
+        //~ header_menu_section.innerHTML = header_menu_section_content;
+        
+        //~ //Show Item Input
+        //~ const item_input = document.getElementById('purchase-receipt-order-input');
+        //~ const item_input_content = frappe.render_template("item_input", {'title': this.label});
+        //~ item_input.innerHTML = item_input_content;
+        
+        //~ //Show Item Table
+        //~ const list_section = document.getElementById('purchase-receipt-order-list');
+        //~ console.log(list_section);
+        //~ const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.items});
+        //~ console.log("Order");
+        //~ list_section.innerHTML = list_section_content;
+        
+        //~ //Show Bottom Button
+        //~ const bottom_button = document.getElementById('purchase-receipt-order-button');
+        //~ const bottom_button_content = frappe.render_template("bottom_button", {'items': this.items});
+        //~ bottom_button.innerHTML = bottom_button_content;
+    //~ }
+    
+    //~ show_specific_dynamic_content() {
+        //~ document.getElementById("ok-button").style.backgroundColor = this.colors.purchase_receipt;
+        //~ document.getElementById("action-button").textContent = "Alles auf Wareneingangslager";
+        //~ document.getElementById("action-button").style.backgroundColor = this.colors.purchase_receipt;
+        //~ document.getElementById("nav-title").textContent = this.order;
+        //~ this.show_dynamic_content()
+    //~ }
+    
+    //~ get_order_items() {
+        //~ if (this.order) {
+            //~ frappe.call({
+                //~ 'method': 'seg.seg.page.stock_management.stock_management.get_order_items',
+                //~ 'args': {
+                    //~ 'order': this.order
+                //~ },
+                //~ 'callback': (response) => {
+                    //~ console.log("hallo velo");
+                    //~ this.items = response.message;
+                    //~ this.on_show();
+                //~ }
+            //~ });
+        //~ }
+    //~ }
+    
+    //~ store_everything(order) {
+        //~ frappe.call({
+            //~ 'method': 'seg.seg.page.stock_management.stock_management.store_everything',
+            //~ 'args': {
+                //~ 'order': order
+            //~ },
+            //~ 'callback': (response) => {
+                //~ console.log(response.message);
+                //~ if (response.message) {
+                    //~ if (response.message.success) {
+                        //~ console.log("sucess");
+                        //~ this.show_success(response.message.message, "button-message");
+                    //~ }
+                //~ } else {
+                    //~ this.show_error("Beim einlagern ist ein Fehler aufgetreten.", "button-message");
+                //~ }
+            //~ }
+        //~ });
+    //~ }
 }
