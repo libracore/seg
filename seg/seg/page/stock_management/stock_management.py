@@ -76,7 +76,6 @@ def get_single_item_information(item):
                                     AND
                                         `tabBin`.`warehouse` = %(warehouse)s;""", {'item': item, 'warehouse': entry_warehouse}, as_dict=True)
     if len(item_information) > 0:
-        frappe.log_error("item_information", item_information)
         response = [{
                     'item_code': item_information[0].get('item_code'),
                     'picture': item_information[0].get('image') or "",
@@ -85,7 +84,6 @@ def get_single_item_information(item):
                         'item_name': item_information[0].get('item_name'),
                         'locations': get_item_locations(item_information[0].get('item_code'))
                     }}]
-        frappe.log_error("Item Information", response)
         return response
     return None
 
@@ -110,8 +108,9 @@ def get_item_warehouse(item):
     warehouses = frappe.db.sql("""
                                 SELECT
                                     `tabBin`.`item_code` AS `item_code`,
-                                    `tabBin`.`warehouse`,
-                                    `tabWarehouse`.`warehouse_type`
+                                    `tabBin`.`warehouse` AS `warehouse`,
+                                    `tabBin`.`actual_qty` AS `qty`,
+                                    `tabWarehouse`.`warehouse_type` AS `warehouse_type`
                                     
                                 FROM
                                     `tabBin`
@@ -223,8 +222,11 @@ def get_open_orders(supplier, order):
 
 #Get Items from Open Order
 @frappe.whitelist()
-def get_order_items(order):
-    frappe.log_error("order", order)
+def get_order_items(order, item=False):
+    item_condition = """"""
+    if item:
+        item_condition = """AND `tabPurchase Order Item`.`item_code` = {0}""".format(item)
+
     items = frappe.db.sql("""
                             SELECT
                                 `tabPurchase Order Item`.`item_code` AS `item_code`,
@@ -236,8 +238,9 @@ def get_order_items(order):
                             LEFT JOIN
                                 `tabItem` ON `tabItem`.`name` = `tabPurchase Order Item`.`item_code`
                             WHERE
-                                `tabPurchase Order Item`.`parent` = %(po)s;""", {'po': order}, as_dict=True)
-    frappe.log_error("items", items)
+                                `tabPurchase Order Item`.`parent` = %(po)s
+                            {item_condition};""".format(item_condition=item_condition), {'po': order}, as_dict=True)
+    
         #Prepare response
     if len(items) > 0:
         response = []
@@ -257,10 +260,7 @@ def get_order_items(order):
                 response.append(item_response)
     else:
         response = None
-    
     return response
-    
-    return items
 
 @frappe.whitelist()
 def store_everything(order):
@@ -428,3 +428,41 @@ def get_open_picking_lists(customer, picking_list):
                                     `schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
     
     return open_picking_lists
+
+#Get all Items for Picking List
+@frappe.whitelist()
+def get_picking_list_items(picking_list):
+    items = frappe.db.sql("""
+                            SELECT
+                                `tabPicking List Item`.`item_code` AS `item_code`,
+                                `tabPicking List Item`.`item_name` AS `item_name`,
+                                (`tabPicking List Item`.`qty` - `tabPicking List Item`.`picked_qty`) AS `qty`,
+                                `tabItem`.`image` AS `image`
+                            FROM
+                                `tabPicking List Item`
+                            LEFT JOIN
+                                `tabItem` ON `tabItem`.`name` = `tabPicking List Item`.`item_code`
+                            WHERE
+                                `tabPicking List Item`.`parent` = %(pl)s;""", {'pl': picking_list}, as_dict=True)
+    
+        #Prepare response
+    if len(items) > 0:
+        response = []
+        for item in items:
+            #Add Information for this item to response
+            if item.get('qty') > 0:
+                item_response = {
+                            'item_code': item.get('item_code'),
+                            'picture': item.get('image') or "",
+                            'content': {
+                                'qty': item.get('qty'),
+                                'item_name': item.get('item_name'),
+                                'locations': get_item_locations(item.get('item_code')),
+                                'stored_qty': 0
+                            }}
+                
+                response.append(item_response)
+    else:
+        response = None
+        return response
+    return items
