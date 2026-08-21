@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.utils import cint
+from frappe.utils import cint, flt
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
 import json
@@ -225,7 +225,7 @@ def get_open_orders(supplier, order):
 def get_order_items(order, item=False):
     item_condition = """"""
     if item:
-        item_condition = """AND `tabPurchase Order Item`.`item_code` = {0}""".format(item)
+        item_condition = """AND `tabPurchase Order Item`.`item_code` = '{0}'""".format(item)
 
     items = frappe.db.sql("""
                             SELECT
@@ -241,7 +241,7 @@ def get_order_items(order, item=False):
                                 `tabPurchase Order Item`.`parent` = %(po)s
                             {item_condition};""".format(item_condition=item_condition), {'po': order}, as_dict=True)
     
-        #Prepare response
+    #Prepare response
     if len(items) > 0:
         response = []
         for item in items:
@@ -256,7 +256,7 @@ def get_order_items(order, item=False):
                                 'locations': get_item_locations(item.get('item_code')),
                                 'stored_qty': 0
                             }}
-                
+                frappe.log_error("response", response)
                 response.append(item_response)
     else:
         response = None
@@ -397,7 +397,7 @@ def create_stock_entry(items, entry_type):
         return {'stock_entry': stock_entry.name, 'success': 1, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
 
 
-#Get Open Orders for Purchase Receipt
+#Get Open Picking Lists
 @frappe.whitelist()
 def get_open_picking_lists(customer, picking_list):
     #Prepare condition
@@ -431,7 +431,12 @@ def get_open_picking_lists(customer, picking_list):
 
 #Get all Items for Picking List
 @frappe.whitelist()
-def get_picking_list_items(picking_list):
+def get_picking_list_items(picking_list, item=False):
+    #Prepare Item condition
+    item_condition = """"""
+    if item:
+        item_condition = """AND `tabPicking List Item`.`item_code` = '{0}'""".format(item)
+    
     items = frappe.db.sql("""
                             SELECT
                                 `tabPicking List Item`.`item_code` AS `item_code`,
@@ -443,7 +448,8 @@ def get_picking_list_items(picking_list):
                             LEFT JOIN
                                 `tabItem` ON `tabItem`.`name` = `tabPicking List Item`.`item_code`
                             WHERE
-                                `tabPicking List Item`.`parent` = %(pl)s;""", {'pl': picking_list}, as_dict=True)
+                                `tabPicking List Item`.`parent` = %(pl)s
+                            {item_condition};""".format(item_condition=item_condition), {'pl': picking_list}, as_dict=True)
     
         #Prepare response
     if len(items) > 0:
@@ -465,4 +471,38 @@ def get_picking_list_items(picking_list):
     else:
         response = None
         return response
-    return items
+    return response
+
+#Create Pruchase Receipt for single Item to directly store it
+@frappe.whitelist()
+def create_single_receipt(item_code, target_warehouse, qty, order):
+    frappe.log_error("purchase_receipt", "item: {0}<br>wh: {1}<br>qty: {2}<br>order: {3}".format(item_code, target_warehouse, qty, order))
+    #create purchase receipt
+    purchase_receipt = make_purchase_receipt(order)
+    
+    #Remove other items and set qty
+    for item in purchase_receipt.items:
+        if item.item_code == item_code:
+            item.qty = flt(qty)
+            item.warehouse = target_warehouse
+        else:
+            item.qty = 0
+    
+    purchase_receipt.items = [
+        item for item in purchase_receipt.items
+        if item.qty > 0
+    ]
+    
+    frappe.log_error("purchase_receipt", purchase_receipt.items)
+    
+    #update items with seg price values
+    updated_items = get_updated_seg_prices(purchase_receipt.get('items'), purchase_receipt.get('buying_price_list'), purchase_receipt.get('currency'))
+    purchase_receipt.set("items", updated_items)
+    
+    #insert receipt
+    try:
+        purchase_receipt.insert()
+        return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich erstellt.".format(purchase_receipt.name) }
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        frappe.throw("Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt.")
