@@ -29,15 +29,8 @@ frappe.stock_management = {
         this.tab_instances.stock_enter = new StockEnterPage("stock_enter", "Artikel einlagern");
         this.tab_instances.stock_transfer = new StockTransferPage("stock_transfer", "Artikel umlagern");
         this.tab_instances.picking = new PickingPage("picking", "Artikel Kommissionieren");
-        //~ this.tab_instances.create_order = new CreateOrderPage();
+        this.tab_instances.create_sales_order = new CreateSalesOrderPage("create_sales_order", "Auftrag erstellen");
     },
-        //~ [
-            //~ new PurchaseRecieptPage(),
-            //~ new StockEnterPage("stock_enter", "Artikel einlagern"),
-            //~ new TransferPage(),
-            //~ new PickingPage(),
-            //~ new CreateOrderPage()
-        //~ ];
     
 	add_views: function(page) {
 		page.add_view('stock_management', frappe.render_template("stock_management", {}));
@@ -68,7 +61,8 @@ class StockManagementClass {
                     'purchase_receipt': "#1976d2",
                     'stock_enter': "#43a047",
                     'stock_transfer': "#fb8c00",
-                    'picking': "#7B4DFF"
+                    'picking': "#7B4DFF",
+                    'crete_sales_order': "#E53935"
                 }
 	}
     
@@ -258,6 +252,11 @@ class HomePage extends StockManagementClass {
         //Open Picking
 		document.getElementById("picking").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking);
+		});
+        
+        //Open Sales Order Creation
+		document.getElementById("sales-order").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.create_sales_order);
 		});
     }
 }
@@ -1836,3 +1835,230 @@ class PickingListItem extends PurchaseReceiptOrder {
     }
 }
 
+//Stock Transfer
+class CreateSalesOrderPage extends StockManagementClass {
+	constructor(key, label) {
+		super(key, label);
+        this.items = [];
+        this.customer;
+	}
+
+	init() {
+		this.on_show()
+	}
+
+	on_show() {
+        this.show_subsections();
+        this.show_dynamic_content();
+        this.add_event_listeners();
+        this.create_link_fields();
+	}
+    
+    show_subsections() {
+        //Show Navbar
+        const header_menu_section = document.getElementById('create-order-navbar');
+        const header_menu_section_content = frappe.render_template("header_menu");
+        header_menu_section.innerHTML = header_menu_section_content;
+        
+        //Show Create Order Input
+        const create_order_input = document.getElementById('create-order-input');
+        const create_order_input_content = frappe.render_template("create_order_input");
+        create_order_input.innerHTML = create_order_input_content;
+        
+        this.display_items()
+        
+        //Show Submit Button
+        const create_order_button = document.getElementById('create-order-button');
+        const create_order_button_content = frappe.render_template("bottom_button");
+        create_order_button.innerHTML = create_order_button_content;
+    }
+    
+    //Add Event Listeners
+    add_event_listeners() {
+        //Add General Event handlers
+        this.add_general_event_handlers()
+        
+        //Go back to Home <-
+		document.getElementById("nav-back").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+		});
+        
+        // Delete Customer
+        document.getElementById("clear-order-customer").addEventListener("click", () => {
+
+            this.customer_link_field.set_value("");
+            this.customer_link_field.set_focus();
+
+        });
+        
+        // Delete Item
+        document.getElementById("clear-order-article").addEventListener("click", () => {
+
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
+
+        });
+        
+        // Delete Warehouse
+        document.getElementById("clear-order-warehouse").addEventListener("click", () => {
+
+            this.wh_link_field.set_value("");
+            this.wh_link_field.set_focus();
+
+        });
+        
+        //Add Quantity
+        document.getElementById("order-qty-plus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("order-quantity-input");
+
+            const quantity = parseInt(quantityInput.value, 10) || 1;
+
+            quantityInput.value = quantity + 1;
+        });
+        
+        //remove Quantity
+        document.getElementById("order-qty-minus").addEventListener("click", () => {
+            const quantityInput = document.getElementById("order-quantity-input");
+
+            const quantity = parseInt(quantityInput.value, 10) || 1;
+
+            if (quantity > 1) {
+                quantityInput.value = quantity - 1;
+            }
+        });
+        
+        //Add Item to Order
+		document.getElementById("create-order-ok-button").addEventListener("click", () => {
+            let item = this.item_link_field.get_value();
+            let warehouse = this.wh_link_field.get_value();
+            let qty = document.getElementById("order-quantity-input").value;
+            if ((!item) || (!warehouse)) {
+                this.show_error("Bitte zuerst alle Felder befüllen.", "order-message")
+            } else {
+                //Add Item to Items
+                this.update_items(item, warehouse, qty);
+            }
+		});
+        
+        //Create Order
+		document.getElementById("action-button").addEventListener("click", () => {
+            this.create_sales_order();
+		});
+    }
+    
+    //Show Dynamic Content
+    show_dynamic_content() {
+        document.getElementById("nav-title").textContent = this.label;
+        document.getElementById("create-order-ok-button").style.backgroundColor = this.colors.crete_sales_order;
+        document.getElementById("nav-back").style.backgroundColor = this.colors.crete_sales_order;
+        document.getElementById("mobile-navbar").style.backgroundColor = this.colors.crete_sales_order;
+        document.getElementById("action-button").textContent = "Auftrag erstellen";
+    }
+    
+    display_items() {
+        //Show Item Table
+        const list_section = document.getElementById('create-order-list');
+        const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.items});
+        list_section.innerHTML = list_section_content;
+    }
+    
+    async update_items(item_code, source_warehouse, qty) {
+        //Create Item Dict
+        let item_dict = await this.create_item_dict(item_code);
+        console.log(item_dict);
+        item_dict[0].content['warehouse'] = source_warehouse;
+        item_dict[0].content['qty'] = qty;
+        this.items.push(item_dict[0]);
+        this.display_items();
+    }
+    
+    //~ //Check if an Item or Warehouse has been scanned and set value to the right field
+    //~ async handle_scan(scan_buffer) {
+        //~ const input = document.getElementById("scan-test-input");
+        //~ if (/^\d+$/.test(scan_buffer)) {
+            //~ this.item_dict;
+            //~ this.item_dict = await this.translate_item_barcode(scan_buffer);
+            //~ if (this.item_dict) {
+                //~ this.item_link_field.set_value(this.item_dict[0].item_code);
+            //~ } else {
+                //~ this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
+            //~ }
+        //~ } else {
+            //~ let warehouse = scan_buffer + " - SEG"
+            //~ input.value = warehouse;
+            //~ if (!this.from_wh_link_field.get_value()) {
+                //~ this.from_wh_link_field.set_value(warehouse);
+            //~ } else {
+                //~ this.to_wh_link_field.set_value(warehouse);
+            //~ }
+        //~ }
+    //~ }
+    
+    create_link_fields() {
+        //Customer
+        const customer_container = document.getElementById("create-order-customer-input");
+
+        this.customer_link_field = frappe.ui.form.make_control({
+            parent: customer_container,
+            df: {
+                fieldtype: "Link",
+                options: "Customer",
+                fieldname: "customer",
+				change: () => {
+                    document.activeElement.blur();
+                    this.customer = this.to_wh_link_field.get_value();
+				}
+            },
+            only_input: true
+        });
+
+        this.customer_link_field.make();
+        this.customer_link_field.refresh();
+        
+        //Item
+        const item_container = document.getElementById("order-article-input");
+
+        this.item_link_field = frappe.ui.form.make_control({
+            parent: item_container,
+            df: {
+                fieldtype: "Link",
+                options: "Item",
+                fieldname: "item",
+				change: () => {
+                    document.activeElement.blur();
+				}
+            },
+            only_input: true
+        });
+
+        this.item_link_field.make();
+        this.item_link_field.refresh();
+        
+        //From Warehouse
+        const wh_container = document.getElementById("order-warehouse-input");
+
+        this.wh_link_field = frappe.ui.form.make_control({
+            parent: wh_container,
+            df: {
+                fieldtype: "Link",
+                options: "Warehouse",
+                fieldname: "from_warehouse",
+				change: () => {
+                    document.activeElement.blur();
+				}
+            },
+            only_input: true
+        });
+
+        this.wh_link_field.make();
+        this.wh_link_field.refresh();
+    }
+    
+    create_sales_order() {
+        if ((this.items) && (this.items.length > 0)) {
+            console.log("Create Sales Order: " + this.items);
+        } else {
+            this.show_error("Bitte zuerst Artikel hinzufügen.", "button-message");
+        }
+    }
+}

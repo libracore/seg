@@ -1,25 +1,36 @@
 <section class="list-content">
     <table class="item-table">
-        {% for item in items %}
-        <tr class="item-row">
+        {% if items %}
+            {% for item in items %}
+            <tr class="item-row">
 
-            <td class="item-image">
-                <img src="{{ item.picture }}">
-            </td>
+                <td class="item-image">
+                    <img src="{{ item.picture }}">
+                </td>
 
-            <td class="item-details">
+                <td class="item-details">
 
-                <div class="item-title">
-                    {{ item.content.qty }}x {{ item.content.item_name }}
-                </div>
+                    <div class="item-title">
+                        {{ item.content.qty }}x {{ item.content.item_name }}
+                    </div>
 
-                <div class="item-location">
-                    {{ item.item_code }}
-                </div>
+                    <div class="item-location">
+                        {{ item.item_code }}
+                    </div>
+                    
+                    {% if item.content.warehouse %}
+                        <div class="item-location">
+                            {{ item.content.warehouse }}
+                        </div>
+                    {% endif %}
+                </td>
 
-            </td>
-
-        </tr>
-        {% endfor %}
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <div class="no-items-message">Noch keine Artikel gewählt.</div>
+            </tr>
+        {% endif %}
     </table>
 </section>
