@@ -860,9 +860,8 @@ class StockEnterPage extends StockManagementClass {
         
         //Open Item Tab
 		document.getElementById("ok-button").addEventListener("click", () => {
-            let item = document.getElementById("article-input").value;
             let qty = document.getElementById("quantity-input").value;
-            frappe.stock_management.load_tab(new StockEnterItem(item, qty, this));
+            frappe.stock_management.load_tab(new StockEnterItem('stock_enter_item', "Zielplatz", this.item, qty, this));
 		});
     }
     
@@ -943,13 +942,14 @@ class StockEnterPage extends StockManagementClass {
 
 //Stock Enter - Pick To Warehouse
 class StockEnterItem extends StockEnterPage {
-	constructor(item, qty, parent_this) {
+	constructor(key, label, item, qty, parent_this) {
         console.log(item);
-		super('stock_enter_item', "Zielplatz");
+		super(key, label);
         this.item = item;
         this.starting_qty = qty;
         this.item_dict;
         this.parent_this = parent_this;
+        this.warehouse;
 	}
 
 	init() {
@@ -960,6 +960,7 @@ class StockEnterItem extends StockEnterPage {
         this.show_subsections();
         this.show_specific_dynamic_content();
         this.add_event_listeners();
+        this.create_link_fields();
 	}
     
     //Add Event Listeners
@@ -1002,9 +1003,8 @@ class StockEnterItem extends StockEnterPage {
         
         //Submit Stock Entry
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            const warehouse = document.getElementById("warehouse-input").value;
             const quantity = document.getElementById("wh-quantity-input").value;
-            this.create_stock_entry(this.item, warehouse, quantity)
+            this.create_stock_entry(this.item, this.warehouse, quantity)
 		});
     }
     
@@ -1096,6 +1096,29 @@ class StockEnterItem extends StockEnterPage {
                 }
             }
         });
+    }
+    
+    //Create Link Fields
+    create_link_fields() {
+        //Item
+        const wh_container = document.getElementById("warehouse-input");
+
+        this.wh_link_field = frappe.ui.form.make_control({
+            parent: wh_container,
+            df: {
+                fieldtype: "Link",
+                options: "Warehouse",
+                fieldname: "warehouse",
+				change: () => {
+                    document.activeElement.blur();
+                    this.warehouse = this.wh_link_field.get_value();
+				}
+            },
+            only_input: true
+        });
+
+        this.wh_link_field.make();
+        this.wh_link_field.refresh();
     }
 }
 
