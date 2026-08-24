@@ -281,7 +281,6 @@ class PurchaseReceiptPage extends StockManagementClass {
 	}
     
     show_subsections() {
-        console.log("show_subsections");
         //Show Navbar
         const header_menu_section = document.getElementById('purchase-receipt-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
@@ -507,6 +506,16 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
 		document.getElementById("ok-button").addEventListener("click", () => {
             let qty = document.getElementById("quantity-input").value;
             frappe.stock_management.load_tab(new PurchaseReceiptItem(this.item, qty, this, this.parent_this));
+		});
+        
+        //Fill Item Field with List Item
+        document.querySelectorAll(".item-row").forEach(row => {
+            row.addEventListener("click", () => {
+                const item_code = row.dataset.item;
+                const target_item = this.items.find(item => item.item_code === item_code);
+                console.log(item_code);
+                console.log(target_item);
+            });
 		});
         
     }
@@ -866,7 +875,6 @@ class StockEnterPage extends StockManagementClass {
     }
     
     show_subsections() {
-        console.log("show_subsections");
         //Show Navbar
         const header_menu_section = document.getElementById('stock-enter-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
