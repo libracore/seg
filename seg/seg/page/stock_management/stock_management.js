@@ -513,6 +513,7 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
             row.addEventListener("click", () => {
                 const item_code = row.dataset.item;
                 const target_item = this.items.find(item => item.item_code === item_code);
+                
                 console.log(item_code);
                 console.log(target_item);
             });
