@@ -16,6 +16,7 @@ from erpnextswiss.erpnextswiss.datatrans import get_payment_status
 # TODO: make this work again
 #from erpnext.portal.product_configurator.utils import get_next_attribute_and_values
 from frappe.core.doctype.communication.email import make
+from frappe.utils.background_jobs import enqueue
 
 PREPAID = "N20"
 
@@ -996,22 +997,25 @@ def create_user(api_key, email, password, company_name, first_name,
             return {'status': err}
         frappe.db.commit()
         # link contact
-        contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
-        if contacts and len(contacts) > 0:
-            contact = frappe.get_doc("Contact", contacts[0]['name'])
-            contact.company_name = new_customer.customer_name
-            contact.append("links", {
-                'link_doctype': 'Customer',
-                'link_name': new_customer.name,
-                'link_title': new_customer.customer_name
-            })
-            contact.save(ignore_permissions=True)
-        frappe.db.commit()
+        enqueue("seg.seg.shop.link_contact", email=email, new_customer=new_customer)
         #send Information to SEG, that a new user has been registered
         send_info_mail(company_name, first_name, last_name)
         return {'status': 'success'}
     else:
         return {'status': 'Authentication failed'}
+        
+def link_contact(email, new_customer):
+    contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
+    if contacts and len(contacts) > 0:
+        contact = frappe.get_doc("Contact", contacts[0]['name'])
+        contact.company_name = new_customer.customer_name
+        contact.append("links", {
+            'link_doctype': 'Customer',
+            'link_name': new_customer.name,
+            'link_title': new_customer.customer_name
+        })
+        contact.save(ignore_permissions=True)
+    return
 
 def check_key(key):
     server_key = frappe.get_value("Webshop Settings", "Webshop Settings", "api_key")
