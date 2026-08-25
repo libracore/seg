@@ -936,15 +936,15 @@ def create_user(api_key, email, password, company_name, first_name,
             'email': email,
             'first_name': first_name,
             'last_name': last_name,
-            'send_welcome_mail': 0,
+            'send_welcome_email': 0,
             'language': 'de',
             'phone': phone,
             'new_password': password
         })
+        
+        new_user.append('roles', {'role': "Customer"})
         try:
             new_user.insert(ignore_permissions=True)
-            new_user.add_roles("Customer")
-            new_user.save(ignore_permissions=True)
         except Exception as err:
             return {'status': err}
         # create customer (included)
