@@ -322,8 +322,15 @@ class PurchaseReceiptPage extends StockManagementClass {
         //Open Pruchase Order Tab
 		document.getElementById("purchase-order-ok-button").addEventListener("click", () => {
             let order = this.purchase_order_link_field.get_value()
-            frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", order, this));
+            if (order) {
+                frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", order, this));
+            } else {
+                this.show_error("Bitte Bestellung angeben.", "purchase-order-input-message");
+            }
 		});
+        
+        //Fill PO Field with List PO
+        this.set_row_handler()
     }
     
     //Show Dynamic Content specific for this Site
@@ -350,7 +357,6 @@ class PurchaseReceiptPage extends StockManagementClass {
             },
             'callback': (response) => {
                 this.orders = response.message;
-                console.log(this.orders);
                 if (!refresh) {
                     this.on_show();
                 } else {
@@ -424,19 +430,20 @@ class PurchaseReceiptPage extends StockManagementClass {
         const list_section = document.getElementById('purchase-receipt-list');
         const list_section_content = frappe.render_template("purchase_receipt_list", {'orders': this.orders});
         list_section.innerHTML = list_section_content;
+        this.set_row_handler()
     }
     
-    //Select Purchase Order ANJA -> PO ins Feld setzten
-    //~ document.querySelectorAll(".order-row").forEach(row => {
-
-        //~ row.addEventListener("click", () => {
-
-            //~ document.getElementById("purchase-order-input").value =
-                //~ row.dataset.order;
-
-        //~ });
-
-    //~ });
+    set_row_handler() {
+        document.querySelectorAll(".order-row").forEach(row => {
+            row.addEventListener("click", () => {
+                const order = row.dataset.order;
+                const target_item = this.orders.find(item => item.name === order);
+                console.log("Setting order?");
+                console.log(target_item.name);
+                this.purchase_order_link_field.set_value(target_item.name)
+            });
+		});
+    }
 }
 
 //Purchase Receipt - Show Orders with Items to Receive - Pick Items
@@ -499,13 +506,17 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
         //Submit Stock Entry
 		document.getElementById("action-button").addEventListener("click", () => {
             console.log(this.order);
-            this.store_everything(this.order);
+            this.store_everything(this.order, true);
 		});
         
         //Open Item Tab
 		document.getElementById("ok-button").addEventListener("click", () => {
-            let qty = document.getElementById("quantity-input").value;
-            frappe.stock_management.load_tab(new PurchaseReceiptItem(this.item, qty, this, this.parent_this));
+            if (this.item) {
+                let qty = document.getElementById("quantity-input").value;
+                frappe.stock_management.load_tab(new PurchaseReceiptItem(this.item, qty, this, this.parent_this));
+            } else {
+                this.show_error("Bitte zuerst den Artikel angeben.", "item-input-message");
+            }
 		});
         
         //Fill Item Field with List Item
@@ -513,12 +524,10 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
             row.addEventListener("click", () => {
                 const item_code = row.dataset.item;
                 const target_item = this.items.find(item => item.item_code === item_code);
-                
-                console.log(item_code);
-                console.log(target_item);
+                this.item_link_field.set_value(item_code);
+                document.getElementById("quantity-input").value = target_item.content.qty;
             });
 		});
-        
     }
     
     show_subsections() {
@@ -568,11 +577,12 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
         }
     }
     
-    store_everything(order) {
+    store_everything(order, submit) {
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.store_everything',
             'args': {
-                'order': order
+                'order': order,
+                'submit': submit
             },
             'callback': (response) => {
                 console.log(response.message);
@@ -627,6 +637,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
         this.starting_qty = qty;
         this.item_dict;
         this.entry_warehouse;
+        this.warehouse;
         this.parent_this = parent_this;
         this.grandparent_this = grandparent_this;
 	}
@@ -682,9 +693,18 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
         
         //Submit Stock Entry
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            const warehouse = this.wh_link_field.get_value();
-            const quantity = document.getElementById("wh-quantity-input").value;
-            this.create_stock_entry(this.item, warehouse, quantity, this.parent_this.order)
+            if (this.warehouse) {
+                const quantity = document.getElementById("wh-quantity-input").value;
+                this.create_stock_entry(this.item, this.warehouse, quantity, this.parent_this.order);
+            } else {
+                this.show_error("Bitte zuerst den Lagerplatz wählen.", "wh-message");
+            }
+		});
+        
+        document.querySelectorAll(".item-row").forEach(row => {
+            row.addEventListener("click", () => {
+                document.getElementById("wh-quantity-input").value = this.item_dict[0].content.qty;
+            });
 		});
     }
     
@@ -701,7 +721,6 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
         
         //Show Single Item Table
         const list_section = document.getElementById('stock-enter-item-list');
-        console.log("Item Dict: " + this.item_dict);
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
         
@@ -1449,6 +1468,7 @@ class PickingPage extends StockManagementClass {
     
     //Show Dynmic Content for whole Purchase Receipt Classes
     show_dynamic_content() {
+        console.log("setting navbar color");
         document.getElementById("nav-back").style.backgroundColor = this.colors.picking;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.picking;
     }
@@ -1699,7 +1719,7 @@ class PickingList extends PickingPage {
 }
 
 //Purchase Receipt - Show Warehouse to Stock Items
-class PickingListItem extends PurchaseReceiptOrder {
+class PickingListItem extends PickingList {
 	constructor(item, qty, parent_this, grandparent_this) {
 		super('picking_list_item', "Quellplatz");
         this.item = item;

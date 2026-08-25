@@ -192,31 +192,42 @@ def get_open_orders(supplier, order):
     #Prepare condition
     supplier_condition = """"""
     if supplier:
-        supplier_condition = """AND `supplier` = '{0}'""".format(supplier)
+        supplier_condition = """AND `tabPurchase Order`.`supplier` = '{0}'""".format(supplier)
     
     order_condition = """"""
     if order:
-        order_condition = """AND `name` = '{0}'""".format(order)
+        order_condition = """AND `tabPurchase Order`.`name` = '{0}'""".format(order)
     
     #Get orders
     open_orders = frappe.db.sql("""
                                 SELECT
-                                    `name`,
-                                    DATE_FORMAT(transaction_date, '%d.%m.%Y') AS `transaction_date`,
-                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `formatted_schedule_date`,
-                                    `supplier`
+                                    `tabPurchase Order`.`name`,
+                                    DATE_FORMAT(`tabPurchase Order`.`transaction_date`, '%d.%m.%Y') AS `transaction_date`,
+                                    DATE_FORMAT(`tabPurchase Order`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
+                                    `tabPurchase Order`.`supplier`,
+                                    COUNT(
+                                        CASE
+                                            WHEN `tabPurchase Order Item`.`received_qty`
+                                                 < `tabPurchase Order Item`.`qty`
+                                            THEN 1
+                                        END
+                                    ) AS `open_items`
                                 FROM
                                     `tabPurchase Order`
+                                LEFT JOIN
+                                    `tabPurchase Order Item` ON `tabPurchase Order Item`.`parent` = `tabPurchase Order`.`name`
                                 WHERE
-                                    `per_received` < 100
+                                    `tabPurchase Order`.`per_received` < 100
                                 AND
-                                    `docstatus` = 1
+                                    `tabPurchase Order`.`docstatus` = 1
                                 AND
-                                    `status` != 'Closed'
+                                    `tabPurchase Order`.`status` != 'Closed'
                                 {supplier_condition}
                                 {order_condition}
+                                GROUP BY
+                                    `tabPurchase Order`.`name`
                                 ORDER BY
-                                    `schedule_date` ASC;""".format(supplier_condition=supplier_condition, order_condition=order_condition), as_dict=True)
+                                    `tabPurchase Order`.`schedule_date` ASC;""".format(supplier_condition=supplier_condition, order_condition=order_condition), as_dict=True)
     
     return open_orders
 
@@ -263,7 +274,7 @@ def get_order_items(order, item=False):
     return response
 
 @frappe.whitelist()
-def store_everything(order):
+def store_everything(order, submit):
     #get entry warehouse
     entry_warehouse = get_entry_warehouse()
     #create purchase receipt
@@ -277,6 +288,9 @@ def store_everything(order):
     #insert receipt
     try:
         purchase_receipt.insert()
+        if submit:
+            purchase_receipt.submit()
+            return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich gebucht.".format(purchase_receipt.name) }
         return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich erstellt.".format(purchase_receipt.name) }
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))

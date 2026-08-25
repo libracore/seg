@@ -15,7 +15,11 @@
                     <div class="order-supplier">
                         {{ order.supplier }}
                     </div>
-
+                    
+                    <div class="order-supplier">
+                        {{ order.open_items }} Positionen
+                    </div>
+                
                 </td>
 
                 <td class="order-dates">
@@ -27,7 +31,7 @@
 
                     <div class="order-date">
                         <span class="order-date-label">Lieferung</span><br>
-                        {{ order.schedule_date }}
+                        {{ order.formatted_schedule_date }}
                     </div>
 
                 </td>
