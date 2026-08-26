@@ -931,23 +931,6 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
 def create_user(api_key, email, password, company_name, first_name, 
     last_name, street, pincode, city, phone, salutation=None, language="de", remarks=""):
     if check_key(api_key):
-        # create user
-        new_user = frappe.get_doc({
-            'doctype': 'User',
-            'email': email,
-            'first_name': first_name,
-            'last_name': last_name,
-            'send_welcome_email': 0,
-            'language': 'de',
-            'phone': phone,
-            'new_password': password
-        })
-        
-        new_user.append('roles', {'role': "Customer"})
-        try:
-            new_user.insert(ignore_permissions=True)
-        except Exception as err:
-            return {'status': err}
         # create customer (included)
         if not frappe.db.exists("Payment Terms Template", PREPAID):
             prepaid_terms = frappe.get_doc({
@@ -978,6 +961,7 @@ def create_user(api_key, email, password, company_name, first_name,
         except Exception as err:
             frappe.log_error("Error on creating customer", "Shop API Error")
             return {'status': err}
+        
         # create address (included)
         new_address = frappe.get_doc({
             'doctype': 'Address',
@@ -995,27 +979,57 @@ def create_user(api_key, email, password, company_name, first_name,
             new_address.insert(ignore_permissions=True)
         except Exception as err:
             return {'status': err}
-        frappe.db.commit()
-        # link contact
-        enqueue("seg.seg.shop.link_contact", email=email, new_customer=new_customer)
+
+        #create contact to be faster than frappe
+        new_contact = frappe.get_doc({
+            'doctype': 'Contact',
+            'first_name': first_name,
+            'last_name': last_name,
+            'company_name': company_name,
+            'email_ids': [{
+                'email_id': email,
+                'is_primary': 1
+            }],
+            'phone_nos': [{
+                'phone': phone,
+                'is_primary_phone': 1
+            }],
+            'links': [{
+                'link_doctype': 'Customer',
+                'link_name': new_customer.name
+            }]
+        })
+        
+        try:
+            new_contact.insert(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as err:
+            frappe.log_error("Error on creating contact: {0}".format(err), "Shop API Error")
+            return {'status': err}
+        
+        # create user
+        new_user = frappe.get_doc({
+            'doctype': 'User',
+            'email': email,
+            'first_name': first_name,
+            'last_name': last_name,
+            'send_welcome_email': 0,
+            'language': 'de',
+            'phone': phone,
+            'new_password': password
+        })
+        new_user.append('roles', {'role': "Customer"})
+        try:
+            new_user.insert(ignore_permissions=True)
+            frappe.db.commit()
+        except Exception as err:
+            return {'status': err}
+        
         #send Information to SEG, that a new user has been registered
         send_info_mail(company_name, first_name, last_name)
         return {'status': 'success'}
     else:
         return {'status': 'Authentication failed'}
-        
-def link_contact(email, new_customer):
-    contacts = frappe.get_all("Contact", filters={'user': email}, fields=['name'])
-    if contacts and len(contacts) > 0:
-        contact = frappe.get_doc("Contact", contacts[0]['name'])
-        contact.company_name = new_customer.customer_name
-        contact.append("links", {
-            'link_doctype': 'Customer',
-            'link_name': new_customer.name,
-            'link_title': new_customer.customer_name
-        })
-        contact.save(ignore_permissions=True)
-    return
 
 def check_key(key):
     server_key = frappe.get_value("Webshop Settings", "Webshop Settings", "api_key")
