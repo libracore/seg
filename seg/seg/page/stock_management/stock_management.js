@@ -59,6 +59,7 @@ class StockManagementClass {
 		this.label = label;
         this.colors = {
                     'purchase_receipt': "#1976d2",
+                    'purchase_receipt_sec': "#64B5F6",
                     'stock_enter': "#43a047",
                     'stock_transfer': "#fb8c00",
                     'picking': "#7B4DFF",
@@ -438,8 +439,6 @@ class PurchaseReceiptPage extends StockManagementClass {
             row.addEventListener("click", () => {
                 const order = row.dataset.order;
                 const target_item = this.orders.find(item => item.name === order);
-                console.log("Setting order?");
-                console.log(target_item.name);
                 this.purchase_order_link_field.set_value(target_item.name)
             });
 		});
@@ -477,10 +476,8 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
         
         //Cleare Item
         document.getElementById("clear-article").addEventListener("click", () => {
-            const warehouseInput = document.getElementById("article-input");
-
-            warehouseInput.value = "";
-            warehouseInput.focus();
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
         });
         
         //Add Quantity
@@ -505,8 +502,12 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
         
         //Submit Stock Entry
 		document.getElementById("action-button").addEventListener("click", () => {
-            console.log(this.order);
             this.store_everything(this.order, true);
+		});
+        
+        //Create Stock Entry
+		document.getElementById("secondary-action-button").addEventListener("click", () => {
+            this.store_everything(this.order, false);
 		});
         
         //Open Item Tab
@@ -543,20 +544,26 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
         
         //Show Item Table
         const list_section = document.getElementById('purchase-receipt-order-list');
-        console.log(this.items);
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.items});
         list_section.innerHTML = list_section_content;
         
         //Show Bottom Button
         const bottom_button = document.getElementById('purchase-receipt-order-button');
-        const bottom_button_content = frappe.render_template("bottom_button", {'items': this.items});
+        const bottom_button_content = frappe.render_template("bottom_button");
         bottom_button.innerHTML = bottom_button_content;
+        
+        //Show Secundary Bottom Button
+        const sec_bottom_button = document.getElementById('purchase-receipt-order-sec-button');
+        const sec_bottom_button_content = frappe.render_template("bottom_button_sec");
+        sec_bottom_button.innerHTML = sec_bottom_button_content;
     }
     
     show_specific_dynamic_content() {
         document.getElementById("ok-button").style.backgroundColor = this.colors.purchase_receipt;
-        document.getElementById("action-button").textContent = "Alles auf Wareneingangslager";
+        document.getElementById("action-button").textContent = "Einlagerung mit standart Frachtkosten";
         document.getElementById("action-button").style.backgroundColor = this.colors.purchase_receipt;
+        document.getElementById("secondary-action-button").textContent = "Einlagerung mit manuellen Frachtkosten";
+        document.getElementById("secondary-action-button").style.backgroundColor = this.colors.purchase_receipt_sec;
         document.getElementById("nav-title").textContent = this.order;
         this.show_dynamic_content()
     }
@@ -585,10 +592,8 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
                 'submit': submit
             },
             'callback': (response) => {
-                console.log(response.message);
                 if (response.message) {
                     if (response.message.success) {
-                        console.log("sucess");
                         this.show_success(response.message.message, "button-message");
                     }
                 } else {

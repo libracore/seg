@@ -354,6 +354,19 @@
     box-sizing: border-box;
 }
 
+/* Secondary Button unten */
+#purchase-receipt-order-sec-button {
+    flex: 0 0 auto;
+
+    width: 100%;
+
+    padding: 8px 10px;
+
+    background: #ffffff;
+
+    box-sizing: border-box;
+}
+
 
 /* Nur für diese Seite */
 .purchase-receipt-order-content,
@@ -846,8 +859,11 @@
     background: #b71c1c;
 
     transform: scale(.98);
+    
+    width: 100%;
+    
+    box-sizing: border-box;
 }
-
 
 #action-button-text {
 
