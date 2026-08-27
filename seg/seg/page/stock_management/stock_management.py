@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, sbool
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
 import json
@@ -267,7 +267,6 @@ def get_order_items(order, item=False):
                                 'locations': get_item_locations(item.get('item_code')),
                                 'stored_qty': 0
                             }}
-                frappe.log_error("response", response)
                 response.append(item_response)
     else:
         response = None
@@ -286,9 +285,10 @@ def store_everything(order, submit):
     for item in purchase_receipt.items:
         item.warehouse = entry_warehouse
     #insert receipt
+    frappe.log_error("submit", sbool(submit))
     try:
         purchase_receipt.insert()
-        if submit:
+        if sbool(submit):
             purchase_receipt.submit()
             return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich gebucht.".format(purchase_receipt.name) }
         return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich erstellt.".format(purchase_receipt.name) }
