@@ -32,7 +32,7 @@
             {% if warehouses.free_warehouses %}
                 {% for wh in warehouses.free_warehouses %}
 
-                        {{ wh.warehouse }} ({{ wh.warehouse_type }})<br>
+                        {{ wh.warehouse }} ({{ wh.warehouse_type }} / {{ wh.warehouse_size }})<br>
 
                 {% endfor %}
             {% else %}

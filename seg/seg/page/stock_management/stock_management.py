@@ -60,7 +60,7 @@ def get_item_locations(item_code):
 def get_single_item_information(item):
     #Get Entry Warehouse
     entry_warehouse = get_entry_warehouse()
-    frappe.log_error("entry_warehouse", entry_warehouse)
+    
     item_information = frappe.db.sql("""
                                     SELECT
                                         `tabItem`.`item_code` AS `item_code`,
@@ -110,8 +110,8 @@ def get_item_warehouse(item):
                                     `tabBin`.`item_code` AS `item_code`,
                                     `tabBin`.`warehouse` AS `warehouse`,
                                     `tabBin`.`actual_qty` AS `qty`,
-                                    `tabWarehouse`.`warehouse_type` AS `warehouse_type`
-                                    
+                                    `tabWarehouse`.`warehouse_type` AS `warehouse_type`,
+                                    `tabWarehouse`.`warehouse_size` AS `warehouse_size`
                                 FROM
                                     `tabBin`
                                 LEFT JOIN
@@ -135,11 +135,19 @@ def get_free_warehouse():
                                             WHERE `tabBin`.`warehouse` = `tabWarehouse`.`name`
                                         ),
                                         0
-                                    ) AS `total`
+                                    ) AS `total`,
+                                    `tabWarehouse`.`warehouse_size` AS `warehouse_size`
                                 FROM
                                     `tabWarehouse`
                                 WHERE
-                                    `disabled` = 0;
+                                    `disabled` = 0
+                                ORDER BY
+                                    CASE `warehouse_type`
+                                        WHEN 'BP' THEN 1
+                                        WHEN 'LP' THEN 2
+                                        WHEN 'KP' THEN 3
+                                        ELSE 4
+                                    END;
                             """, as_dict=True)
     empty_wh = []
     if len(warehouses) > 0:
@@ -287,7 +295,7 @@ def store_everything(order, submit):
     #insert receipt
     try:
         purchase_receipt.insert()
-        #Directly Submit for Auto Freight Costs
+        #Directly Submit with standard Freight Costs
         if sbool(submit):
             #Update SEG Totals and add Freight Costs/Exchange Fees
             purchase_receipt = calcualte_seg_totals(purchase_receipt)
@@ -491,7 +499,7 @@ def get_picking_list_items(picking_list, item=False):
 
 #Create Pruchase Receipt for single Item to directly store it
 @frappe.whitelist()
-def create_single_receipt(item_code, target_warehouse, qty, order):
+def create_single_receipt(item_code, target_warehouse, qty, order, submit=False):
     frappe.log_error("purchase_receipt", "item: {0}<br>wh: {1}<br>qty: {2}<br>order: {3}".format(item_code, target_warehouse, qty, order))
     #create purchase receipt
     purchase_receipt = make_purchase_receipt(order)
@@ -509,7 +517,6 @@ def create_single_receipt(item_code, target_warehouse, qty, order):
         if item.qty > 0
     ]
     
-    frappe.log_error("purchase_receipt", purchase_receipt.items)
     
     #update items with seg price values
     updated_items = get_updated_seg_prices(purchase_receipt.get('items'), purchase_receipt.get('buying_price_list'), purchase_receipt.get('currency'))
@@ -518,6 +525,11 @@ def create_single_receipt(item_code, target_warehouse, qty, order):
     #insert receipt
     try:
         purchase_receipt.insert()
+        if sbool(submit):
+            #Update SEG Totals and add Freight Costs/Exchange Fees
+            purchase_receipt = calcualte_seg_totals(purchase_receipt)
+            purchase_receipt.submit()
+            return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich gebucht.".format(purchase_receipt.name) }
         return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich erstellt.".format(purchase_receipt.name) }
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
