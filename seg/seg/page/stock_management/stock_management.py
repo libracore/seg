@@ -287,7 +287,9 @@ def store_everything(order, submit):
     #insert receipt
     try:
         purchase_receipt.insert()
+        #Directly Submit for Auto Freight Costs
         if sbool(submit):
+            #Update SEG Totals and add Freight Costs/Exchange Fees
             purchase_receipt = calcualte_seg_totals(purchase_receipt)
             purchase_receipt.submit()
             return {'success': True, 'error': None, 'message': "Wareneingang {0} wurde erfolgreich gebucht.".format(purchase_receipt.name) }
@@ -523,14 +525,14 @@ def create_single_receipt(item_code, target_warehouse, qty, order):
 
 
 def calcualte_seg_totals(purchase_receipt):
-    purchase_receipt = json.loads(purchase_receipt)
-    #get SEG Setting and exchange rate
+    #get SEG Setting and exchange rates
     seg_settings = frappe.get_doc("SEG Settings", "SEG Settings")
     if purchase_receipt.currency != "CHF":
-        exchange_rate = get_exchange_rate(purchase_receipt.currency, "CHF")
-        if not exchange_rate:
+        exchange_to_chf = get_exchange_rate(purchase_receipt.currency, "CHF")
+        if not exchange_to_chf:
             frappe.log_error("Exchange Rate missing", "While Creating a Purchase Receipt via Stock Management App Currency Exchange could not be found for Purchase Receipt {0}".format(purchase_receipt.name))
             frappe.throw("Kein Wechselkurs gefunden, bitte Wareneingang prüfen. Ein Fehlerbericht wurde erstellt.")
+        exchange_from_chf = 1 / exchange_to_chf
     
     #initialize total values
     total = 0
@@ -538,52 +540,40 @@ def calcualte_seg_totals(purchase_receipt):
     exchange_fees = 0
     
     for item in purchase_receipt.get('items'):
-        total += item.('seg_amount')
-        freight_costs += item.get('freight_costs') * item.('qty')
-        exchange_fees += (item.('amount') / 100) * item.get('currency_exchange_fees')
+        total += item.get('seg_amount')
+        freight_costs += item.get('freight_costs') * item.get('qty')
+        exchange_fees += (item.get('amount') / 100) * item.get('currency_exchange_fees')
 
-        #Set Seg Total
-        purchase_receipt.seg_total = total
+    #Set Seg Total
+    purchase_receipt.seg_total = total
+    
+    #Add Freight Costs to Taxes
+    if freight_costs > 0:
+        #Exchange Freight Costs from CHF to Document Currency
+        if purchase_receipt.currency != "CHF":
+            freight_costs = freight_costs * exchange_from_chf
         
-        #Add Freight Costs to Taxes
-        if freight_costs > 0:
-            #Exchange Freight Costs from CHF to Document Currency
-            if purchase_receiptdoc.currency != "CHF":
-                freight_costs = freight_costs * exchange_from_chf
-            
-            abo_doc.append("taxes", {
-                                        'reference_doctype': "Abo Reminder",
-                                        'charge_type': "Actual",
-                                        'account_head': seg_settings.get('freight_account'),
-                                        'tax_amount': freight_costs,
-                                        'description': seg_settings.get('freight_account'),
-                                        'freight_exchange': 1
-                                    })
-        
-        if (exchange_fees > 0) {
-            let exchange_hit = false;
-            
-            for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
-                if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.exchange_description)) {
-                    await frappe.model.set_value(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name, 'tax_amount', exchange_fees);
-                    exchange_hit = true;
-                }
-            }
-            
-            if (!exchange_hit) {
-                let exchange_child = cur_frm.add_child('taxes');
-                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'charge_type', "Actual");
-                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'account_head', seg_settings.exchange_account);
-                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'tax_amount', exchange_fees);
-                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'description', seg_settings.exchange_description);
-                await frappe.model.set_value(exchange_child.doctype, exchange_child.name, 'freight_exchange', 1);
-            }
-        } else {
-            for (let j = frm.doc.taxes.length - 1; j >= 0; j--) {
-                if ((frm.doc.taxes[j].freight_exchange) && (frm.doc.taxes[j].description == seg_settings.exchange_description)) {
-                    await frappe.model.clear_doc(frm.doc.taxes[j].doctype, frm.doc.taxes[j].name);
-                }
-            }
-        }
-    }
-    return "OK"
+        #Add Subtable Entry
+        purchase_receipt.append("taxes", {
+                                    'reference_doctype': "Abo Reminder",
+                                    'charge_type': "Actual",
+                                    'account_head': seg_settings.get('freight_account'),
+                                    'tax_amount': freight_costs,
+                                    'description': seg_settings.get('freight_description'),
+                                    'freight_exchange': 1
+                                })
+    
+    
+    #Add Exchange Fees to Taxes
+    if exchange_fees > 0:
+        #Add Subtable Entry
+        purchase_receipt.append("taxes", {
+                                    'reference_doctype': "Abo Reminder",
+                                    'charge_type': "Actual",
+                                    'account_head': seg_settings.get('exchange_account'),
+                                    'tax_amount': exchange_fees,
+                                    'description': seg_settings.get('exchange_description'),
+                                    'freight_exchange': 1
+                                })
+    
+    return purchase_receipt
