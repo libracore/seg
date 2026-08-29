@@ -8,9 +8,8 @@
         <div id="article-warehouse-list" class="warehouse-list">
             {% if warehouses.item_warehouses %}
                 {% for wh in warehouses.item_warehouses %}
-                    <div class="warehouse-entry">
+
                         {{ wh.qty }}x {{ wh.warehouse }} ({{ wh.warehouse_type }})
-                    </div>
                 {% endfor %}
             {% else %}
                 <div class="warehouse-entry">
@@ -31,9 +30,7 @@
         <div id="empty-warehouse-list" class="warehouse-list">
             {% if warehouses.free_warehouses %}
                 {% for wh in warehouses.free_warehouses %}
-
-                        {{ wh.warehouse }} ({{ wh.warehouse_type }} / {{ wh.warehouse_size }})<br>
-
+                    {{ wh.warehouse }} ({{ wh.warehouse_type }} / {{ wh.warehouse_size }})<br>
                 {% endfor %}
             {% else %}
                 <div class="warehouse-entry">
