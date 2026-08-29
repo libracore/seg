@@ -2,7 +2,7 @@
     <table class="item-table">
         {% if items %}
             {% for item in items %}
-            <tr class="item-row">
+            <tr class="item-row" data-item="{{ item.item_code }}">
 
                 <td class="item-image">
                     <img src="{{ item.picture }}">

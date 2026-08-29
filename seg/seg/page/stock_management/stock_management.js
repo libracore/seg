@@ -872,6 +872,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
         this.wh_link_field.set_value(this.entry_warehouse);
     }
     
+    //ANJA
     async handle_scan(scan_buffer) {
         //~ if (/^\d+$/.test(scan_buffer)) {
             //~ this.item_dict;
@@ -894,6 +895,7 @@ class StockEnterPage extends StockManagementClass {
 	constructor(key, label) {
 		super(key, label);
         this.items;
+        this.stocked_items;
 	}
 
 	init() {
@@ -917,17 +919,16 @@ class StockEnterPage extends StockManagementClass {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
 		});
         
-        //Close Stock Entry and Go to Home
+        //Create Stock Entry and Go to Home
 		document.getElementById("action-button").addEventListener("click", () => {
-            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+            console.log("done");
+            //~ frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
 		});
         
         //Delete Item Field
         document.getElementById("clear-article").addEventListener("click", () => {
-            const articleInput = document.getElementById("article-input");
-
-            articleInput.value = "";
-            articleInput.focus();
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
         });
         
         //Add Quantity
@@ -952,8 +953,29 @@ class StockEnterPage extends StockManagementClass {
         
         //Open Item Tab
 		document.getElementById("ok-button").addEventListener("click", () => {
-            let qty = document.getElementById("quantity-input").value;
-            frappe.stock_management.load_tab(new StockEnterItem('stock_enter_item', "Zielplatz", this.item, qty, this));
+            if (this.item) {
+                const target_item = this.items.find(item => item.item_code === this.item);
+                if (target_item) {
+                    let qty = document.getElementById("quantity-input").value;
+                    frappe.stock_management.load_tab(new StockEnterItem('stock_enter_item', "Zielplatz", this.item, qty, this));
+                } else {
+                    this.show_error("Kein Artikel im Wareneingangslager gefunden.", "item-input-message");
+                }
+            } else {
+                this.show_error("Bitte zuerst den Artikel angeben.", "item-input-message");
+            }
+        });
+        
+        //Fill Item Field with List Item
+        document.querySelectorAll(".item-row").forEach(row => {
+            row.addEventListener("click", () => {
+                console.log(this.items);
+                const item_code = row.dataset.item;
+                console.log(item_code);
+                const target_item = this.items.find(item => item.item_code === item_code);
+                this.item_link_field.set_value(item_code);
+                document.getElementById("quantity-input").value = target_item.content.qty;
+            });
 		});
     }
     
@@ -998,15 +1020,15 @@ class StockEnterPage extends StockManagementClass {
     }
     
     update_stocked_amount(item_code, new_amount) {
-        const target_item = this.items.find(item => item.item_code === item_code);
+        const target_item = this.parent_this.items.find(item => item.item_code === item_code);
         target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
         this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
     }
-    
-    refresh_stocked_amount(item_code, qty, new_amount) {
-        const progress_div = document.getElementById(item_code + "_amount");
-        progress_div.innerText = new_amount + "/" + qty;
-    }
+    //ANJA
+    //~ refresh_stocked_amount(item_code, qty, new_amount) {
+        //~ const progress_div = document.getElementById(item_code + "_amount");
+        //~ progress_div.innerText = new_amount + "/" + qty;
+    //~ }
     
     create_link_fields() {
         //Item
@@ -1018,6 +1040,14 @@ class StockEnterPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        query: "seg.seg.page.stock_management.stock_management.filter_items_for_entry_wh",
+                        filters: {
+                            customer: this.selected_customer
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
@@ -1028,6 +1058,22 @@ class StockEnterPage extends StockManagementClass {
 
         this.item_link_field.make();
         this.item_link_field.refresh();
+    }
+    
+    async handle_scan(scan_buffer) {
+        if (/^\d+$/.test(scan_buffer)) {
+            this.item_dict;
+            this.item_dict = await this.translate_item_barcode(scan_buffer);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                document.getElementById("quantity-input").value = target_item.content.qty;
+            } else {
+                this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
+            }
+        } else {
+            this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
+        }
     }
 }
 
@@ -1066,10 +1112,8 @@ class StockEnterItem extends StockEnterPage {
         
         //Cleare Warehouse
         document.getElementById("clear-warehouse").addEventListener("click", () => {
-            const warehouseInput = document.getElementById("warehouse-input");
-
-            warehouseInput.value = "";
-            warehouseInput.focus();
+            this.wh_link_field.set_value("");
+            this.wh_link_field.set_focus();
         });
         
         //Add Quantity
@@ -1092,17 +1136,19 @@ class StockEnterItem extends StockEnterPage {
             }
         });
         
-        //Submit Stock Entry
+        //Update Parent Items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
             const quantity = document.getElementById("wh-quantity-input").value;
-            this.create_stock_entry(this.item, this.warehouse, quantity)
+            if (this.warehouse) {
+                this.update_stocked_amount(this.item, quantity);
+            } else {
+                this.show_error("Bitte Zielplatz angeben.", "wh-message");
+            }
+            //~ this.create_stock_entry(this.item, this.warehouse, quantity);
 		});
     }
     
     show_subsections() {
-        console.log("show_subsections_item");
-        console.log(this.item);
-        console.log(this.item_dict);
         //Show Navbar
         const header_menu_section = document.getElementById('stock-enter-item-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
@@ -1163,31 +1209,31 @@ class StockEnterItem extends StockEnterPage {
         }
     }
     
-    create_stock_entry(item, warehouse, qty) {
-        frappe.call({
-            'method': 'seg.seg.page.stock_management.stock_management.create_enter_stock_entry',
-            'args': {
-                'item': item,
-                'target_warehouse': warehouse,
-                'qty': qty
-            },
-            'callback': (response) => {
-                console.log(response.message);
-                if (response.message) {
-                    if (response.message.success) {
-                        console.log("sucess");
-                        this.show_success("Artikel wurde erfolgreich eingelagert.", "wh-message");
-                        this.parent_this.update_stocked_amount(item, qty);
-                    } else {
-                        console.log("error");
-                        this.show_error(response.message.error, "wh-message");
-                    }
-                } else {
-                    this.show_error("Beim einlagern ist ein Fehler aufgetreten.", "wh-message");
-                }
-            }
-        });
-    }
+    //~ create_stock_entry(item, warehouse, qty) {
+        //~ frappe.call({
+            //~ 'method': 'seg.seg.page.stock_management.stock_management.create_enter_stock_entry',
+            //~ 'args': {
+                //~ 'item': item,
+                //~ 'target_warehouse': warehouse,
+                //~ 'qty': qty
+            //~ },
+            //~ 'callback': (response) => {
+                //~ console.log(response.message);
+                //~ if (response.message) {
+                    //~ if (response.message.success) {
+                        //~ console.log("sucess");
+                        //~ this.show_success("Artikel wurde erfolgreich eingelagert.", "wh-message");
+                        //~ this.parent_this.update_stocked_amount(item, qty);
+                    //~ } else {
+                        //~ console.log("error");
+                        //~ this.show_error(response.message.error, "wh-message");
+                    //~ }
+                //~ } else {
+                    //~ this.show_error("Beim einlagern ist ein Fehler aufgetreten.", "wh-message");
+                //~ }
+            //~ }
+        //~ });
+    //~ }
     
     //Create Link Fields
     create_link_fields() {
@@ -1210,6 +1256,11 @@ class StockEnterItem extends StockEnterPage {
 
         this.wh_link_field.make();
         this.wh_link_field.refresh();
+    }
+    
+    async handle_scan(scan_buffer) {
+        let warehouse = scan_buffer + " - SEG";
+        this.wh_link_field.set_value(warehouse);
     }
 }
 

@@ -14,7 +14,6 @@ def get_entry_warehouse_items():
     
     #Get all Items in Entry Warehouse
     items = frappe.get_all("Bin", filters={'warehouse': entry_warehouse,  'actual_qty': [">", 0]}, fields=["item_code", "actual_qty"])
-    frappe.log_error("items", items)
     #Prepare response
     if len(items) > 0:
         response = []
@@ -589,3 +588,27 @@ def calcualte_seg_totals(purchase_receipt):
                                 })
     
     return purchase_receipt
+
+@frappe.whitelist()
+def filter_items_for_entry_wh(doctype, txt, searchfield, start, page_len, filters):
+    #Get Entry Warehouse
+    entry_warehouse = get_entry_warehouse()
+    
+    warehouse_items = frappe.db.sql("""
+        SELECT
+            `tabBin`.`item_code` AS `item_code`,
+            `tabItem`.`item_name` AS `item_name`
+        FROM
+            `tabBin`
+        LEFT JOIN
+            `tabItem` ON `tabItem`.`name` = `tabBin`.`item_code`
+        WHERE
+            `tabBin`.`warehouse` = %(warehouse)s
+        AND
+            `tabBin`.`actual_qty` > 0
+        AND 
+            (`tabBin`.`item_code` LIKE %(txt)s OR `tabItem`.`item_name` LIKE %(txt)s)
+        LIMIT
+            %(start)s, %(page_len)s;""", {"txt": "%" + txt + "%", 'start': start, 'page_len': page_len, 'warehouse': entry_warehouse})
+    
+    return warehouse_items
