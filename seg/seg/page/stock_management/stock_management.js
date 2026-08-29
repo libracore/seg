@@ -1566,6 +1566,16 @@ class PickingPage extends StockManagementClass {
                 this.show_error("Bitte einen Rüstschein wählen", "picking-message");
             }
 		});
+        
+        //Fill Picking List Field with List Item
+        document.querySelectorAll(".order-row").forEach(row => {
+            row.addEventListener("click", () => {
+                const picking_list = row.dataset.list;
+                console.log("event handler: " + this.picking_lists);
+                const target_list = this.picking_lists.find(list => list.name === picking_list);
+                this.picking_list_link_field.set_value(target_list.name);
+            });
+		});
     }
     
     //Show Dynamic Content specific for this Site
@@ -1577,7 +1587,7 @@ class PickingPage extends StockManagementClass {
     
     //Show Dynmic Content for whole Purchase Receipt Classes
     show_dynamic_content() {
-        console.log("setting navbar color");
+        console.log("dynamic COntent: " + this.picking_lists);
         document.getElementById("nav-back").style.backgroundColor = this.colors.picking;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.picking;
     }
@@ -1594,6 +1604,7 @@ class PickingPage extends StockManagementClass {
             },
             'callback': (response) => {
                 this.pickings_lists = response.message;
+                console.log("set: " + this.pickings_lists)
                 if (!refresh) {
                     this.on_show();
                 } else {
@@ -1664,12 +1675,14 @@ class PickingPage extends StockManagementClass {
     
     refresh_picking_list_list() {
         this.display_picking_lists()
+        console.log("refresh: " + this.pickings_lists);
     }
     
     display_picking_lists() {
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'pickings_lists': this.pickings_lists});
         list_section.innerHTML = list_section_content;
+        console.log("display: " + this.pickings_lists);
     }
 }
 
