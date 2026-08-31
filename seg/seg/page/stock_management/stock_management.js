@@ -153,6 +153,7 @@ class StockManagementClass {
         document.addEventListener("keydown", (event) => {
 
             if (event.key === "Enter") {
+                console.log(me);
                 me.handle_scan(scan_buffer);
                 scan_buffer = "";
                 return;
@@ -443,6 +444,9 @@ class PurchaseReceiptPage extends StockManagementClass {
             });
 		});
     }
+    async handle_scan(scan_buffer) {
+        console.log(scan_buffer);
+    }
 }
 
 //Purchase Receipt - Show Orders with Items to Receive - Pick Items
@@ -647,8 +651,8 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
-                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
-                document.getElementById("quantity-input").value = target_item.content.qty;
+                //~ const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                //~ document.getElementById("quantity-input").value = target_item.content.qty;
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
@@ -672,10 +676,12 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
 	}
 
 	init() {
+        console.log("init");
         this.get_item_and_warehouse_information(this.item);
 	}
 
 	on_show() {
+        console.log("on_show");
         this.show_subsections();
         this.show_specific_dynamic_content();
         this.add_event_listeners();
@@ -685,7 +691,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
     //Add Event Listeners
     add_event_listeners() {
         //Add General Event handlers
-        this.grandparent_this.add_general_event_handlers()
+        this.add_general_event_handlers()
         
         //Go back to Stock Enter Page <-
 		document.getElementById("nav-back").addEventListener("click", () => {
@@ -872,21 +878,10 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
         this.wh_link_field.set_value(this.entry_warehouse);
     }
     
-    //ANJA
+    //Handle Scan Input
     async handle_scan(scan_buffer) {
-        //~ if (/^\d+$/.test(scan_buffer)) {
-            //~ this.item_dict;
-            //~ this.item_dict = await this.translate_item_barcode(scan_buffer);
-            //~ if (this.item_dict) {
-                //~ this.item_link_field.set_value(this.item_dict[0].item_code);
-            //~ } else {
-                //~ this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
-            //~ }
-        //~ } else {
-            console.log("item");
-            let warehouse = scan_buffer + " - SEG";
-            this.wh_link_field.set_value(warehouse);
-        //~ }
+        let warehouse = scan_buffer + " - SEG";
+        this.wh_link_field.set_value(warehouse);
     }
 }
 
@@ -899,7 +894,12 @@ class StockEnterPage extends StockManagementClass {
 	}
 
 	init() {
-        this.get_entry_warehouse_items();
+        console.log(this.items);
+        if (!this.items) {
+            this.get_entry_warehouse_items();
+        } else {
+            this.on_show();
+        }
 	}
 
 	on_show() {
@@ -969,9 +969,7 @@ class StockEnterPage extends StockManagementClass {
         //Fill Item Field with List Item
         document.querySelectorAll(".item-row").forEach(row => {
             row.addEventListener("click", () => {
-                console.log(this.items);
                 const item_code = row.dataset.item;
-                console.log(item_code);
                 const target_item = this.items.find(item => item.item_code === item_code);
                 this.item_link_field.set_value(item_code);
                 document.getElementById("quantity-input").value = target_item.content.qty;
@@ -991,7 +989,9 @@ class StockEnterPage extends StockManagementClass {
         item_input.innerHTML = item_input_content;
         
         //Show Item Table
+        console.log("Showing Items");
         const list_section = document.getElementById('stock-enter-list');
+        console.log(this.items);
         const list_section_content = frappe.render_template("items_list", {'items': this.items});
         list_section.innerHTML = list_section_content;
         
@@ -1021,14 +1021,12 @@ class StockEnterPage extends StockManagementClass {
     
     update_stocked_amount(item_code, new_amount) {
         const target_item = this.parent_this.items.find(item => item.item_code === item_code);
-        target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount;
-        this.refresh_stocked_amount(item_code, target_item.content['qty'], target_item.content['stored_qty']);
+        target_item.content['stored_qty'] = target_item.content['stored_qty'] + new_amount; //Achtung string
     }
-    //ANJA
-    //~ refresh_stocked_amount(item_code, qty, new_amount) {
-        //~ const progress_div = document.getElementById(item_code + "_amount");
-        //~ progress_div.innerText = new_amount + "/" + qty;
-    //~ }
+    refresh_stocked_amount(item_code, qty, new_amount) {
+        const progress_div = document.getElementById(item_code + "_amount");
+        progress_div.innerText = new_amount + "/" + qty;
+    }
     
     create_link_fields() {
         //Item
@@ -1138,13 +1136,12 @@ class StockEnterItem extends StockEnterPage {
         
         //Update Parent Items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            const quantity = document.getElementById("wh-quantity-input").value;
+            const quantity = Number(document.getElementById("wh-quantity-input").value);
             if (this.warehouse) {
                 this.update_stocked_amount(this.item, quantity);
             } else {
                 this.show_error("Bitte Zielplatz angeben.", "wh-message");
             }
-            //~ this.create_stock_entry(this.item, this.warehouse, quantity);
 		});
     }
     
@@ -1512,6 +1509,7 @@ class PickingPage extends StockManagementClass {
 	}
 
 	on_show() {
+        console.log("on show: " + this.picking_lists);
         this.show_subsections();
         this.add_event_listeners();
         this.create_link_fields();
@@ -1519,6 +1517,7 @@ class PickingPage extends StockManagementClass {
 	}
     
     show_subsections() {
+        console.log("starting subsection: " + this.picking_lists);
         //Show Navbar
         const header_menu_section = document.getElementById('picking-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
@@ -1531,41 +1530,45 @@ class PickingPage extends StockManagementClass {
         
         //Show Picking List Table
         this.display_picking_lists()
+        console.log("done subsection: " + this.picking_lists);
     }
     
     //Add Event Listeners
-    add_event_listeners() {
-        //Add General Event handlers
-        this.add_general_event_handlers()
-        
-        //Go back to Home <-
-		document.getElementById("nav-back").addEventListener("click", () => {
-            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
-		});
-        
-        //Delete PO Field
-        document.getElementById("clear-picking-list").addEventListener("click", () => {
-            this.picking_list_link_field.set_value("");
-            this.picking_list_link_field.set_focus();
-        });
-        
-        //Delete Supplier Field
-        document.getElementById("clear-customer").addEventListener("click", () => {
-        
-            this.customer_link_field.set_value("");
-            this.customer_link_field.set_focus();
+    add_event_listeners(refresh=false) {
+        if (!refresh) {
+            console.log("starting event listeners: " + this.picking_lists);
+            //Add General Event handlers
+            this.add_general_event_handlers()
+            
+            //Go back to Home <-
+            document.getElementById("nav-back").addEventListener("click", () => {
+                frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+            });
+            
+            //Delete Picking List Field
+            document.getElementById("clear-picking-list").addEventListener("click", () => {
+                this.picking_list_link_field.set_value("");
+                this.picking_list_link_field.set_focus();
+            });
+            
+            //Delete Supplier Field
+            document.getElementById("clear-customer").addEventListener("click", () => {
+            
+                this.customer_link_field.set_value("");
+                this.customer_link_field.set_focus();
 
-        });
-        
-        //Open Pruchase Order Tab
-		document.getElementById("picking-list-ok-button").addEventListener("click", () => {
-            let picking_list = this.selected_picking_list ?? "";
-            if (picking_list) {
-                frappe.stock_management.load_tab(new PickingList('picking_list', "Artikel Kommissionieren", picking_list, this));
-            } else {
-                this.show_error("Bitte einen Rüstschein wählen", "picking-message");
-            }
-		});
+            });
+            
+            //Open Pruchase Order Tab
+            document.getElementById("picking-list-ok-button").addEventListener("click", () => {
+                let picking_list = this.selected_picking_list ?? "";
+                if (picking_list) {
+                    frappe.stock_management.load_tab(new PickingList('picking_list', "Artikel Kommissionieren", picking_list, this));
+                } else {
+                    this.show_error("Bitte einen Rüstschein wählen", "picking-message");
+                }
+            });
+        }
         
         //Fill Picking List Field with List Item
         document.querySelectorAll(".order-row").forEach(row => {
@@ -1576,6 +1579,7 @@ class PickingPage extends StockManagementClass {
                 this.picking_list_link_field.set_value(target_list.name);
             });
 		});
+        console.log("done event listeners: " + this.picking_lists);
     }
     
     //Show Dynamic Content specific for this Site
@@ -1603,9 +1607,10 @@ class PickingPage extends StockManagementClass {
                 'picking_list': picking_list
             },
             'callback': (response) => {
-                this.pickings_lists = response.message;
-                console.log("set: " + this.pickings_lists)
+                this.picking_lists = response.message;
+                console.log("set: " + this.picking_lists)
                 if (!refresh) {
+                    console.log("before on show: " + this.picking_lists);
                     this.on_show();
                 } else {
                     this.refresh_picking_list_list()
@@ -1615,6 +1620,7 @@ class PickingPage extends StockManagementClass {
     }
     
     create_link_fields() {
+        console.log("starting link fields: " + this.picking_lists);
         //Picking List
         const picking_list_container = document.getElementById("picking-list-input");
 
@@ -1671,18 +1677,19 @@ class PickingPage extends StockManagementClass {
 		});
         this.customer_link_field.make()
 		this.customer_link_field.refresh();
+        console.log("link fields done: " + this.picking_lists);
     }
     
     refresh_picking_list_list() {
         this.display_picking_lists()
-        console.log("refresh: " + this.pickings_lists);
+        console.log("refresh: " + this.picking_lists);
+        this.add_event_listeners(true);
     }
     
     display_picking_lists() {
         const list_section = document.getElementById('picking-list');
-        const list_section_content = frappe.render_template("picking_list_list", {'pickings_lists': this.pickings_lists});
+        const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
-        console.log("display: " + this.pickings_lists);
     }
 }
 

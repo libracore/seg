@@ -2,18 +2,18 @@
 
     <table class="item-table">
 
-        {% for pickings_list in pickings_lists %}
+        {% for picking_list in picking_lists %}
 
-            <tr class="order-row" data-list="{{ pickings_list.name }}">
+            <tr class="order-row" data-list="{{ picking_list.name }}">
 
                 <td class="order-details">
 
                     <div class="order-title">
-                        {{ pickings_list.name }}
+                        {{ picking_list.name }}
                     </div>
 
                     <div class="order-supplier">
-                        {{ pickings_list.customer_name }}
+                        {{ picking_list.customer_name }}
                     </div>
 
                 </td>
@@ -22,12 +22,12 @@
 
                     <div class="order-date">
                         <span class="order-date-label">Geplant</span><br>
-                        {{ pickings_list.formatted_schedule_date }}
+                        {{ picking_list.formatted_schedule_date }}
                     </div>
 
                     <div class="order-date">
                         <span class="order-date-label">Auftrag</span><br>
-                        {{ pickings_list.sales_order }}
+                        {{ picking_list.sales_order }}
                     </div>
 
                 </td>
