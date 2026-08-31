@@ -2117,6 +2117,9 @@ class CreateSalesOrderPage extends StockManagementClass {
             } else {
                 //Add Item to Items
                 this.update_items(item, warehouse, qty);
+                document.getElementById("order-quantity-input").value = 1;
+                this.item_link_field.set_value("");
+                this.wh_link_field.set_value("");
             }
 		});
         
@@ -2143,36 +2146,31 @@ class CreateSalesOrderPage extends StockManagementClass {
     }
     
     async update_items(item_code, source_warehouse, qty) {
+        //Check if Item is already selected
+        const target_item = this.items.find(item => ((item.item_code === this.item) && (     )));
         //Create Item Dict
         let item_dict = await this.create_item_dict(item_code);
-        console.log(item_dict);
         item_dict[0].content['warehouse'] = source_warehouse;
         item_dict[0].content['qty'] = qty;
         this.items.push(item_dict[0]);
         this.display_items();
     }
     
-    //~ //Check if an Item or Warehouse has been scanned and set value to the right field
-    //~ async handle_scan(scan_buffer) {
-        //~ const input = document.getElementById("scan-test-input");
-        //~ if (/^\d+$/.test(scan_buffer)) {
-            //~ this.item_dict;
-            //~ this.item_dict = await this.translate_item_barcode(scan_buffer);
-            //~ if (this.item_dict) {
-                //~ this.item_link_field.set_value(this.item_dict[0].item_code);
-            //~ } else {
-                //~ this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
-            //~ }
-        //~ } else {
-            //~ let warehouse = scan_buffer + " - SEG"
-            //~ input.value = warehouse;
-            //~ if (!this.from_wh_link_field.get_value()) {
-                //~ this.from_wh_link_field.set_value(warehouse);
-            //~ } else {
-                //~ this.to_wh_link_field.set_value(warehouse);
-            //~ }
-        //~ }
-    //~ }
+    //Check if an Item or Warehouse has been scanned and set value to the right field
+    async handle_scan(scan_buffer) {
+        if (/^\d+$/.test(scan_buffer)) {
+            this.item_dict;
+            this.item_dict = await this.translate_item_barcode(scan_buffer);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+            } else {
+                this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
+            }
+        } else {
+            let warehouse = scan_buffer + " - SEG"
+            this.wh_link_field.set_value(warehouse);
+        }
+    }
     
     create_link_fields() {
         //Customer
