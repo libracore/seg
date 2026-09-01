@@ -398,7 +398,7 @@ def get_item_information_by_warehouse(warehouse):
 @frappe.whitelist()
 def create_stock_entry(items, entry_type):
     items = json.loads(items)
-    
+    frappe.log_error("items", items)
     stock_entry = frappe.new_doc("Stock Entry")
 
     stock_entry.stock_entry_type = entry_type
@@ -647,6 +647,21 @@ def create_sales_order(customer, items):
                                 'warehouse': item.get('content').get('warehouse'),
                                 'delivery_date': today
                             })
+    
+
+    tax_template = frappe.get_doc("Sales Taxes and Charges Template", "MwSt, LSVA und VOC 2024 - SEG")
+    so_doc.taxes_and_charges = tax_template.name
+    so_doc.set("taxes", [])
+
+    for tax in tax_template.taxes:
+        new_tax = { 'charge_type': tax.charge_type,
+                    'account_head': tax.account_head,
+                    'description': tax.description,
+                    'cost_center': tax.cost_center,
+                    'rate': tax.rate }
+        so_doc.append("taxes", new_tax)
+
+    so_doc.calculate_taxes_and_totals()
     
     #Insert Sales Order
     try:
