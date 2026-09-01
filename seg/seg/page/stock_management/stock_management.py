@@ -456,6 +456,8 @@ def get_open_picking_lists(customer, picking_list):
                                     `tabPicking List`.`docstatus` = 1
                                 {customer_condition}
                                 {picking_list_condition}
+                                GROUP BY
+                                    `tabPicking List`.`name`
                                 ORDER BY
                                     `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
     

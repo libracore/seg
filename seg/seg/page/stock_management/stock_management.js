@@ -1680,7 +1680,6 @@ class PickingPage extends StockManagementClass {
     
     refresh_picking_list_list() {
         this.display_picking_lists()
-        console.log("refresh: " + this.picking_lists);
         this.add_event_listeners(true);
     }
     
