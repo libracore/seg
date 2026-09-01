@@ -1530,13 +1530,11 @@ class PickingPage extends StockManagementClass {
         
         //Show Picking List Table
         this.display_picking_lists()
-        console.log("done subsection: " + this.picking_lists);
     }
     
     //Add Event Listeners
     add_event_listeners(refresh=false) {
         if (!refresh) {
-            console.log("starting event listeners: " + this.picking_lists);
             //Add General Event handlers
             this.add_general_event_handlers()
             
@@ -2146,14 +2144,21 @@ class CreateSalesOrderPage extends StockManagementClass {
     }
     
     async update_items(item_code, source_warehouse, qty) {
+        console.log(source_warehouse);
+        console.log(this.items);
         //Check if Item is already selected
-        const target_item = this.items.find(item => ((item.item_code === this.item) && (     )));
-        //Create Item Dict
-        let item_dict = await this.create_item_dict(item_code);
-        item_dict[0].content['warehouse'] = source_warehouse;
-        item_dict[0].content['qty'] = qty;
-        this.items.push(item_dict[0]);
-        this.display_items();
+        const target_item = this.items.find(item => ((item.item_code === this.item) && (item.content.warehouse === source_warehouse)));
+        console.log(target_item);
+        if (target_item) {
+            target_item.content['qty'] += qty;
+        } else {
+            //Create Item Dict
+            let item_dict = await this.create_item_dict(item_code);
+            item_dict[0].content['warehouse'] = source_warehouse;
+            item_dict[0].content['qty'] = qty;
+            this.items.push(item_dict[0]);
+            this.display_items();
+        }
     }
     
     //Check if an Item or Warehouse has been scanned and set value to the right field
@@ -2184,7 +2189,7 @@ class CreateSalesOrderPage extends StockManagementClass {
                 fieldname: "customer",
 				change: () => {
                     document.activeElement.blur();
-                    this.customer = this.to_wh_link_field.get_value();
+                    this.customer = this.customer_link_field.get_value();
 				}
             },
             only_input: true
@@ -2234,7 +2239,27 @@ class CreateSalesOrderPage extends StockManagementClass {
     
     create_sales_order() {
         if ((this.items) && (this.items.length > 0)) {
-            console.log("Create Sales Order: " + this.items);
+            if (this.customer) {
+                frappe.call({
+                    'method': 'seg.seg.page.stock_management.stock_management.create_sales_order',
+                    'args': {
+                        'customer': this.customer,
+                        'items': this.items
+                    },
+                    'callback': function(response) {
+                        console.log(response.message);
+                        if (response.message.success) {
+                            this.show_success("Auftrag " + response.message.name + " wurde erfolgreich erstellt.", "button-message");
+                            this.items;
+                            this.customer_link_field.set_value("");
+                        } else {
+                            this.show_error("Es ist ein Fehler aufgetrete, es wurde ein Fehlerbericht erstellt.", "button-message");
+                        }
+                    }
+                });
+            } else {
+                this.show_error("Bitte einen Kunden wählen.", "button-message");
+            }
         } else {
             this.show_error("Bitte zuerst Artikel hinzufügen.", "button-message");
         }

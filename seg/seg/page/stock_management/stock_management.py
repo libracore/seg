@@ -2,7 +2,7 @@
 # License: GNU General Public License v3. See license.txt
 
 import frappe
-from frappe.utils import cint, flt, sbool
+from frappe.utils import cint, flt, sbool, getdate
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
 import json
@@ -426,29 +426,38 @@ def get_open_picking_lists(customer, picking_list):
     #Prepare condition
     customer_condition = """"""
     if customer:
-        customer_condition = """AND `customer` = '{0}'""".format(customer)
+        customer_condition = """AND `tabPicking List`.`customer` = '{0}'""".format(customer)
     
     picking_list_condition = """"""
     if picking_list:
-        picking_list_condition = """AND `name` = '{0}'""".format(picking_list)
+        picking_list_condition = """AND `tabPicking List`.`name` = '{0}'""".format(picking_list)
     
     #Get orders
     open_picking_lists = frappe.db.sql("""
                                 SELECT
-                                    `name`,
-                                    DATE_FORMAT(schedule_date, '%d.%m.%Y') AS `formatted_schedule_date`,
-                                    `customer_name`,
-                                    `sales_order`
+                                    `tabPicking List`.`name` AS `name`,
+                                    DATE_FORMAT(`tabPicking List`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
+                                    `tabPicking List`.`customer_name` AS `customer_name`,
+                                    `tabPicking List`.`sales_order` AS `sales_order`,
+                                    COUNT(
+                                        CASE
+                                            WHEN `tabPicking List Item`.`picked_qty`
+                                                 < `tabPicking List Item`.`qty`
+                                            THEN 1
+                                        END
+                                    ) AS `open_items`
                                 FROM
                                     `tabPicking List`
+                                LEFT JOIN
+                                    `tabPicking List Item` ON `tabPicking List Item`.`parent` = `tabPicking List`.`name`
                                 WHERE
-                                    `status` = 'Open'
+                                    `tabPicking List`.`status` = 'Open'
                                 AND
-                                    `docstatus` = 1
+                                    `tabPicking List`.`docstatus` = 1
                                 {customer_condition}
                                 {picking_list_condition}
                                 ORDER BY
-                                    `schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
+                                    `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
     
     return open_picking_lists
 
@@ -612,3 +621,35 @@ def filter_items_for_entry_wh(doctype, txt, searchfield, start, page_len, filter
             %(start)s, %(page_len)s;""", {"txt": "%" + txt + "%", 'start': start, 'page_len': page_len, 'warehouse': entry_warehouse})
     
     return warehouse_items
+
+@frappe.whitelist()
+def create_sales_order(customer, items):
+    #Prepare Items and get actual date
+    items = json.loads(items)
+    today = getdate()
+    
+    #Create Sales Order
+    so_doc = frappe.get_doc({
+        'doctype': "Sales Order",
+        'customer': customer,
+        'transporter': "Abgeholt",
+        'picked_up': 1,
+        'delivery_date': today
+     })
+    frappe.log_error("items", items)
+    #Add Items
+    for item in items:
+        so_doc.append("items", {
+                                'item_code': item.get('item_code'),
+                                'qty': item.get('content').get('qty'),
+                                'warehouse': item.get('content').get('warehouse'),
+                                'delivery_date': today
+                            })
+    
+    #Insert Sales Order
+    try:
+        so_doc.insert()
+        return {'success': 1, 'name': so_doc.name}
+    except Exception as Err:
+        frappe.log_error("Stock Management App Error", "Es ist ein Fehler beim erstellen eines Auftrages entstanden:<br><br>".format(Err))
+        return
