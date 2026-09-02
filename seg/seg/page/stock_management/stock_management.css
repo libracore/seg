@@ -366,8 +366,6 @@
     width: 100%;
     height: calc(100vh - 90px);
 
-    overflow: hidden;
-
     background: #ffffff;
 
     box-sizing: border-box;
@@ -377,7 +375,6 @@
 /* Navbar */
 #stock-enter-navbar {
     flex: 0 0 auto;
-
     width: 100%;
 }
 
@@ -385,7 +382,6 @@
 /* Eingabe */
 #stock-enter-input {
     flex: 0 0 auto;
-
     width: 100%;
 }
 
