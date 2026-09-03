@@ -15,6 +15,7 @@
   "column_break_txxx",
   "status",
   "schedule_date",
+  "delivery_note_qty",
   "section_break_bwkz",
   "items"
  ],
@@ -102,13 +103,20 @@
    "in_standard_filter": 1,
    "label": "Customer Name",
    "read_only": 1
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "delivery_note_qty",
+   "fieldtype": "Int",
+   "label": "Delivery Note Qty",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-08-18 17:51:32.834261",
+ "modified": "2026-09-03 20:44:51.181951",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List",

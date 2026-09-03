@@ -1676,6 +1676,7 @@ class PickingList extends PickingPage {
         if (!this.items) {
             this.get_picking_list_items();
         } else {
+            console.log(this.items);
             this.on_show();
         }
 	}
@@ -1894,7 +1895,11 @@ class PickingList extends PickingPage {
                 'items': this.items
             },
             'callback': (response) => {
-                
+                if ((response.message) && (response.message.success)) {
+                    this.show_success("Lieferschein " + response.message.name + " wurde erstellt.", "button-message");
+                } else {
+                    this.show_error("Es ist ein Fehler beim erstellen des Lieferscheins aufgetreten. Ein Fehlerbericht wurde erstellt.", "button-message");
+                }
             }
         });
     }

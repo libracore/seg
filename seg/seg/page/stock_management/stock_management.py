@@ -6,7 +6,7 @@ from frappe.utils import cint, flt, sbool, getdate
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
 import json
-from erpnext.selling.doctype.sales_order import 
+from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -474,6 +474,7 @@ def get_picking_list_items(picking_list, item=False):
     
     items = frappe.db.sql("""
                             SELECT
+                                `tabPicking List Item`.`name` AS `pl_detail`,
                                 `tabPicking List Item`.`item_code` AS `item_code`,
                                 `tabPicking List Item`.`item_name` AS `item_name`,
                                 (`tabPicking List Item`.`qty` - `tabPicking List Item`.`picked_qty`) AS `qty`,
@@ -674,29 +675,41 @@ def create_sales_order(customer, items):
         frappe.log_error("Stock Management App Error", "Es ist ein Fehler beim erstellen eines Auftrages entstanden:<br><br>".format(Err))
         return
 
+@frappe.whitelist()
 def create_delivery_note(picking_list, items):
+    items = json.loads(items)
     #get Picking List and Sales Order
     picking_list_doc = frappe.get_doc("Picking List", picking_list)
     
     #Create Delivery Note
     delivery_note = make_delivery_note(source_name=picking_list_doc.get('sales_order'))
     
+    #Set Mandatory Transporter
+    if not delivery_note.get('transporter'):
+        delivery_note.transporter = "Abgeholt"
+    
+    #Set Picking List
+    delivery_note.picking_list = picking_list
+    
     #Clear Items
     delivery_note.items = []
-    # ~ frappe.get_doc({
-        # ~ 'doctype': "Delivery Note",
-        # ~ 'customer': picking_list_doc.get('customer'),
-        # ~ 'transporter': sales_order_doc.get('transporter'),
-        # ~ 'transporter': sales_order_doc.get('transporter'),
-        # ~ 'delivery_date': today
-     # ~ })
     
     #Add Items
     for item in items:
-        # ~ delivery_note.append("items", {
-                                # ~ 'item_code': item.get('item_code'),
-                                # ~ 'qty': item.get('content').get('qty'),
-                                # ~ 'warehouse': item.get('content').get('warehouse'),
-                                # ~ 'delivery_date': today
-                            # ~ })
+        for item_with_wh in item.get('content').get('warehouses'):
+            delivery_note.append("items", {
+                                    'item_code': item.get('item_code'),
+                                    'qty': item_with_wh.get('qty'),
+                                    'warehouse': item_with_wh.get('warehouse'),
+                                    'pl_detail': item.get('content').get('pl_detail')
+                                })
+    
+    #Insert Delivery Note
+    try:
+        delivery_note.insert()
+        return {'success': 1, 'name': delivery_note.name}
+    except Exception as Err:
+        frappe.log_error("Stock Management Error", "EIn Fehler beim erstellen eines Lieferscheins ist aufgetreten:<br><br>{0}".format(Err))
+        return {'success': 0}
+    
     

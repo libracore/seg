@@ -129,3 +129,38 @@ def create_picking_list(doc):
     except Exception as Err:
         frappe.log_error("Picking List Creation Error", Err)
         return {'name': None, 'success': 0, 'error': 1}
+
+def update_picking_list(self, event):
+    #Get Picking List
+    if self.get('picking_list'):
+        picking_list = frappe.get_doc("Picking List", self.get('picking_list'))
+    else:
+        return
+     #Update Item Qty
+    for item in self.get('items'):
+        for pl_item in picking_list.get('items'):
+            if pl_item.get('name') == item.get('pl_detail'):
+                if event == "on_submit":
+                    pl_item.picked_qty += item.get('qty')
+                else:
+                    pl_item.picked_qty -= item.get('qty')
+    
+    #Update Delivery Note Qty
+    if event == "on_submit":
+        picking_list.delivery_note_qty += 1
+    else:
+        picking_list.delivery_note_qty -= 1
+    
+    #Update Status
+    completed = True
+    for item in picking_list.get('items'):
+        if item.get('picked_qty') < item.get('picked_qty'):
+            completed = False
+            break
+    
+    if completed:
+        picking_list.status = "Closed"
+    else:
+        picking_list.status = "Open"
+    picking_list.save()
+    return
