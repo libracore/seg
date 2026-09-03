@@ -498,22 +498,28 @@
     font-weight: 600;
 }
 
-/* Noch nichts eingelagert */
+/* Noch nichts gepickt */
 .progress-open {
     background: #fee2e2;
     color: #b91c1c;
 }
 
-/* Teilweise eingelagert */
+/* Teilweise gepickt */
 .progress-partial {
     background: #fef3c7;
     color: #b45309;
 }
 
-/* Vollständig eingelagert */
+/* Vollständig gepickt */
 .progress-done {
     background: #dcfce7;
     color: #15803d;
+}
+
+/* Zu viel gepickt */
+.progress-over {
+    background: #ffb3b3;
+    color: #c62828;
 }
 
 /*-----Navbar-----*/

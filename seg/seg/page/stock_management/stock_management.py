@@ -498,7 +498,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'qty': item.get('qty'),
                                 'item_name': item.get('item_name'),
                                 'locations': get_item_locations(item.get('item_code')),
-                                'stored_qty': 0
+                                'stored_qty': 0,
+                                'warehouses': []
                             }}
                 
                 response.append(item_response)
