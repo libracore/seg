@@ -645,14 +645,11 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
     
     //Handle Scan Input
     async handle_scan(scan_buffer) {
-        console.log("Order");
         if (/^\d+$/.test(scan_buffer)) {
             this.item_dict;
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
-                //~ const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
-                //~ document.getElementById("quantity-input").value = target_item.content.qty;
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
@@ -676,12 +673,10 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
 	}
 
 	init() {
-        console.log("init");
         this.get_item_and_warehouse_information(this.item);
 	}
 
 	on_show() {
-        console.log("on_show");
         this.show_subsections();
         this.show_specific_dynamic_content();
         this.add_event_listeners();
@@ -1678,11 +1673,9 @@ class PickingList extends PickingPage {
 	}
 
 	init() {
-        console.log("items before:", this.items);
         if (!this.items) {
             this.get_picking_list_items();
         } else {
-            console.log("items after:", this.items);
             this.on_show();
         }
 	}
@@ -1732,11 +1725,9 @@ class PickingList extends PickingPage {
             }
         });
         
-        //Submit Stock Entry
+        //Create Delivery Note
 		document.getElementById("action-button").addEventListener("click", () => {
-            console.log(this.item);
-            console.log(this.picking_list);
-            //~ this.create_delivery_note(this.order);
+            this.create_delivery_note();
 		});
         
         //Open Item Tab
@@ -1756,7 +1747,7 @@ class PickingList extends PickingPage {
                 const item_code = row.dataset.item;
                 const target_item = this.items.find(item => item.item_code === item_code);
                 this.item_link_field.set_value(item_code);
-                document.getElementById("quantity-input").value = target_item.content.qty;
+                document.getElementById("quantity-input").value = target_item.content.qty - target_item.content.stored_qty;
             });
 		});
     
@@ -1809,7 +1800,6 @@ class PickingList extends PickingPage {
                 },
                 'callback': (response) => {
                     this.items = response.message;
-                    console.log("items after:", this.items);
                     this.on_show();
                 }
             });
@@ -1880,11 +1870,34 @@ class PickingList extends PickingPage {
             }
         });
     }
-
-    //~ refresh_stocked_amount(item_code, qty, new_amount) {
-        //~ const progress_div = document.getElementById(item_code + "_amount");
-        //~ progress_div.innerText = new_amount + "/" + qty;
-    //~ }
+    
+    //Handle Scan Input
+    async handle_scan(scan_buffer) {
+        if (/^\d+$/.test(scan_buffer)) {
+            this.item_dict;
+            this.item_dict = await this.translate_item_barcode(scan_buffer);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+            } else {
+                this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
+            }
+        } else {
+            this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
+        }
+    }
+    
+    create_delivery_note() {
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.create_delivery_note',
+            'args': {
+                'picking_list': this.picking_list,
+                'items': this.items
+            },
+            'callback': (response) => {
+                
+            }
+        });
+    }
 }
 
 //Purchase Receipt - Show Warehouse to Stock Items
@@ -1912,7 +1925,7 @@ class PickingListItem extends PickingList {
     //Add Event Listeners
     add_event_listeners() {
         //Add General Event handlers
-        this.grandparent_this.add_general_event_handlers()
+        this.add_general_event_handlers()
         
         //Go back to Stock Enter Page
 		document.getElementById("nav-back").addEventListener("click", () => {
@@ -2046,6 +2059,12 @@ class PickingListItem extends PickingList {
         }
         this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
     }
+    
+    //Handle Scan Input
+    async handle_scan(scan_buffer) {
+        let warehouse = scan_buffer + " - SEG";
+        this.wh_link_field.set_value(warehouse);
+    }
 }
 
 //Create Sales Order
@@ -2149,10 +2168,7 @@ class CreateSalesOrderPage extends StockManagementClass {
                 this.show_error("Bitte zuerst alle Felder befüllen.", "order-message")
             } else {
                 //Add Item to Items
-                console.log("calling items update....");
-                console.log("calling items update: " + this.items);
                 this.update_items(item, warehouse, qty);
-                console.log("got new items");
                 document.getElementById("order-quantity-input").value = 1;
                 this.item_link_field.set_value("");
                 this.wh_link_field.set_value("");

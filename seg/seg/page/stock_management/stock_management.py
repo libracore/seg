@@ -6,6 +6,7 @@ from frappe.utils import cint, flt, sbool, getdate
 from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_receipt
 from erpnext.setup.utils import get_exchange_rate
 import json
+from erpnext.selling.doctype.sales_order import 
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -476,7 +477,8 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`item_code` AS `item_code`,
                                 `tabPicking List Item`.`item_name` AS `item_name`,
                                 (`tabPicking List Item`.`qty` - `tabPicking List Item`.`picked_qty`) AS `qty`,
-                                `tabItem`.`image` AS `image`
+                                `tabItem`.`image` AS `image`,
+                                `tabPicking List Item`.`so_detail` AS `so_detail`
                             FROM
                                 `tabPicking List Item`
                             LEFT JOIN
@@ -671,3 +673,30 @@ def create_sales_order(customer, items):
     except Exception as Err:
         frappe.log_error("Stock Management App Error", "Es ist ein Fehler beim erstellen eines Auftrages entstanden:<br><br>".format(Err))
         return
+
+def create_delivery_note(picking_list, items):
+    #get Picking List and Sales Order
+    picking_list_doc = frappe.get_doc("Picking List", picking_list)
+    
+    #Create Delivery Note
+    delivery_note = make_delivery_note(source_name=picking_list_doc.get('sales_order'))
+    
+    #Clear Items
+    delivery_note.items = []
+    # ~ frappe.get_doc({
+        # ~ 'doctype': "Delivery Note",
+        # ~ 'customer': picking_list_doc.get('customer'),
+        # ~ 'transporter': sales_order_doc.get('transporter'),
+        # ~ 'transporter': sales_order_doc.get('transporter'),
+        # ~ 'delivery_date': today
+     # ~ })
+    
+    #Add Items
+    for item in items:
+        # ~ delivery_note.append("items", {
+                                # ~ 'item_code': item.get('item_code'),
+                                # ~ 'qty': item.get('content').get('qty'),
+                                # ~ 'warehouse': item.get('content').get('warehouse'),
+                                # ~ 'delivery_date': today
+                            # ~ })
+    
