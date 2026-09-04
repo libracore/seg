@@ -338,12 +338,9 @@ def get_updated_seg_prices(items, price_list, currency):
 #Translate Barcode to Item Code
 @frappe.whitelist()
 def get_item_code(barcode):
-    frappe.log_error("barcode", barcode)
     item = frappe.get_all("Item Barcode", filters={'barcode': barcode,'barcode_type': "EAN"}, fields=["parent"])
-    frappe.log_error("item", item)
     if len(item) > 0:
         item_dict = get_single_item_basic_information(item[0].parent)
-        frappe.log_error("item_dict", item_dict)
         return item_dict
     else:
         return None
@@ -399,7 +396,6 @@ def get_item_information_by_warehouse(warehouse):
 @frappe.whitelist()
 def create_stock_entry(items, entry_type):
     items = json.loads(items)
-    frappe.log_error("items", items)
     stock_entry = frappe.new_doc("Stock Entry")
 
     stock_entry.stock_entry_type = entry_type
@@ -503,7 +499,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'locations': get_item_locations(item.get('item_code')),
                                 'stored_qty': 0,
                                 'warehouses': [],
-                                'pl_detail': item.get('pl_detail')
+                                'pl_detail': item.get('pl_detail'),
+                                'so_detail': item.get('so_detail')
                             }}
                 
                 response.append(item_response)
@@ -515,7 +512,6 @@ def get_picking_list_items(picking_list, item=False):
 #Create Pruchase Receipt for single Item to directly store it
 @frappe.whitelist()
 def create_single_receipt(item_code, target_warehouse, qty, order, submit=False):
-    frappe.log_error("purchase_receipt", "item: {0}<br>wh: {1}<br>qty: {2}<br>order: {3}".format(item_code, target_warehouse, qty, order))
     #create purchase receipt
     purchase_receipt = make_purchase_receipt(order)
     
@@ -643,7 +639,7 @@ def create_sales_order(customer, items):
         'picked_up': 1,
         'delivery_date': today
      })
-    frappe.log_error("items", items)
+    
     #Add Items
     for item in items:
         so_doc.append("items", {
@@ -694,16 +690,18 @@ def create_delivery_note(picking_list, items):
     
     #Clear Items
     delivery_note.items = []
-    frappe.log_error("items", items)
+    
     #Add Items
     for item in items:
         for item_with_wh in item.get('content').get('warehouses'):
-            frappe.log_error("pl_detail", item.get('content').get('pl_detail'))
+            
             delivery_note.append("items", {
                                     'item_code': item.get('item_code'),
                                     'qty': item_with_wh.get('qty'),
                                     'warehouse': item_with_wh.get('warehouse'),
-                                    'pl_detail': item.get('content').get('pl_detail')
+                                    'pl_detail': item.get('content').get('pl_detail'),
+                                    'so_detail': item.get('content').get('so_detail'),
+                                    'against_sales_order': picking_list_doc.get('sales_order')
                                 })
     
     #Insert Delivery Note

@@ -83,8 +83,6 @@ class StockManagementClass {
     
     //Display Sucess message
     show_success(message, element) {
-        console.log(message);
-        console.log(element);
         const msg = document.getElementById(element);
         msg.textContent = message;
         msg.className = "scan-message success";
@@ -440,9 +438,6 @@ class PurchaseReceiptPage extends StockManagementClass {
                 this.purchase_order_link_field.set_value(target_item.name)
             });
 		});
-    }
-    async handle_scan(scan_buffer) {
-        console.log(scan_buffer);
     }
 }
 
@@ -903,11 +898,6 @@ class StockEnterPage extends StockManagementClass {
 		document.getElementById("nav-back").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
 		});
-        
-        //Create Stock Entry and Go to Home
-		//~ document.getElementById("action-button").addEventListener("click", () => {
-            //~ frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
-		//~ });
         
         //Delete Item Field
         document.getElementById("clear-article").addEventListener("click", () => {
@@ -1902,7 +1892,7 @@ class PickingListItem extends PickingList {
         //Add General Event handlers
         this.add_general_event_handlers()
         
-        //Go back to Stock Enter Page
+        //Go back to Picking List
 		document.getElementById("nav-back").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list);
 		});
@@ -1917,19 +1907,17 @@ class PickingListItem extends PickingList {
         
         //Add Quantity
         document.getElementById("wh-qty-plus").addEventListener("click", () => {
+            document.activeElement.blur();
             const quantityInput = document.getElementById("wh-quantity-input");
-
             const quantity = parseInt(quantityInput.value, 10) || 1;
-
             quantityInput.value = quantity + 1;
         });
         
         //Remove Quantity
         document.getElementById("wh-qty-minus").addEventListener("click", () => {
+            document.activeElement.blur();
             const quantityInput = document.getElementById("wh-quantity-input");
-
             const quantity = parseInt(quantityInput.value, 10) || 1;
-
             if (quantity > 1) {
                 quantityInput.value = quantity - 1;
             }
@@ -1937,6 +1925,7 @@ class PickingListItem extends PickingList {
         
         //Add picked items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
+            document.activeElement.blur();
             if (this.warehouse) {
                 const quantity = document.getElementById("wh-quantity-input").value;
                 this.add_picked_item(quantity);
@@ -2028,9 +2017,9 @@ class PickingListItem extends PickingList {
         //add warehouse information
         const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
         if (target) {
-            target.qty += new_amount;
+            target.qty += parseInt(new_amount);
         } else {
-            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': new_amount});
+            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
         }
         this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
     }
