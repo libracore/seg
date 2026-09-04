@@ -1,0 +1,45 @@
+<section class="list-content">
+
+    <table class="item-table">
+
+        {% for order in orders %}
+
+            <tr class="order-row" data-order="{{ order.name }}">
+
+                <td class="order-details">
+
+                    <div class="order-title">
+                        {{ order.name }}
+                    </div>
+
+                    <div class="order-supplier">
+                        {{ order.supplier }}
+                    </div>
+                    
+                    <div class="order-supplier">
+                        {{ order.open_items }} Positionen
+                    </div>
+                
+                </td>
+
+                <td class="order-dates">
+
+                    <div class="order-date">
+                        <span class="order-date-label">Bestellt</span><br>
+                        {{ order.transaction_date }}
+                    </div>
+
+                    <div class="order-date">
+                        <span class="order-date-label">Lieferung</span><br>
+                        {{ order.formatted_schedule_date }}
+                    </div>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </table>
+
+</section>

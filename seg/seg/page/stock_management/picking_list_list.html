@@ -1,0 +1,44 @@
+<section class="list-content">
+
+    <table class="item-table">
+
+        {% for picking_list in picking_lists %}
+
+            <tr class="order-row" data-list="{{ picking_list.name }}">
+
+                <td class="order-details">
+
+                    <div class="order-title">
+                        {{ picking_list.name }}
+                    </div>
+
+                    <div class="order-supplier">
+                        {{ picking_list.customer_name }}
+                    </div>
+                    
+                    <div class="order-supplier">
+                        {{ picking_list.open_items }} Positionen
+                    </div>
+                </td>
+
+                <td class="order-dates">
+
+                    <div class="order-date">
+                        <span class="order-date-label">Geplant</span><br>
+                        {{ picking_list.formatted_schedule_date }}
+                    </div>
+
+                    <div class="order-date">
+                        <span class="order-date-label">Auftrag</span><br>
+                        {{ picking_list.sales_order }}
+                    </div>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+    </table>
+
+</section>

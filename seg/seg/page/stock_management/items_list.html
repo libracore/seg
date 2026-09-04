@@ -1,0 +1,35 @@
+<section class="list-content">
+    <table class="item-table">
+        {% if items %}
+            {% for item in items %}
+            <tr class="item-row" data-item="{{ item.item_code }}">
+
+                <td class="item-image">
+                    <img src="{{ item.picture }}">
+                </td>
+
+                <td class="item-details">
+
+                    <div class="item-title">
+                        {{ item.content.qty }}x {{ item.content.item_name }}
+                    </div>
+
+                    <div class="item-location">
+                        {{ item.item_code }}
+                    </div>
+
+                    <div id="{{ item.item_code }}_amount" class="item-progress progress-open">
+                        {{ item.content.stored_qty }}/{{ item.content.qty }}
+                    </div>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <div class="no-items-message">Keine Artikel vorhanden.</div>
+            </tr>
+        {% endif %}
+    </table>
+</section>

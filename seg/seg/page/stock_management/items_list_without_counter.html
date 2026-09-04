@@ -1,0 +1,35 @@
+<section class="list-content">
+    <table class="item-table">
+        {% if items %}
+            {% for item in items %}
+            <tr class="item-row" data-item="{{ item.item_code }}">
+
+                <td class="item-image">
+                    <img src="{{ item.picture }}">
+                </td>
+
+                <td class="item-details">
+
+                    <div class="item-title">
+                        {{ item.content.qty }}x {{ item.content.item_name }}
+                    </div>
+
+                    <div class="item-location">
+                        {{ item.item_code }}
+                    </div>
+                    
+                    {% if item.content.warehouse %}
+                        <div class="item-location">
+                            {{ item.content.warehouse }}
+                        </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <div class="no-items-message">Noch keine Artikel gewählt.</div>
+            </tr>
+        {% endif %}
+    </table>
+</section>

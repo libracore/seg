@@ -149,10 +149,14 @@ doc_events = {
         "before_save": "seg.seg.utils.update_priority"
     },
     "Delivery Note": {
-        "on_submit": "seg.seg.purchasing.update_considered_qty",
+        "on_submit": [
+                    "seg.seg.purchasing.update_considered_qty",
+                    "seg.seg.delivery.update_picking_list"
+                    ],
         "on_cancel": [
                     "seg.seg.purchasing.update_considered_qty",
-                    "seg.seg.delivery.update_delivery_note_qty"
+                    "seg.seg.delivery.update_delivery_note_qty",
+                    "seg.seg.delivery.update_picking_list"
                     ],
         "after_insert": "seg.seg.delivery.update_delivery_note_qty",
         "on_trash": "seg.seg.delivery.update_delivery_note_qty"
@@ -160,6 +164,10 @@ doc_events = {
     "Purchase Receipt": {
         "on_submit": "seg.seg.purchasing.update_item_seg_price",
         "on_cancel": "seg.seg.purchasing.update_item_seg_price"
+    },
+    "Picking List": {
+        "on_submit": "seg.seg.doctype.picking_list.picking_list.update_so",
+        "on_cancel": "seg.seg.doctype.picking_list.picking_list.update_so"
     }
 }
 

@@ -1,0 +1,141 @@
+<section class="scan-container">
+    
+    <div class="field-group order-group">
+        <!-- Customer -->
+        <label class="field-label" for="transfer-article-input">
+            Customer
+        </label>
+
+        <div class="input-wrapper">
+
+            <div
+                id="create-order-customer-input"
+                class="link-field-container">
+            </div>
+
+            <button
+                id="clear-order-customer"
+                class="clear-button"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="transfer-inputs">
+
+        <!-- Item -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="order-article-input">
+                Artikel
+            </label>
+
+            <div class="input-wrapper">
+
+                <div
+                    id="order-article-input"
+                    class="link-field-container">
+                </div>
+
+                <button
+                    id="clear-order-article"
+                    class="clear-button"
+                    type="button">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Ausgangslager -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="order-warehouse-input">
+                Ausgangslager
+            </label>
+
+            <div class="input-wrapper">
+
+                <div
+                    id="order-warehouse-input"
+                    class="link-field-container">
+                </div>
+
+                <button
+                    id="clear-order-warehouse"
+                    class="clear-button"
+                    type="button">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Menge -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="transfer-quantity-input">
+                Menge
+            </label>
+
+            <div class="quantity-row">
+
+                <div class="quantity-selector">
+
+                    <button
+                        id="order-qty-minus"
+                        class="qty-button"
+                        type="button">
+                        −
+                    </button>
+
+                    <input
+                        id="order-quantity-input"
+                        class="quantity-input"
+                        type="number"
+                        value="1"
+                        min="1">
+
+                    <button
+                        id="order-qty-plus"
+                        class="qty-button"
+                        type="button">
+                        +
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <button
+        id="create-order-ok-button"
+        class="ok-button"
+        type="button">
+
+        <i class="fa fa-check"></i>
+
+    </button>
+
+</section>
+
+
+<div id="order-message" class="scan-message"></div>

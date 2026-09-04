@@ -104,3 +104,63 @@ def update_delivery_note_qty(self, event):
                 frappe.db.set_value("Sales Order", item.against_sales_order, "delivery_note_qty", 0)
             
             handeled_so.append(item.against_sales_order)
+
+@frappe.whitelist()
+def create_picking_list(doc):
+    so_doc = json.loads(doc)
+    
+    picking_list = frappe.new_doc("Picking List")
+
+    picking_list.sales_order = so_doc['name']
+    
+    for item in so_doc.get('items'):
+        picking_list_qty = item.get('qty') - item.get('picking_list_qty')
+        if picking_list_qty > 0:
+            picking_list.append("items", {
+                'item_code': item.get('item_code'),
+                'qty': picking_list_qty,
+                'uom': item.get('uom'),
+                'so_detail': item.get('name')
+            })
+        
+    try:
+        picking_list.insert()
+        return {'name': picking_list.name, 'success': 1, 'error': 0}
+    except Exception as Err:
+        frappe.log_error("Picking List Creation Error", Err)
+        return {'name': None, 'success': 0, 'error': 1}
+
+def update_picking_list(self, event):
+    #Get Picking List
+    if self.get('picking_list'):
+        picking_list = frappe.get_doc("Picking List", self.get('picking_list'))
+    else:
+        return
+     #Update Item Qty
+    completed = True
+    for item in self.get('items'):
+        for pl_item in picking_list.get('items'):
+            if pl_item.get('name') == item.get('pl_detail'):
+                if event == "on_submit":
+                    pl_item.picked_qty += item.get('qty')
+                else:
+                    pl_item.picked_qty -= item.get('qty')
+    
+    #Update Delivery Note Qty
+    if event == "on_submit":
+        picking_list.delivery_note_qty += 1
+    else:
+        picking_list.delivery_note_qty -= 1
+    
+    #Update Status
+    for pl_item in picking_list.get('items'):
+        if (pl_item.get('picked_qty') or 0) < pl_item.get('qty'):
+            completed = False
+            break
+    
+    if completed:
+        picking_list.status = "Closed"
+    else:
+        picking_list.status = "Open"
+    picking_list.save()
+    return

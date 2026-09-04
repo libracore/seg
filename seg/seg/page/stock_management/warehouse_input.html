@@ -1,0 +1,67 @@
+<section class="scan-container">
+
+    <div class="field-group article-group">
+        <label class="field-label" for="warehouse-input">
+            Lagerplatz
+        </label>
+
+        <div class="input-wrapper">
+
+            <div
+                id="warehouse-input"
+                class="link-field-container">
+            </div>
+
+            <button
+                id="clear-warehouse"
+                class="clear-button"
+                type="button">
+
+                ✕
+
+            </button>
+
+        </div>
+    </div>
+
+    <div class="field-group quantity-group">
+
+        <label class="field-label" for="quantity-input">Menge</label>
+
+        <div class="quantity-row">
+
+            <div class="quantity-selector">
+
+                <button id="wh-qty-minus" class="qty-button" type="button">
+                    −
+                </button>
+
+                <input
+                    id="wh-quantity-input"
+                    class="quantity-input"
+                    type="number"
+                    value="1"
+                    min="1">
+
+                <button id="wh-qty-plus" class="qty-button" type="button">
+                    +
+                </button>
+
+            </div>
+
+            <div id="wh-input-extra-container">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <button id="wh-ok-button" class="ok-button" type="button">
+        <i class="fa fa-check"></i>
+    </button>
+
+</section>
+
+
+<div id="wh-message" class="scan-message"></div>

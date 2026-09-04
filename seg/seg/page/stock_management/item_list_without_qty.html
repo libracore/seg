@@ -1,0 +1,25 @@
+<section class="list-content">
+    <table class="item-table">
+        {% for item in items %}
+        <tr class="item-row">
+
+            <td class="item-image">
+                <img src="{{ item.picture }}">
+            </td>
+
+            <td class="item-details">
+
+                <div class="item-title">
+                    {{ item.content.item_name }}
+                </div>
+
+                <div class="item-location">
+                    {{ item.item_code }}
+                </div>
+
+            </td>
+
+        </tr>
+        {% endfor %}
+    </table>
+</section>

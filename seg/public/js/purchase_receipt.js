@@ -14,9 +14,6 @@ frappe.ui.form.on('Purchase Receipt',  {
     before_save: async function(frm) {
         //Calcualte SEG Total and create Taxes Entry for freight costs and Exchange Fees
         const okay = await calculate_seg_total(frm);
-        if (!okay) {
-            console.log("Raise Time condition happend :-(");
-        }
     },
 });
 

@@ -62,6 +62,11 @@ frappe.ui.form.on('Sales Order',  {
                 modify_item_rate(frm);
             });
         }
+        
+        //Add Button to create Picking List
+        if (frm.doc.docstatus == 1) {
+            frm.add_custom_button(__("Picking List"), () => create_picking_list(frm), __("Create"));
+        }
     },
     delivery_date: function(frm) {
         frm.doc.desired_date = frm.doc.delivery_date;
@@ -176,6 +181,22 @@ function set_doc_owner() {
             if (response.message) {
                 let first_name = response.message.first_name;
                 cur_frm.set_value("doc_owner", first_name);
+            }
+        }
+    });
+}
+
+function create_picking_list(frm) {
+    frappe.call({
+        'method': 'seg.seg.delivery.create_picking_list',
+        'args': {
+            'doc': frm.doc
+        },
+        'callback': function(response) {
+            if (response.message.success) {
+                frappe.set_route("Form", "Picking List", response.message.name);
+            } else {
+                frappe.msgprint("Es ist ein Fehler beim erstellen der Picking List aufgetreten, ein Fehlerbericht wurde erstellt.")
             }
         }
     });
