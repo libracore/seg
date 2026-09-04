@@ -137,6 +137,7 @@ def update_picking_list(self, event):
     else:
         return
      #Update Item Qty
+    completed = True
     for item in self.get('items'):
         for pl_item in picking_list.get('items'):
             if pl_item.get('name') == item.get('pl_detail'):
@@ -152,9 +153,8 @@ def update_picking_list(self, event):
         picking_list.delivery_note_qty -= 1
     
     #Update Status
-    completed = True
-    for item in picking_list.get('items'):
-        if item.get('picked_qty') < item.get('picked_qty'):
+    for pl_item in picking_list.get('items'):
+        if (pl_item.get('picked_qty') or 0) < pl_item.get('qty'):
             completed = False
             break
     

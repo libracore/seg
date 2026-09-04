@@ -502,7 +502,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'item_name': item.get('item_name'),
                                 'locations': get_item_locations(item.get('item_code')),
                                 'stored_qty': 0,
-                                'warehouses': []
+                                'warehouses': [],
+                                'pl_detail': item.get('pl_detail')
                             }}
                 
                 response.append(item_response)
@@ -693,10 +694,11 @@ def create_delivery_note(picking_list, items):
     
     #Clear Items
     delivery_note.items = []
-    
+    frappe.log_error("items", items)
     #Add Items
     for item in items:
         for item_with_wh in item.get('content').get('warehouses'):
+            frappe.log_error("pl_detail", item.get('content').get('pl_detail'))
             delivery_note.append("items", {
                                     'item_code': item.get('item_code'),
                                     'qty': item_with_wh.get('qty'),

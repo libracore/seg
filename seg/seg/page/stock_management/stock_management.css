@@ -1177,3 +1177,30 @@ Standardmäßig unsichtbar:
 .page-head {
     display: none !important;
 }
+
+/* --------------------------------
+   Scrollable Picking List Items
+-------------------------------- */
+
+#picking-list-navbar {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+#picking-list-input {
+    flex: 0 0 auto;
+    width: 100%;
+}
+
+#picking-list-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#picking-list-button {
+    flex: 0 0 auto;
+    width: 100%;
+}
