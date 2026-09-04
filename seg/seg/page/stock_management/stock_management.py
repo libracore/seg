@@ -693,15 +693,47 @@ def create_delivery_note(picking_list, items):
     
     #Add Items
     for item in items:
+        #Get Sales Order Item Information
+        item_doc = frappe.db.get_value(
+            "Sales Order Item",
+            item.get('content').get('so_detail'),
+            [
+                "price_list_rate",
+                "base_price_list_rate",
+                "margin_type",
+                "margin_rate_or_amount",
+                "rate_with_margin",
+                "discount_percentage",
+                "discount_amount",
+                "distributed_discount_amount",
+                "base_rate_with_margin",
+                "rate",
+                "base_rate"
+            ],
+            as_dict=True
+        )
+        
+        #Add Delivery Note Item
         for item_with_wh in item.get('content').get('warehouses'):
-            
             delivery_note.append("items", {
                                     'item_code': item.get('item_code'),
                                     'qty': item_with_wh.get('qty'),
                                     'warehouse': item_with_wh.get('warehouse'),
                                     'pl_detail': item.get('content').get('pl_detail'),
                                     'so_detail': item.get('content').get('so_detail'),
-                                    'against_sales_order': picking_list_doc.get('sales_order')
+                                    'against_sales_order': picking_list_doc.get('sales_order'),
+                                    'price_list_rate': item_doc.get('price_list_rate'),
+                                    'base_price_list_rate': item_doc.get('base_price_list_rate'),
+                                    'margin_type': item_doc.get('margin_type'),
+                                    'margin_rate_or_amount': item_doc.get('margin_rate_or_amount'),
+                                    'rate_with_margin': item_doc.get('rate_with_margin'),
+                                    'discount_percentage': item_doc.get('discount_percentage'),
+                                    'discount_amount': item_doc.get('discount_amount'),
+                                    'distributed_discount_amount': item_doc.get('distributed_discount_amount'),
+                                    'base_rate_with_margin': item_doc.get('base_rate_with_margin'),
+                                    'rate': item_doc.get('rate'),
+                                    'base_rate': item_doc.get('base_rate'),
+                                    'picked_up': delivery_note.get('picked_up')
                                 })
     
     #Insert Delivery Note
