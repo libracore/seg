@@ -1169,3 +1169,11 @@ Standardmäßig unsichtbar:
     width: 50px;
     text-align: center;
 }
+
+/* --------------------------------
+   Remove frappe header
+-------------------------------- */
+
+.page-head {
+    display: none !important;
+}

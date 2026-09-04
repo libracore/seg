@@ -54,7 +54,6 @@ frappe.stock_management = {
 
 class StockManagementClass {
 	constructor(key, label) {
-        console.log(key, label);
 		this.key = key;
 		this.label = label;
         this.colors = {
@@ -84,6 +83,7 @@ class StockManagementClass {
     
     //Display Sucess message
     show_success(message, element) {
+        console.log(message);
         console.log(element);
         const msg = document.getElementById(element);
         msg.textContent = message;
@@ -121,7 +121,6 @@ class StockManagementClass {
                     barcode: barcode
                 },
                 callback: function(response) {
-                    console.log(response.message);
                     resolve(response.message);
                 }
             });
@@ -137,7 +136,6 @@ class StockManagementClass {
                     'item': item
                 },
                 callback: function(response) {
-                    console.log("Warehouses response: " + response.message)
                     resolve(response.message);
                 }
             });
@@ -153,7 +151,6 @@ class StockManagementClass {
         document.addEventListener("keydown", (event) => {
 
             if (event.key === "Enter") {
-                console.log(me);
                 me.handle_scan(scan_buffer);
                 scan_buffer = "";
                 return;
@@ -586,7 +583,6 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
                     'order': this.order
                 },
                 'callback': (response) => {
-                    console.log("items: " + response.message);
                     this.items = response.message;
                     this.on_show();
                 }
@@ -794,7 +790,6 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
                 },
                 'callback': (response) => {
                     this.item_dict = response.message;
-                    console.log("Response: " + this.item_dict);
                     this.get_entry_warehouse()
                 }
             });
@@ -985,7 +980,6 @@ class StockEnterPage extends StockManagementClass {
     
     async get_entry_warehouse_items() {
         this.items = await this.create_item_dict_by_warehouse("entry_warehouse");
-        console.log("Refreshing");
         this.on_show();
     }
     
@@ -1050,7 +1044,6 @@ class StockEnterPage extends StockManagementClass {
 //Stock Enter - Pick To Warehouse
 class StockEnterItem extends StockEnterPage {
 	constructor(key, label, item, qty, parent_this) {
-        console.log(item);
 		super(key, label);
         this.item = item;
         this.starting_qty = qty;
@@ -1109,7 +1102,6 @@ class StockEnterItem extends StockEnterPage {
         //Create Stock Entry
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
             const quantity = Number(document.getElementById("wh-quantity-input").value);
-            console.log(this.item_dict);
             if (this.warehouse) {
                 frappe.call({
                     'method': 'seg.seg.page.stock_management.stock_management.get_entry_warehouse',
@@ -1166,7 +1158,6 @@ class StockEnterItem extends StockEnterPage {
                     'item': this.item
                 },
                 'callback': (response) => {
-                    console.log(response.message);
                     this.item_dict = response.message;
                     this.on_show();
                 }
@@ -1190,21 +1181,6 @@ class StockEnterItem extends StockEnterPage {
             });
         }
     }
-    
-    //~ create_stock_entry(item, quantity, to_warehouse) {
-        //~ frappe.call({
-            //~ 'method': 'seg.seg.utils.page.stock_management.stock_management.create_single_entry',
-            //~ 'args': {
-                //~ 'item': item,
-                //~ 'quantity': quantity,
-                //~ 'to_warehouse': to_warehouse
-            //~ },
-            //~ 'callback': function(response) {
-                //~ cur_frm.set_value('drilling_meter_per_day', response.message);
-                //~ console.log("Hoi Maschine");
-            //~ }
-        //~ });
-    //~ }
     
     //Create Link Fields
     create_link_fields() {
@@ -1547,7 +1523,6 @@ class PickingPage extends StockManagementClass {
         document.querySelectorAll(".order-row").forEach(row => {
             row.addEventListener("click", () => {
                 const picking_list = row.dataset.list;
-                console.log("event handler: " + this.picking_lists);
                 const target_list = this.picking_lists.find(list => list.name === picking_list);
                 this.picking_list_link_field.set_value(target_list.name);
             });
@@ -1563,7 +1538,6 @@ class PickingPage extends StockManagementClass {
     
     //Show Dynmic Content for whole Purchase Receipt Classes
     show_dynamic_content() {
-        console.log("dynamic COntent: " + this.picking_lists);
         document.getElementById("nav-back").style.backgroundColor = this.colors.picking;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.picking;
     }
@@ -1580,9 +1554,7 @@ class PickingPage extends StockManagementClass {
             },
             'callback': (response) => {
                 this.picking_lists = response.message;
-                console.log("set: " + this.picking_lists)
                 if (!refresh) {
-                    console.log("before on show: " + this.picking_lists);
                     this.on_show();
                 } else {
                     this.refresh_picking_list_list()
@@ -1648,7 +1620,6 @@ class PickingPage extends StockManagementClass {
 		});
         this.customer_link_field.make()
 		this.customer_link_field.refresh();
-        console.log("link fields done: " + this.picking_lists);
     }
     
     refresh_picking_list_list() {
@@ -1676,7 +1647,6 @@ class PickingList extends PickingPage {
         if (!this.items) {
             this.get_picking_list_items();
         } else {
-            console.log(this.items);
             this.on_show();
         }
 	}
@@ -2217,15 +2187,11 @@ class CreateSalesOrderPage extends StockManagementClass {
     }
     
     async update_items(item_code, source_warehouse, qty) {
-        console.log(source_warehouse);
-        console.log(this.items);
         //Check if Item is already selected
         const target_item = this.items.find(item => ((item.item_code === this.item) && (item.content.warehouse === source_warehouse)));
-        console.log(target_item);
         if (target_item) {
             target_item.content['qty'] += qty;
         } else {
-            console.log("entered if");
             //Create Item Dict
             let item_dict = await this.create_item_dict(item_code);
             item_dict[0].content['warehouse'] = source_warehouse;
@@ -2322,7 +2288,6 @@ class CreateSalesOrderPage extends StockManagementClass {
                         'items': this.items
                     },
                     'callback': (response) => {
-                        console.log(response.message);
                         if (response.message.success) {
                             this.show_success("Auftrag " + response.message.name + " wurde erfolgreich erstellt.", "button-message");
                             this.items;
