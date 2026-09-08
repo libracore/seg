@@ -641,6 +641,11 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
+                //Set Quantity
+                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                if (target_item) {
+                    document.getElementById("quantity-input").value = target_item.content.qty;
+                }
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
@@ -1870,6 +1875,9 @@ class PickingList extends PickingPage {
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
+                //Set Quantity
+                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                document.getElementById("quantity-input").value = target_item.content.qty;
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
