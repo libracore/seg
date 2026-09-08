@@ -44,7 +44,9 @@
   "item_group_fallback",
   "copy_to_variant_section",
   "do_not_update_variants",
-  "copy_to_variant_fields"
+  "copy_to_variant_fields",
+  "stock_management_section",
+  "dn_transporter"
  ],
  "fields": [
   {
@@ -272,11 +274,24 @@
    "label": "Entry Warehouse",
    "options": "Warehouse",
    "reqd": 1
+  },
+  {
+   "fieldname": "stock_management_section",
+   "fieldtype": "Section Break",
+   "label": "Stock Management"
+  },
+  {
+   "description": "Default Transporter for Auto-Created Delivery Notes",
+   "fieldname": "dn_transporter",
+   "fieldtype": "Link",
+   "label": "Delivery Note Transporter",
+   "options": "Supplier",
+   "reqd": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-07-21 17:44:15.471296",
+ "modified": "2026-09-08 15:36:28.081156",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

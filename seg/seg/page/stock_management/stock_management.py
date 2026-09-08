@@ -683,7 +683,7 @@ def create_delivery_note(picking_list, items):
     
     #Set Mandatory Transporter
     if not delivery_note.get('transporter'):
-        delivery_note.transporter = "Abgeholt"
+        delivery_note.transporter = frappe.get_value("SEG Settings", "SEG Settings", "dn_transporter")
     
     #Set Picking List
     delivery_note.picking_list = picking_list

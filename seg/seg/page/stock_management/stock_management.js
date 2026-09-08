@@ -641,6 +641,11 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
+                //Set Quantity
+                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                if (target_item) {
+                    document.getElementById("quantity-input").value = target_item.content.qty;
+                }
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
@@ -849,6 +854,11 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
                     //Save Entered Warehouse
@@ -1183,6 +1193,11 @@ class StockEnterItem extends StockEnterPage {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
                     this.warehouse = this.wh_link_field.get_value();
@@ -1205,6 +1220,7 @@ class StockEnterItem extends StockEnterPage {
 class StockTransferPage extends StockManagementClass {
 	constructor(key, label) {
 		super(key, label);
+        this.warehouses;
 	}
 
 	init() {
@@ -1292,10 +1308,20 @@ class StockTransferPage extends StockManagementClass {
             if ((!this.item) || (!this.from_warehouse) || (!this.to_warehouse)) {
                 this.show_error("Bitte zuerst alle Felder befüllen.", "transfer-message")
             } else {
-                //Prepare Items
-                let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
-                //Create Stock Entry
-                this.create_stock_entry(items, "Material Transfer", "transfer-message");
+                //Check if Item is on Stock in selected Warehouse
+                const target = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.from_warehouse);
+                if (target) {
+                    if (qty > target.qty) {
+                        this.show_error("Menge nicht an Lagerplatz verfügbar.", "transfer-message");
+                    } else {
+                        //Prepare Items
+                        let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
+                        //Create Stock Entry
+                        this.create_stock_entry(items, "Material Transfer", "transfer-message");
+                    }
+                } else {
+                    this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
+                }
             }
 		});
         
@@ -1385,6 +1411,11 @@ class StockTransferPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "from_warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
                     //Show All Items on Warehouse, when Warehouse has been selected first
@@ -1410,6 +1441,11 @@ class StockTransferPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "to_warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
                     this.to_warehouse = this.to_wh_link_field.get_value();
@@ -1839,6 +1875,9 @@ class PickingList extends PickingPage {
             this.item_dict = await this.translate_item_barcode(scan_buffer);
             if (this.item_dict) {
                 this.item_link_field.set_value(this.item_dict[0].item_code);
+                //Set Quantity
+                const target_item = this.items.find(item => item.item_code === this.item_dict[0].item_code);
+                document.getElementById("quantity-input").value = target_item.content.qty;
             } else {
                 this.show_error("Artikel konnte nicht gefunden werden.", "item-input-message");
             }
@@ -1874,6 +1913,7 @@ class PickingListItem extends PickingList {
         this.item_dict;
         this.parent_this = parent_this;
         this.grandparent_this = grandparent_this;
+        this.warehouses;
 	}
 
 	init() {
@@ -1952,7 +1992,6 @@ class PickingListItem extends PickingList {
         list_section.innerHTML = list_section_content;
         
         //Show Warehouse Overview
-        this.warehouses;
         this.get_item_warehouses(this.item)
     }
     
@@ -1996,6 +2035,11 @@ class PickingListItem extends PickingList {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
                     //Save Entered Warehouse
@@ -2010,18 +2054,36 @@ class PickingListItem extends PickingList {
     }
     
     add_picked_item(new_amount) {
-        //find item
-        const target_item = this.parent_this.items.find(item => item.item_code === this.item);
-        //add stored qty
-        target_item.content['stored_qty'] = target_item.content['stored_qty'] + parseInt(new_amount);
-        //add warehouse information
-        const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
-        if (target) {
-            target.qty += parseInt(new_amount);
+        console.log(this.warehouses);
+        //Check if Item is on Stock in selected Warehouse
+        const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+        if (target_wh) {
+            if (new_amount > target_wh.qty) {
+                this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+            } else {
+                //find item
+                const target_item = this.parent_this.items.find(item => item.item_code === this.item);
+                //Prepare updated amount
+                let updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
+                //Check if updated amount is avaliable on Warehouse
+                if (updated_amount > target_wh.qty) {
+                    this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+                } else {
+                    //add stored qty
+                    target_item.content['stored_qty'] = updated_amount
+                    //add warehouse information
+                    const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
+                    if (target) {
+                        target.qty += parseInt(new_amount);
+                    } else {
+                        target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+                    }
+                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
+                }
+            }
         } else {
-            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+            this.show_error("Artikel nicht an Lagerplatz verfügbar.", "wh-message");
         }
-        this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
     }
     
     //Handle Scan Input
@@ -2256,6 +2318,11 @@ class CreateSalesOrderPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Warehouse",
                 fieldname: "from_warehouse",
+                get_query: () => ({
+                    filters: {
+                        is_group: 0
+                    }
+                }),
 				change: () => {
                     document.activeElement.blur();
 				}
