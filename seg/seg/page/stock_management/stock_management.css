@@ -184,6 +184,18 @@
     color: #d32f2f;
 }
 
+/* EAN verwalten */
+
+#ean-management .home-icon {
+
+    background: #eceff1;
+}
+
+#ean-management i {
+
+    color: #607d8b;
+}
+
 
 /*----- Leeres Feld -----*/
 
