@@ -743,5 +743,27 @@ def create_delivery_note(picking_list, items):
     except Exception as Err:
         frappe.log_error("Stock Management Error", "EIn Fehler beim erstellen eines Lieferscheins ist aufgetreten:<br><br>{0}".format(Err))
         return {'success': 0}
+
+@frappe.whitelist()
+def add_new_barcode(item, barcode):
+    #Check if Barcode already has been used
+    barcode_check = frappe.get_all("Item Barcode", filters={'barcode': barcode}, fields=["parent"])
     
+    if len(barcode_check) > 0:
+        return {'success': 0, 'error': "Barcode wird bereits in Artikel {0} verwendet.".format(barcode_check[0].parent)}
     
+    #Add Barcode to Item
+    item_doc = frappe.get_doc("Item", item)
+    
+    item_doc.append("barcodes", {
+                                            'reference_doctype': "Item Barcode",
+                                            'barcode': barcode,
+                                            'barcode_type': "EAN"
+                                        })
+    
+    try:
+        item_doc.save()
+        return {'success': 1}
+    except Exception as Err:
+        frappe.log_error("Stock Management Error", "An Error appeard on adding Barcode {0} to Item {1}:<br><br>{2}".format(barcode, item, Err))
+        return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}

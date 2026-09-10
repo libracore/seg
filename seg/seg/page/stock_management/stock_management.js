@@ -2387,6 +2387,8 @@ class CreateSalesOrderPage extends StockManagementClass {
 class EanManagementPage extends StockManagementClass {
 	constructor(key, label) {
 		super(key, label);
+        this.item;
+        this.barcode;
 	}
 
 	init() {
@@ -2395,244 +2397,165 @@ class EanManagementPage extends StockManagementClass {
 
 	on_show() {
         this.show_subsections();
-        //~ this.show_dynamic_content();
-        //~ this.add_event_listeners();
-        //~ this.create_link_fields();
+        this.show_dynamic_content();
+        this.add_event_listeners();
+        this.create_link_fields();
 	}
     
     show_subsections() {
         //Show Navbar
-        const header_menu_section = document.getElementById('stock-transfer-navbar');
+        const header_menu_section = document.getElementById('ean-management-navbar');
         const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
         header_menu_section.innerHTML = header_menu_section_content;
         
-        //~ //Show Stock Transfer Input
-        //~ const stock_transfer_input = document.getElementById('stock-transfer-input');
-        //~ const stock_transfer_content = frappe.render_template("stock_transfer_input", {'title': this.label});
-        //~ stock_transfer_input.innerHTML = stock_transfer_content;
+        //Show Inpput Section
+        const ean_management_input = document.getElementById('ean-management-input');
+        const ean_management_content = frappe.render_template("ean_management_input");
+        ean_management_input.innerHTML = ean_management_content;
     }
     
-    //~ //Add Event Listeners
-    //~ add_event_listeners() {
-        //~ //Add General Event handlers
-        //~ this.add_general_event_handlers()
+    //Add Event Listeners
+    add_event_listeners() {        
+        //Go back to Home <-
+		document.getElementById("nav-back").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+		});
+
+        // Delete Item
+        document.getElementById("clear-ean-article").addEventListener("click", () => {
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
+        });
         
-        //~ //Go back to Home <-
-		//~ document.getElementById("nav-back").addEventListener("click", () => {
-            //~ frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
-		//~ });
+        // Delete Barcode
+        document.getElementById("clear-ean-barcode").addEventListener("click", () => {
+            document.getElementById("ean-barcode-input").value = "";
+            document.getElementById("ean-barcode-input").focus();
+            this.barcode = false;
+            this.handle_barcode();
+        });
         
-        //~ // Delete From Warehouse
-        //~ document.getElementById("clear-from-warehouse").addEventListener("click", () => {
-
-            //~ this.from_wh_link_field.set_value("");
-            //~ this.from_wh_link_field.set_focus();
-
-        //~ });
-
-
-        //~ // Delete To Warehouse
-        //~ document.getElementById("clear-to-warehouse").addEventListener("click", () => {
-
-            //~ this.to_wh_link_field.set_value("");
-            //~ this.to_wh_link_field.set_focus();
-
-        //~ });
-
-
-        //~ // Delete Item
-        //~ document.getElementById("clear-transfer-article").addEventListener("click", () => {
-
-            //~ this.item_link_field.set_value("");
-            //~ this.item_link_field.set_focus();
-
-        //~ });
+        document.getElementById("ean-barcode-input").addEventListener("change", () => {
+            this.barcode = document.getElementById("ean-barcode-input").value;
+            this.handle_barcode();
+        });
         
-        //~ //Add Quantity
-        //~ document.getElementById("transfer-qty-plus").addEventListener("click", () => {
-            //~ const quantityInput = document.getElementById("transfer-quantity-input");
-
-            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
-
-            //~ quantityInput.value = quantity + 1;
-        //~ });
+        //Add barcode to Item
+		document.getElementById("ean-ok-button").addEventListener("click", () => {
+            if ((!this.item) || (!this.barcode)) {
+                this.show_error("Bitte Artikel und Barcode angeben.", "ean-message");
+            } else {
+                //Check if barcode is already used, otherwise add it to item
+                frappe.call({
+                    'method': 'seg.seg.page.stock_management.stock_management.add_new_barcode',
+                    'args': {
+                        'item': this.item,
+                        'barcode': this.barcode
+                    },
+                    'callback': (response) => {
+                        if ((response.message) && (response.message.success)) {
+                            this.show_success("Barcode wurde erfolgreich zu Artikel hinzugefügt.", "ean-message");
+                            this.item_link_field.set_value("");
+                            this.item_link_field.set_focus();
+                            document.getElementById("ean-barcode-input").value = "";
+                            document.getElementById("ean-barcode-input").focus();
+                        } else {
+                            this.show_error(response.message.error, "ean-message");
+                        }
+                    }
+                });
+            }
+		});
         
-        //~ //remove Quantity
-        //~ document.getElementById("transfer-qty-minus").addEventListener("click", () => {
-            //~ const quantityInput = document.getElementById("transfer-quantity-input");
-
-            //~ const quantity = parseInt(quantityInput.value, 10) || 1;
-
-            //~ if (quantity > 1) {
-                //~ quantityInput.value = quantity - 1;
-            //~ }
-        //~ });
-        
-        //~ //Restock Item
-		//~ document.getElementById("transfer-ok-button").addEventListener("click", () => {
-            //~ let qty = document.getElementById("transfer-quantity-input").value;
-            //~ if ((!this.item) || (!this.from_warehouse) || (!this.to_warehouse)) {
-                //~ this.show_error("Bitte zuerst alle Felder befüllen.", "transfer-message")
-            //~ } else {
-                //~ //Check if Item is on Stock in selected Warehouse
-                //~ const target = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.from_warehouse);
-                //~ if (target) {
-                    //~ if (qty > target.qty) {
-                        //~ this.show_error("Menge nicht an Lagerplatz verfügbar.", "transfer-message");
-                    //~ } else {
-                        //~ //Prepare Items
-                        //~ let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
-                        //~ //Create Stock Entry
-                        //~ this.create_stock_entry(items, "Material Transfer", "transfer-message");
-                    //~ }
-                //~ } else {
-                    //~ this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
-                //~ }
-            //~ }
-		//~ });
-        
-    //~ }
+    }
     
-    //~ //Show Dynamic Content
-    //~ show_dynamic_content() {
-        //~ document.getElementById("nav-title").textContent = this.label;
-        //~ document.getElementById("transfer-ok-button").style.backgroundColor = this.colors.stock_transfer;
-        //~ document.getElementById("nav-back").style.backgroundColor = this.colors.stock_transfer;
-        //~ document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_transfer;
-    //~ }
+    //Show Dynamic Content
+    show_dynamic_content() {
+        document.getElementById("nav-title").textContent = this.label;
+        document.getElementById("ean-ok-button").style.backgroundColor = this.colors.ean_management;
+        document.getElementById("nav-back").style.backgroundColor = this.colors.ean_management;
+        document.getElementById("mobile-navbar").style.backgroundColor = this.colors.ean_management;
+        //Add General Event handlers
+        this.add_general_event_handlers()
+    }
     
-    //~ async display_items_and_warehouses() {
-        //~ const warehouse_overview = document.getElementById("stock-transfer-wh-overview");
-        //~ if (this.item) {
-            //~ //Get Item Dict
-            //~ this.item_dict = await this.create_item_dict(this.item);
-            //~ //Get Warehouse Information
-            //~ this.warehouses = await this.get_warehouse_overview(this.item_dict[0].item_code);
-            //~ warehouse_overview.style.display = "";
-        //~ } else {
-            //~ //Remove Information
-            //~ this.item_dict = []
-            //~ this.warehouses = []
-            //~ warehouse_overview.style.display = "none";
-        //~ }
-        //~ //Show Item Table
-        //~ const list_section = document.getElementById('stock-transfer-list');
-        //~ const list_section_content = frappe.render_template("item_list_without_qty", {'items': this.item_dict});
-        //~ list_section.innerHTML = list_section_content;
-        
-        //~ //Show Warehouse Information
-        //~ const warehouse_overview_content = frappe.render_template("warehouse_overview", {'warehouses': this.warehouses});
-        //~ warehouse_overview.innerHTML = warehouse_overview_content;
-    //~ }
+    //Check if an Item or Warehouse has been scanned and set value to the right field
+    async handle_scan(scan_buffer) {
+        //Set Barcode
+        document.getElementById("ean-barcode-input").value = scan_buffer;
+        this.barcode = scan_buffer;
+        this.handle_barcode();
+    }
     
-    //~ //Check if an Item or Warehouse has been scanned and set value to the right field
-    //~ async handle_scan(scan_buffer) {
-        //~ if (/^\d+$/.test(scan_buffer)) {
-            //~ this.item_dict;
-            //~ this.item_dict = await this.translate_item_barcode(scan_buffer);
-            //~ if (this.item_dict) {
-                //~ this.item_link_field.set_value(this.item_dict[0].item_code);
-            //~ } else {
-                //~ this.show_error("Artikel konnte nicht gefunden werden.", "transfer-message");
-            //~ }
-        //~ } else {
-            //~ let warehouse = scan_buffer + " - SEG"
-            //~ if (!this.from_wh_link_field.get_value()) {
-                //~ this.from_wh_link_field.set_value(warehouse);
-            //~ } else {
-                //~ this.to_wh_link_field.set_value(warehouse);
-            //~ }
-        //~ }
-    //~ }
+    create_link_fields() {
+        //Item
+        const item_container = document.getElementById("ean-article-input");
+
+        this.item_link_field = frappe.ui.form.make_control({
+            parent: item_container,
+            df: {
+                fieldtype: "Link",
+                options: "Item",
+                fieldname: "item",
+				change: () => {
+                    document.activeElement.blur();
+                    this.item = this.item_link_field.get_value();
+                    this.display_item_list();
+                    this.display_button();
+				}
+            },
+            only_input: true
+        });
+
+        this.item_link_field.make();
+        this.item_link_field.refresh();
+    }
     
-    //~ create_link_fields() {
-        //~ //Item
-        //~ const item_container = document.getElementById("transfer-article-input");
-
-        //~ this.item_link_field = frappe.ui.form.make_control({
-            //~ parent: item_container,
-            //~ df: {
-                //~ fieldtype: "Link",
-                //~ options: "Item",
-                //~ fieldname: "item",
-				//~ change: () => {
-                    //~ document.activeElement.blur();
-                    //~ this.item = this.item_link_field.get_value();
-                    //~ //Show Items and Warehouses when Item has been scanned
-                    //~ this.display_items_and_warehouses()
-				//~ }
-            //~ },
-            //~ only_input: true
-        //~ });
-
-        //~ this.item_link_field.make();
-        //~ this.item_link_field.refresh();
-        
-        //~ //From Warehouse
-        //~ const from_wh_container = document.getElementById("from-warehouse-input");
-
-        //~ this.from_wh_link_field = frappe.ui.form.make_control({
-            //~ parent: from_wh_container,
-            //~ df: {
-                //~ fieldtype: "Link",
-                //~ options: "Warehouse",
-                //~ fieldname: "from_warehouse",
-                //~ get_query: () => ({
-                    //~ filters: {
-                        //~ is_group: 0
-                    //~ }
-                //~ }),
-				//~ change: () => {
-                    //~ document.activeElement.blur();
-                    //~ //Show All Items on Warehouse, when Warehouse has been selected first
-                    //~ this.from_warehouse = this.from_wh_link_field.get_value();
-                    //~ if (!this.item) {
-                        //~ this.display_items_by_warehouse(this.from_warehouse);
-                    //~ }
-                    
-				//~ }
-            //~ },
-            //~ only_input: true
-        //~ });
-
-        //~ this.from_wh_link_field.make();
-        //~ this.from_wh_link_field.refresh();
-        
-        //~ //To Warehouse
-        //~ const to_wh_container = document.getElementById("to-warehouse-input");
-
-        //~ this.to_wh_link_field = frappe.ui.form.make_control({
-            //~ parent: to_wh_container,
-            //~ df: {
-                //~ fieldtype: "Link",
-                //~ options: "Warehouse",
-                //~ fieldname: "to_warehouse",
-                //~ get_query: () => ({
-                    //~ filters: {
-                        //~ is_group: 0
-                    //~ }
-                //~ }),
-				//~ change: () => {
-                    //~ document.activeElement.blur();
-                    //~ this.to_warehouse = this.to_wh_link_field.get_value();
-				//~ }
-            //~ },
-            //~ only_input: true
-        //~ });
-
-        //~ this.to_wh_link_field.make();
-        //~ this.to_wh_link_field.refresh();
-    //~ }
+    async display_item_list() {
+        if (this.item) {
+            this.item_dict = await this.create_item_dict(this.item);
+        } else {
+            this.item_dict = []
+        }
+        //Show Item Table
+        const list_section = document.getElementById('ean-management-list');
+        const list_section_content = frappe.render_template("item_list_without_qty", {'items': this.item_dict});
+        list_section.innerHTML = list_section_content;
+    }
     
-    //~ async display_items_by_warehouse(warehouse) {
-        //~ if (warehouse) {
-            //~ this.item_dict = await this.create_item_dict_by_warehouse(warehouse);
-        //~ } else {
-            //~ this.item_dict = []
-        //~ }
-        //~ //Show Item Table
-        //~ const list_section = document.getElementById('stock-transfer-list');
-        //~ const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
-        //~ list_section.innerHTML = list_section_content;
-    //~ }
+    async display_button() {
+        if ((this.item) && (this.barcode)) {
+            if (this.match) {
+                //Show Button
+                const button_section = document.getElementById('ean-management-button');
+                const button_section_content = frappe.render_template("bottom_button", {'items': this.item_dict});
+                button_section.innerHTML = button_section_content;
+                document.getElementById("action-button").textContent = "Barcode löschen";
+                document.getElementById("action-button").style.backgroundColor = this.colors.ean_management;
+            } else {
+                //Hide Button
+                const button_section = document.getElementById('ean-management-button');
+                button_section.innerHTML = "";
+            }
+        } else {
+            const button_section = document.getElementById('ean-management-button');
+            button_section.innerHTML = "";
+        }
+    }
+    
+    async handle_barcode() {
+        if (this.barcode) {
+            //Check if Barcode has matching Item
+            this.item_dict = await this.translate_item_barcode(this.barcode);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+                this.match = true;
+            } else {
+                this.item_link_field.set_value("");
+                this.match = false;
+            }
+        } else {
+            this.item_link_field.set_value("");
+        }
+    }
 }
