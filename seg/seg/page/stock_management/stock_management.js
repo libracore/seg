@@ -2501,6 +2501,7 @@ class EanManagementPage extends StockManagementClass {
                     this.item = this.item_link_field.get_value();
                     this.display_item_list();
                     this.display_button();
+                    this.display_barcode_list();
 				}
             },
             only_input: true
@@ -2578,7 +2579,6 @@ class EanManagementPage extends StockManagementClass {
                             this.item_link_field.set_value("");
                             this.item_link_field.set_focus();
                             document.getElementById("ean-barcode-input").value = "";
-                            document.getElementById("ean-barcode-input").focus();
                         } else {
                             this.show_error(response.message.error, "ean-message");
                         }
@@ -2586,5 +2586,19 @@ class EanManagementPage extends StockManagementClass {
                 });
             }
 		});
+    }
+    
+    display_barcode_list() {
+        if ((this.item) && (!this.barcode) {
+            //Get Barcodes
+            
+            //Display Barcodes List
+            const barcode_list_section = document.getElementById('ean-management-list');
+            const barcode_section_content = frappe.render_template("barcode_list", {'items': this.item_dict});
+            list_section.innerHTML = list_section_content;
+        } else {
+            const barcode_list_section = document.getElementById('ean-management-barcode-list');
+            barcode_list_section.innerHTML = "";
+        }
     }
 }
