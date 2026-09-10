@@ -765,5 +765,28 @@ def add_new_barcode(item, barcode):
         item_doc.save()
         return {'success': 1}
     except Exception as Err:
-        frappe.log_error("Stock Management Error", "An Error appeard on adding Barcode {0} to Item {1}:<br><br>{2}".format(barcode, item, Err))
+        frappe.log_error("Stock Management Error", "An Error appeared on adding Barcode {0} to Item {1}:<br><br>{2}".format(barcode, item, Err))
         return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}
+
+@frappe.whitelist()
+def delete_barcode(item, barcode):
+    frappe.log_error("item", item)
+    deleted = False
+    #Get Item
+    item_doc = frappe.get_doc("Item", item)
+    
+    for bc in item_doc.get('barcodes'):
+        if bc.barcode == barcode:
+            item_doc.remove(bc)
+            deleted = True
+            break
+    frappe.log_error("deleted", deleted)
+    if not deleted:
+        return {'success': 0, 'error': "Barcode konnte im Artikel nicht gefunden werden."}
+    else:
+        try:
+            item_doc.save()
+            return {'success': 1}
+        except Exception as Err:
+            frappe.log_error("Stock Management Error", "An Error appeared on deleting Barcode {0} from Item {1}:<br><br>{2}".format(barcode, item, Err))
+            return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}

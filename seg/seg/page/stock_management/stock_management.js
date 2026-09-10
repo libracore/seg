@@ -2466,7 +2466,6 @@ class EanManagementPage extends StockManagementClass {
                 });
             }
 		});
-        
     }
     
     //Show Dynamic Content
@@ -2532,6 +2531,7 @@ class EanManagementPage extends StockManagementClass {
                 button_section.innerHTML = button_section_content;
                 document.getElementById("action-button").textContent = "Barcode löschen";
                 document.getElementById("action-button").style.backgroundColor = this.colors.ean_management;
+                this.add_delete_button_handler()
             } else {
                 //Hide Button
                 const button_section = document.getElementById('ean-management-button');
@@ -2557,5 +2557,34 @@ class EanManagementPage extends StockManagementClass {
         } else {
             this.item_link_field.set_value("");
         }
+    }
+    
+    add_delete_button_handler() {
+        //Delete barcode
+		document.getElementById("action-button").addEventListener("click", () => {
+            if ((!this.item) || (!this.barcode)) {
+                this.show_error("Bitte Artikel und Barcode angeben.", "ean-message");
+            } else {
+                //Check if barcode is matching Item and Delete it
+                frappe.call({
+                    'method': 'seg.seg.page.stock_management.stock_management.delete_barcode',
+                    'args': {
+                        'item': this.item,
+                        'barcode': this.barcode
+                    },
+                    'callback': (response) => {
+                        if ((response.message) && (response.message.success)) {
+                            this.show_success("Barcode wurde erfolgreich gelöscht.", "ean-message");
+                            this.item_link_field.set_value("");
+                            this.item_link_field.set_focus();
+                            document.getElementById("ean-barcode-input").value = "";
+                            document.getElementById("ean-barcode-input").focus();
+                        } else {
+                            this.show_error(response.message.error, "ean-message");
+                        }
+                    }
+                });
+            }
+		});
     }
 }
