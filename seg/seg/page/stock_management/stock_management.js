@@ -93,7 +93,6 @@ class StockManagementClass {
             this.hide_message(element);
             //Go Back to previous Page
             if (callback) {
-                console.log("callback", callback);
                 callback();
             }
         }, 3000);
@@ -829,7 +828,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
             'callback': (response) => {
                 if (response.message) {
                     if (response.message.success) {
-                        this.show_success(response.message.message, "wh-message", () => {console.log("Callback wird ausgeführt!"); frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", this.parent_this.order, this.grandparent_this)); console.log("PurchaseReceiptOrder erstellt");});
+                        this.show_success(response.message.message, "wh-message", () => {frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", this.parent_this.order, this.grandparent_this))});
                     } else {
                         this.show_error(response.message.error, "wh-message");
                     }
