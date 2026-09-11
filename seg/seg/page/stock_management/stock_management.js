@@ -84,13 +84,18 @@ class StockManagementClass {
     }
     
     //Display Sucess message
-    show_success(message, element) {
+    show_success(message, element, callback = null) {
         const msg = document.getElementById(element);
         msg.textContent = message;
         msg.className = "scan-message success";
         
         setTimeout(() => {
             this.hide_message(element);
+            //Go Back to previous Page
+            if (callback) {
+                console.log("callback", callback);
+                callback();
+            }
         }, 3000);
     }
     
@@ -193,7 +198,7 @@ class StockManagementClass {
         });
     }
     
-    create_stock_entry(items, entry_type, element) {
+    create_stock_entry(items, entry_type, element, callback = null) {
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.create_stock_entry',
             'args': {
@@ -203,7 +208,7 @@ class StockManagementClass {
             'callback': (response) => {
                 if (response.message) {
                     if (response.message.success) {
-                        this.show_success("Artikel wurde erfolgreich umgelagert.", element);
+                        this.show_success("Artikel wurde erfolgreich umgelagert.", element, callback);
                     } else {
                         this.show_error(response.message.error, element);
                     }
@@ -824,7 +829,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
             'callback': (response) => {
                 if (response.message) {
                     if (response.message.success) {
-                        this.show_success(response.message.message, "wh-message");
+                        this.show_success(response.message.message, "wh-message", () => {console.log("Callback wird ausgeführt!"); frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", this.parent_this.order, this.grandparent_this)); console.log("PurchaseReceiptOrder erstellt");});
                     } else {
                         this.show_error(response.message.error, "wh-message");
                     }
@@ -1117,7 +1122,7 @@ class StockEnterItem extends StockEnterPage {
                     'callback': (response) => {
                         if (response.message) {
                             let item = [{'item_code': this.item_dict[0]["item_code"], 'qty': quantity, 'from_warehouse': response.message, 'to_warehouse': this.warehouse}]
-                            this.create_stock_entry(item, "Material Transfer", "wh-message")
+                            this.create_stock_entry(item, "Material Transfer", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.stock_enter)})
                         } else {
                             this.show_error("Es ist ein Fehler beim abrufen der Lager aufgetreten, bitte die SEG Einstellungen prüfen.", "wh-message");
                         }
@@ -1324,6 +1329,9 @@ class StockTransferPage extends StockManagementClass {
                         let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
                         //Create Stock Entry
                         this.create_stock_entry(items, "Material Transfer", "transfer-message");
+                        this.item_link_field.set_value("");
+                        this.from_wh_link_field.set_value("");
+                        this.to_wh_link_field.set_value("");
                     }
                 } else {
                     this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
@@ -2084,7 +2092,7 @@ class PickingListItem extends PickingList {
                     } else {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
                     }
-                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
+                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
                 }
             }
         } else {
