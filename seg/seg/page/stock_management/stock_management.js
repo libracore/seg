@@ -175,7 +175,6 @@ class StockManagementClass {
                     resolve(response.message);
                 }
             });
-
         });
     }
     
@@ -2459,6 +2458,7 @@ class EanManagementPage extends StockManagementClass {
                             this.item_link_field.set_focus();
                             document.getElementById("ean-barcode-input").value = "";
                             document.getElementById("ean-barcode-input").focus();
+                            this.barcode = "";
                         } else {
                             this.show_error(response.message.error, "ean-message");
                         }
@@ -2566,39 +2566,71 @@ class EanManagementPage extends StockManagementClass {
             if ((!this.item) || (!this.barcode)) {
                 this.show_error("Bitte Artikel und Barcode angeben.", "ean-message");
             } else {
-                //Check if barcode is matching Item and Delete it
-                frappe.call({
-                    'method': 'seg.seg.page.stock_management.stock_management.delete_barcode',
-                    'args': {
-                        'item': this.item,
-                        'barcode': this.barcode
-                    },
-                    'callback': (response) => {
-                        if ((response.message) && (response.message.success)) {
-                            this.show_success("Barcode wurde erfolgreich gelöscht.", "ean-message");
-                            this.item_link_field.set_value("");
-                            this.item_link_field.set_focus();
-                            document.getElementById("ean-barcode-input").value = "";
-                        } else {
-                            this.show_error(response.message.error, "ean-message");
-                        }
-                    }
-                });
+                this.delete_barcode(this.item, this.barcode)
             }
 		});
     }
     
-    display_barcode_list() {
-        if ((this.item) && (!this.barcode) {
+    async display_barcode_list() {
+        if ((this.item) && (!this.barcode)) {
             //Get Barcodes
-            
+            this.barcodes = await this.get_barcodes();
             //Display Barcodes List
-            const barcode_list_section = document.getElementById('ean-management-list');
-            const barcode_section_content = frappe.render_template("barcode_list", {'items': this.item_dict});
-            list_section.innerHTML = list_section_content;
+            const barcode_list_section = document.getElementById('ean-management-barcode-list');
+            const barcode_section_content = frappe.render_template("barcode_list", {'barcodes': this.barcodes});
+            barcode_list_section.innerHTML = barcode_section_content;
+            this.add_delete_events()
         } else {
             const barcode_list_section = document.getElementById('ean-management-barcode-list');
             barcode_list_section.innerHTML = "";
         }
+    }
+    
+    get_barcodes() {
+        return new Promise((resolve, reject) => {
+            frappe.call({
+                'method': 'seg.seg.page.stock_management.stock_management.get_barcodes',
+                'args': {
+                    'item': this.item
+                },
+                'callback': (response) => {
+                    resolve(response.message);
+                }
+            });
+        });
+    }
+    
+    add_delete_events() {
+        //Delete Item Row
+        document.querySelectorAll(".ean-delete-button").forEach(button => {
+            button.addEventListener("click", () => {
+                const row = button.closest(".barcode-row");
+                const barcode = row.dataset.barcode;
+
+                this.delete_barcode(this.item, barcode);
+            });
+        });
+    }
+    
+    delete_barcode(item, barcode) {
+        //Check if barcode is matching Item and Delete it
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.delete_barcode',
+            'args': {
+                'item': item,
+                'barcode': barcode
+            },
+            'callback': (response) => {
+                if ((response.message) && (response.message.success)) {
+                    this.show_success("Barcode wurde erfolgreich gelöscht.", "ean-message");
+                    this.item_link_field.set_value("");
+                    this.item_link_field.set_focus();
+                    this.barcode = "";
+                    document.getElementById("ean-barcode-input").value = "";
+                } else {
+                    this.show_error(response.message.error, "ean-message");
+                }
+            }
+        });
     }
 }

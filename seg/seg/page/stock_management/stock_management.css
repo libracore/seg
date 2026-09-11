@@ -1216,3 +1216,108 @@ Standardmäßig unsichtbar:
     flex: 0 0 auto;
     width: 100%;
 }
+
+/* --------------------------------
+   Barcode List
+-------------------------------- */
+
+.barcode-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 4px;
+}
+
+.barcode-list-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #37474f;
+}
+
+.barcode-list-title i {
+    color: #607d8b;
+}
+
+.barcode-count {
+    min-width: 24px;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #eceff1;
+    color: #607d8b;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.barcode-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.barcode-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 52px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1px solid #eceff1;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.barcode-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.barcode-icon {
+    color: #607d8b;
+    font-size: 18px;
+}
+
+.barcode-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: #263238;
+    letter-spacing: 0.3px;
+}
+
+.ean-delete-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #ffebee;
+    color: #d32f2f;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.ean-delete-button i {
+    font-size: 16px;
+}
+
+.no-barcodes-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 70px;
+    padding: 12px;
+    border: 1px dashed #cfd8dc;
+    border-radius: 8px;
+    color: #78909c;
+    font-size: 14px;
+}

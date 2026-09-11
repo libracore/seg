@@ -790,3 +790,15 @@ def delete_barcode(item, barcode):
         except Exception as Err:
             frappe.log_error("Stock Management Error", "An Error appeared on deleting Barcode {0} from Item {1}:<br><br>{2}".format(barcode, item, Err))
             return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}
+
+@frappe.whitelist()
+def get_barcodes(item):
+    barcodes = frappe.db.sql("""
+                            SELECT
+                                `barcode`
+                            FROM
+                                `tabItem Barcode`
+                            WHERE
+                                `parent` = %(item)s;""", {'item': item}, as_dict=True)
+    
+    return {'amount': len(barcodes), 'barcodes': barcodes}

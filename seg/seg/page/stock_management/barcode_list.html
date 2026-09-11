@@ -1,0 +1,64 @@
+<section class="list-content">
+
+<div class="barcode-list-header">
+
+    <div class="barcode-list-title">
+        <i class="fa fa-barcode"></i>
+        <span>Hinterlegte Barcodes</span>
+    </div>
+
+    {% if barcodes %}
+        <span class="barcode-count">
+            {{ barcodes.amount }}
+        </span>
+    {% endif %}
+
+</div>
+
+
+<div class="barcode-list">
+
+    {% if barcodes.amount > 0 %}
+
+        {% for barcode in barcodes.barcodes %}
+
+        <div
+            class="barcode-row"
+            data-barcode="{{ barcode.barcode }}">
+
+            <div class="barcode-info">
+
+                <i class="fa fa-barcode barcode-icon"></i>
+
+                <span class="barcode-value">
+                    {{ barcode.barcode }}
+                </span>
+
+            </div>
+
+            <button
+                class="ean-delete-button"
+                type="button"
+                data-barcode="{{ barcode.barcode }}"
+                aria-label="Barcode löschen">
+
+                <i class="fa fa-trash"></i>
+
+            </button>
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="no-barcodes-message">
+            <i class="fa fa-barcode"></i>
+            <span>Noch keine Barcodes hinterlegt.</span>
+        </div>
+
+    {% endif %}
+
+</div>
+
+</section>
