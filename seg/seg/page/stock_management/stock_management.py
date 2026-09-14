@@ -743,5 +743,62 @@ def create_delivery_note(picking_list, items):
     except Exception as Err:
         frappe.log_error("Stock Management Error", "EIn Fehler beim erstellen eines Lieferscheins ist aufgetreten:<br><br>{0}".format(Err))
         return {'success': 0}
+
+@frappe.whitelist()
+def add_new_barcode(item, barcode):
+    #Check if Barcode already has been used
+    barcode_check = frappe.get_all("Item Barcode", filters={'barcode': barcode}, fields=["parent"])
     
+    if len(barcode_check) > 0:
+        return {'success': 0, 'error': "Barcode wird bereits in Artikel {0} verwendet.".format(barcode_check[0].parent)}
     
+    #Add Barcode to Item
+    item_doc = frappe.get_doc("Item", item)
+    
+    item_doc.append("barcodes", {
+                                            'reference_doctype': "Item Barcode",
+                                            'barcode': barcode,
+                                            'barcode_type': "EAN"
+                                        })
+    
+    try:
+        item_doc.save()
+        return {'success': 1}
+    except Exception as Err:
+        frappe.log_error("Stock Management Error", "An Error appeared on adding Barcode {0} to Item {1}:<br><br>{2}".format(barcode, item, Err))
+        return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}
+
+@frappe.whitelist()
+def delete_barcode(item, barcode):
+    frappe.log_error("item", item)
+    deleted = False
+    #Get Item
+    item_doc = frappe.get_doc("Item", item)
+    
+    for bc in item_doc.get('barcodes'):
+        if bc.barcode == barcode:
+            item_doc.remove(bc)
+            deleted = True
+            break
+    frappe.log_error("deleted", deleted)
+    if not deleted:
+        return {'success': 0, 'error': "Barcode konnte im Artikel nicht gefunden werden."}
+    else:
+        try:
+            item_doc.save()
+            return {'success': 1}
+        except Exception as Err:
+            frappe.log_error("Stock Management Error", "An Error appeared on deleting Barcode {0} from Item {1}:<br><br>{2}".format(barcode, item, Err))
+            return {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}
+
+@frappe.whitelist()
+def get_barcodes(item):
+    barcodes = frappe.db.sql("""
+                            SELECT
+                                `barcode`
+                            FROM
+                                `tabItem Barcode`
+                            WHERE
+                                `parent` = %(item)s;""", {'item': item}, as_dict=True)
+    
+    return {'amount': len(barcodes), 'barcodes': barcodes}

@@ -1,0 +1,77 @@
+<section class="scan-container">
+
+    <div class="transfer-inputs">
+
+        <!-- Item -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="ean-article-input">
+                Artikel
+            </label>
+
+            <div class="input-wrapper">
+
+                <div
+                    id="ean-article-input"
+                    class="link-field-container">
+                </div>
+
+                <button
+                    id="clear-ean-article"
+                    class="clear-button"
+                    type="button">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Barcode -->
+        <div class="transfer-field">
+
+            <label class="field-label" for="ean-barcode-input">
+                Barcode
+            </label>
+
+            <div class="input-wrapper">
+
+                <input
+                    id="ean-barcode-input"
+                    class="text-input"
+                    type="text"
+                    autocomplete="off">
+
+                <button
+                    id="clear-ean-barcode"
+                    class="clear-button"
+                    type="button">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- OK -->
+    <button
+        id="ean-ok-button"
+        class="ok-button"
+        type="button">
+
+        <i class="fa fa-check"></i>
+
+    </button>
+
+</section>
+
+
+<div id="ean-message" class="scan-message"></div>

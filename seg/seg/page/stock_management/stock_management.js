@@ -30,6 +30,7 @@ frappe.stock_management = {
         this.tab_instances.stock_transfer = new StockTransferPage("stock_transfer", "Artikel umlagern");
         this.tab_instances.picking = new PickingPage("picking", "Artikel Kommissionieren");
         this.tab_instances.create_sales_order = new CreateSalesOrderPage("create_sales_order", "Auftrag erstellen");
+        this.tab_instances.ean_management = new EanManagementPage("ean_management", "EAN verwalten");
     },
     
 	add_views: function(page) {
@@ -62,7 +63,8 @@ class StockManagementClass {
                     'stock_enter': "#43a047",
                     'stock_transfer': "#fb8c00",
                     'picking': "#7B4DFF",
-                    'crete_sales_order': "#E53935"
+                    'crete_sales_order': "#E53935",
+                    'ean_management': "#607d8b",
                 }
 	}
     
@@ -82,13 +84,17 @@ class StockManagementClass {
     }
     
     //Display Sucess message
-    show_success(message, element) {
+    show_success(message, element, callback = null) {
         const msg = document.getElementById(element);
         msg.textContent = message;
         msg.className = "scan-message success";
         
         setTimeout(() => {
             this.hide_message(element);
+            //Go Back to previous Page
+            if (callback) {
+                callback();
+            }
         }, 3000);
     }
     
@@ -173,7 +179,6 @@ class StockManagementClass {
                     resolve(response.message);
                 }
             });
-
         });
     }
     
@@ -192,7 +197,7 @@ class StockManagementClass {
         });
     }
     
-    create_stock_entry(items, entry_type, element) {
+    create_stock_entry(items, entry_type, element, callback = null) {
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.create_stock_entry',
             'args': {
@@ -202,7 +207,7 @@ class StockManagementClass {
             'callback': (response) => {
                 if (response.message) {
                     if (response.message.success) {
-                        this.show_success("Artikel wurde erfolgreich umgelagert.", element);
+                        this.show_success("Artikel wurde erfolgreich umgelagert.", element, callback);
                     } else {
                         this.show_error(response.message.error, element);
                     }
@@ -254,6 +259,11 @@ class HomePage extends StockManagementClass {
         //Open Sales Order Creation
 		document.getElementById("sales-order").addEventListener("click", () => {
             frappe.stock_management.load_tab(frappe.stock_management.tab_instances.create_sales_order);
+		});
+        
+        //Open EAN management
+		document.getElementById("ean-management").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.ean_management);
 		});
     }
 }
@@ -818,7 +828,7 @@ class PurchaseReceiptItem extends PurchaseReceiptOrder {
             'callback': (response) => {
                 if (response.message) {
                     if (response.message.success) {
-                        this.show_success(response.message.message, "wh-message");
+                        this.show_success(response.message.message, "wh-message", () => {frappe.stock_management.load_tab(new PurchaseReceiptOrder('purchase_receipt_order', "Wareneingang", this.parent_this.order, this.grandparent_this))});
                     } else {
                         this.show_error(response.message.error, "wh-message");
                     }
@@ -1111,7 +1121,7 @@ class StockEnterItem extends StockEnterPage {
                     'callback': (response) => {
                         if (response.message) {
                             let item = [{'item_code': this.item_dict[0]["item_code"], 'qty': quantity, 'from_warehouse': response.message, 'to_warehouse': this.warehouse}]
-                            this.create_stock_entry(item, "Material Transfer", "wh-message")
+                            this.create_stock_entry(item, "Material Transfer", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.stock_enter)})
                         } else {
                             this.show_error("Es ist ein Fehler beim abrufen der Lager aufgetreten, bitte die SEG Einstellungen prüfen.", "wh-message");
                         }
@@ -1318,6 +1328,9 @@ class StockTransferPage extends StockManagementClass {
                         let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': this.to_warehouse}]
                         //Create Stock Entry
                         this.create_stock_entry(items, "Material Transfer", "transfer-message");
+                        this.item_link_field.set_value("");
+                        this.from_wh_link_field.set_value("");
+                        this.to_wh_link_field.set_value("");
                     }
                 } else {
                     this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
@@ -2078,7 +2091,7 @@ class PickingListItem extends PickingList {
                     } else {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
                     }
-                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message");
+                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
                 }
             }
         } else {
@@ -2373,5 +2386,258 @@ class CreateSalesOrderPage extends StockManagementClass {
                 }
             });
 		});
+    }
+}
+
+//EAN Management
+class EanManagementPage extends StockManagementClass {
+	constructor(key, label) {
+		super(key, label);
+        this.item;
+        this.barcode;
+	}
+
+	init() {
+		this.on_show()
+	}
+
+	on_show() {
+        this.show_subsections();
+        this.show_dynamic_content();
+        this.add_event_listeners();
+        this.create_link_fields();
+	}
+    
+    show_subsections() {
+        //Show Navbar
+        const header_menu_section = document.getElementById('ean-management-navbar');
+        const header_menu_section_content = frappe.render_template("header_menu", {'title': this.label});
+        header_menu_section.innerHTML = header_menu_section_content;
+        
+        //Show Inpput Section
+        const ean_management_input = document.getElementById('ean-management-input');
+        const ean_management_content = frappe.render_template("ean_management_input");
+        ean_management_input.innerHTML = ean_management_content;
+    }
+    
+    //Add Event Listeners
+    add_event_listeners() {        
+        //Go back to Home <-
+		document.getElementById("nav-back").addEventListener("click", () => {
+            frappe.stock_management.load_tab(frappe.stock_management.tab_instances.home);
+		});
+
+        // Delete Item
+        document.getElementById("clear-ean-article").addEventListener("click", () => {
+            this.item_link_field.set_value("");
+            this.item_link_field.set_focus();
+        });
+        
+        // Delete Barcode
+        document.getElementById("clear-ean-barcode").addEventListener("click", () => {
+            document.getElementById("ean-barcode-input").value = "";
+            document.getElementById("ean-barcode-input").focus();
+            this.barcode = false;
+            this.handle_barcode();
+        });
+        
+        document.getElementById("ean-barcode-input").addEventListener("change", () => {
+            this.barcode = document.getElementById("ean-barcode-input").value;
+            this.handle_barcode();
+        });
+        
+        //Add barcode to Item
+		document.getElementById("ean-ok-button").addEventListener("click", () => {
+            if ((!this.item) || (!this.barcode)) {
+                this.show_error("Bitte Artikel und Barcode angeben.", "ean-message");
+            } else {
+                //Check if barcode is already used, otherwise add it to item
+                frappe.call({
+                    'method': 'seg.seg.page.stock_management.stock_management.add_new_barcode',
+                    'args': {
+                        'item': this.item,
+                        'barcode': this.barcode
+                    },
+                    'callback': (response) => {
+                        if ((response.message) && (response.message.success)) {
+                            this.show_success("Barcode wurde erfolgreich zu Artikel hinzugefügt.", "ean-message");
+                            this.item_link_field.set_value("");
+                            this.item_link_field.set_focus();
+                            document.getElementById("ean-barcode-input").value = "";
+                            document.getElementById("ean-barcode-input").focus();
+                            this.barcode = "";
+                        } else {
+                            this.show_error(response.message.error, "ean-message");
+                        }
+                    }
+                });
+            }
+		});
+    }
+    
+    //Show Dynamic Content
+    show_dynamic_content() {
+        document.getElementById("nav-title").textContent = this.label;
+        document.getElementById("ean-ok-button").style.backgroundColor = this.colors.ean_management;
+        document.getElementById("nav-back").style.backgroundColor = this.colors.ean_management;
+        document.getElementById("mobile-navbar").style.backgroundColor = this.colors.ean_management;
+        //Add General Event handlers
+        this.add_general_event_handlers()
+    }
+    
+    //Check if an Item or Warehouse has been scanned and set value to the right field
+    async handle_scan(scan_buffer) {
+        //Set Barcode
+        document.getElementById("ean-barcode-input").value = scan_buffer;
+        this.barcode = scan_buffer;
+        this.handle_barcode();
+    }
+    
+    create_link_fields() {
+        //Item
+        const item_container = document.getElementById("ean-article-input");
+
+        this.item_link_field = frappe.ui.form.make_control({
+            parent: item_container,
+            df: {
+                fieldtype: "Link",
+                options: "Item",
+                fieldname: "item",
+				change: () => {
+                    document.activeElement.blur();
+                    this.item = this.item_link_field.get_value();
+                    this.display_item_list();
+                    this.display_button();
+                    this.display_barcode_list();
+				}
+            },
+            only_input: true
+        });
+
+        this.item_link_field.make();
+        this.item_link_field.refresh();
+    }
+    
+    async display_item_list() {
+        if (this.item) {
+            this.item_dict = await this.create_item_dict(this.item);
+        } else {
+            this.item_dict = []
+        }
+        //Show Item Table
+        const list_section = document.getElementById('ean-management-list');
+        const list_section_content = frappe.render_template("item_list_without_qty", {'items': this.item_dict});
+        list_section.innerHTML = list_section_content;
+    }
+    
+    async display_button() {
+        if ((this.item) && (this.barcode)) {
+            if (this.match) {
+                //Show Button
+                const button_section = document.getElementById('ean-management-button');
+                const button_section_content = frappe.render_template("bottom_button", {'items': this.item_dict});
+                button_section.innerHTML = button_section_content;
+                document.getElementById("action-button").textContent = "Barcode löschen";
+                document.getElementById("action-button").style.backgroundColor = this.colors.ean_management;
+                this.add_delete_button_handler()
+            } else {
+                //Hide Button
+                const button_section = document.getElementById('ean-management-button');
+                button_section.innerHTML = "";
+            }
+        } else {
+            const button_section = document.getElementById('ean-management-button');
+            button_section.innerHTML = "";
+        }
+    }
+    
+    async handle_barcode() {
+        if (this.barcode) {
+            //Check if Barcode has matching Item
+            this.item_dict = await this.translate_item_barcode(this.barcode);
+            if (this.item_dict) {
+                this.item_link_field.set_value(this.item_dict[0].item_code);
+                this.match = true;
+            } else {
+                this.item_link_field.set_value("");
+                this.match = false;
+            }
+        } else {
+            this.item_link_field.set_value("");
+        }
+    }
+    
+    add_delete_button_handler() {
+        //Delete barcode
+		document.getElementById("action-button").addEventListener("click", () => {
+            if ((!this.item) || (!this.barcode)) {
+                this.show_error("Bitte Artikel und Barcode angeben.", "ean-message");
+            } else {
+                this.delete_barcode(this.item, this.barcode)
+            }
+		});
+    }
+    
+    async display_barcode_list() {
+        if ((this.item) && (!this.barcode)) {
+            //Get Barcodes
+            this.barcodes = await this.get_barcodes();
+            //Display Barcodes List
+            const barcode_list_section = document.getElementById('ean-management-barcode-list');
+            const barcode_section_content = frappe.render_template("barcode_list", {'barcodes': this.barcodes});
+            barcode_list_section.innerHTML = barcode_section_content;
+            this.add_delete_events()
+        } else {
+            const barcode_list_section = document.getElementById('ean-management-barcode-list');
+            barcode_list_section.innerHTML = "";
+        }
+    }
+    
+    get_barcodes() {
+        return new Promise((resolve, reject) => {
+            frappe.call({
+                'method': 'seg.seg.page.stock_management.stock_management.get_barcodes',
+                'args': {
+                    'item': this.item
+                },
+                'callback': (response) => {
+                    resolve(response.message);
+                }
+            });
+        });
+    }
+    
+    add_delete_events() {
+        //Delete Item Row
+        document.querySelectorAll(".ean-delete-button").forEach(button => {
+            button.addEventListener("click", () => {
+                const row = button.closest(".barcode-row");
+                const barcode = row.dataset.barcode;
+
+                this.delete_barcode(this.item, barcode);
+            });
+        });
+    }
+    
+    delete_barcode(item, barcode) {
+        //Check if barcode is matching Item and Delete it
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.delete_barcode',
+            'args': {
+                'item': item,
+                'barcode': barcode
+            },
+            'callback': (response) => {
+                if ((response.message) && (response.message.success)) {
+                    this.show_success("Barcode wurde erfolgreich gelöscht.", "ean-message");
+                    this.item_link_field.set_value("");
+                    this.item_link_field.set_focus();
+                    this.barcode = "";
+                    document.getElementById("ean-barcode-input").value = "";
+                } else {
+                    this.show_error(response.message.error, "ean-message");
+                }
+            }
+        });
     }
 }
