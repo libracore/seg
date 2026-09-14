@@ -2067,7 +2067,6 @@ class PickingListItem extends PickingList {
     }
     
     add_picked_item(new_amount) {
-        console.log(this.warehouses);
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
         if (target_wh) {
@@ -2207,7 +2206,7 @@ class CreateSalesOrderPage extends StockManagementClass {
                 this.show_error("Bitte zuerst alle Felder befüllen.", "order-message")
             } else {
                 //Add Item to Items
-                this.update_items(item, warehouse, qty);
+                this.update_items(item, warehouse, parseFloat(qty));
                 document.getElementById("order-quantity-input").value = 1;
                 this.item_link_field.set_value("");
                 this.wh_link_field.set_value("");
@@ -2252,7 +2251,7 @@ class CreateSalesOrderPage extends StockManagementClass {
     
     async update_items(item_code, source_warehouse, qty) {
         //Check if Item is already selected
-        const target_item = this.items.find(item => ((item.item_code === this.item) && (item.content.warehouse === source_warehouse)));
+        const target_item = this.items.find(item => ((item.item_code === item_code) && (item.content.warehouse === source_warehouse)));
         if (target_item) {
             target_item.content['qty'] += qty;
         } else {
@@ -2261,8 +2260,8 @@ class CreateSalesOrderPage extends StockManagementClass {
             item_dict[0].content['warehouse'] = source_warehouse;
             item_dict[0].content['qty'] = qty;
             this.items.push(item_dict[0]);
-            this.display_items();
         }
+        this.display_items();
         this.set_delete_handler()
     }
     
