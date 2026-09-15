@@ -142,9 +142,9 @@ def update_picking_list(self, event):
         for pl_item in picking_list.get('items'):
             if pl_item.get('name') == item.get('pl_detail'):
                 if event == "on_submit":
-                    pl_item.picked_qty += item.get('qty')
+                    pl_item.delivered_qty += item.get('qty')
                 else:
-                    pl_item.picked_qty -= item.get('qty')
+                    pl_item.delivered_qty -= item.get('qty')
     
     #Update Delivery Note Qty
     if event == "on_submit":
@@ -154,13 +154,15 @@ def update_picking_list(self, event):
     
     #Update Status
     for pl_item in picking_list.get('items'):
-        if (pl_item.get('picked_qty') or 0) < pl_item.get('qty'):
+        if (pl_item.get('delivered_qty') or 0) < pl_item.get('qty'):
             completed = False
             break
     
     if completed:
         picking_list.status = "Closed"
+        picking_list.picking_status = "Closed"
     else:
         picking_list.status = "Open"
+        picking_list.picking_status = "In Picking"
     picking_list.save()
     return

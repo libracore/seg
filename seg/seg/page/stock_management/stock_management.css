@@ -1321,3 +1321,43 @@ Standardmäßig unsichtbar:
     color: #78909c;
     font-size: 14px;
 }
+
+/* --------------------------------
+   Saved Picking List
+-------------------------------- */
+
+.saved-picking-title {
+
+    font-size: 17px;
+
+    font-weight: 600;
+
+    color: #D32F2F;
+}
+
+.saved-picking-supplier {
+
+    margin-top: 4px;
+
+    font-size: 14px;
+
+    color: #E57373;
+
+    white-space: nowrap;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+.saved-picking-date {
+    color: #E57373;
+    margin-bottom: 6px;
+}
+
+.saved-picking-label {
+
+    font-weight: 600;
+
+    color: #E57373;
+}

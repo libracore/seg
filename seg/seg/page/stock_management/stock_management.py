@@ -462,7 +462,7 @@ def get_open_picking_lists(customer, picking_list):
     saved_picking_lists = frappe.db.sql("""
                                 SELECT
                                     `tabPicking List`.`name` AS `name`,
-                                    DATE_FORMAT(`tabPicking List`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
+                                    DATE_FORMAT(`tabPicking List`.`schedule_date`, '%%d.%%m.%%Y') AS `formatted_schedule_date`,
                                     `tabPicking List`.`customer_name` AS `customer_name`,
                                     `tabPicking List`.`sales_order` AS `sales_order`,
                                     COUNT(
@@ -479,7 +479,7 @@ def get_open_picking_lists(customer, picking_list):
                                 WHERE
                                     `tabPicking List`.`picking_status` = 'In Picking'
                                 AND
-                                    `tabPicking List`.`user` = %(user)s
+                                    `tabPicking List`.`user` = %(session_user)s
                                 AND
                                     `tabPicking List`.`docstatus` = 1
                                 {customer_condition}
@@ -487,9 +487,9 @@ def get_open_picking_lists(customer, picking_list):
                                 GROUP BY
                                     `tabPicking List`.`name`
                                 ORDER BY
-                                    `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), {'user': user}, as_dict=True)
-    
-    return {'open_picking_lists
+                                    `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), {'session_user': frappe.session.user}, as_dict=True)
+    frappe.log_error("user", type(frappe.session.user))
+    return {'open_picking_lists': open_picking_lists, 'saved_picking_lists': saved_picking_lists}
 
 #Get all Items for Picking List
 @frappe.whitelist()
@@ -504,9 +504,11 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`name` AS `pl_detail`,
                                 `tabPicking List Item`.`item_code` AS `item_code`,
                                 `tabPicking List Item`.`item_name` AS `item_name`,
-                                (`tabPicking List Item`.`qty` - `tabPicking List Item`.`picked_qty`) AS `qty`,
+                                `tabPicking List Item`.`qty` AS `qty`,
                                 `tabItem`.`image` AS `image`,
-                                `tabPicking List Item`.`so_detail` AS `so_detail`
+                                `tabPicking List Item`.`so_detail` AS `so_detail`,
+                                `tabPicking List Item`.`picked_qty` AS `picked_qty`,
+                                `tabPicking List Item`.`warehouse_dict` AS `warehouse_dict`
                             FROM
                                 `tabPicking List Item`
                             LEFT JOIN
@@ -521,6 +523,12 @@ def get_picking_list_items(picking_list, item=False):
         for item in items:
             #Add Information for this item to response
             if item.get('qty') > 0:
+                if item.get('warehouse_dict'):
+                    warehouses = json.loads(item.get('warehouse_dict'))
+                else:
+                    warehouses = []
+                frappe.log_error("warehouses", warehouses)
+                frappe.log_error("warehouses", type(warehouses))
                 item_response = {
                             'item_code': item.get('item_code'),
                             'picture': item.get('image') or "",
@@ -528,8 +536,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'qty': item.get('qty'),
                                 'item_name': item.get('item_name'),
                                 'locations': get_item_locations(item.get('item_code')),
-                                'stored_qty': 0,
-                                'warehouses': [],
+                                'stored_qty': item.get('picked_qty'),
+                                'warehouses': warehouses,
                                 'pl_detail': item.get('pl_detail'),
                                 'so_detail': item.get('so_detail')
                             }}
@@ -833,3 +841,28 @@ def get_barcodes(item):
                                 `parent` = %(item)s;""", {'item': item}, as_dict=True)
     
     return {'amount': len(barcodes), 'barcodes': barcodes}
+
+@frappe.whitelist()
+def update_picking_list(picking_list, item_code, new_amount, warehouse_dict):
+    #Get Picking List Doc
+    picking_list_doc = frappe.get_doc("Picking List", picking_list)
+    
+    for item in picking_list_doc.get('items'):
+        if item.get('item_code') == item_code:
+            #add picked picked qty
+            item.picked_qty += flt(new_amount)
+            #update warehouses
+            item.warehouse_dict = json.dumps(warehouse_dict)
+    
+    try:
+        picking_list_doc.save()
+        return {'success': 1}
+    except Exception as Err:
+        frappe.log_error("Stock Management Error", "Error in updating Picking List {0}:<br><br>: {1}".format(picking_list, Err))
+        {'success': 0, 'error': "Es ist ein Fehler aufgetreten, ein Fehlerbericht wurde erstellt."}
+
+@frappe.whitelist()
+def mark_picking_list(picking_list, user): 
+    update_status = frappe.db.set_value("Picking List", picking_list, "picking_status", "In Picking")
+    update_user = frappe.db.set_value("Picking List", picking_list, "user", user)
+

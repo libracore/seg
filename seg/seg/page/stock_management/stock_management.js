@@ -1547,10 +1547,11 @@ class PickingPage extends StockManagementClass {
 
             });
             
-            //Open Pruchase Order Tab
+            //Open Picking List Tab
             document.getElementById("picking-list-ok-button").addEventListener("click", () => {
                 let picking_list = this.selected_picking_list ?? "";
                 if (picking_list) {
+                    this.mark_picking_list(picking_list);
                     frappe.stock_management.load_tab(new PickingList('picking_list', "Artikel Kommissionieren", picking_list, this));
                 } else {
                     this.show_error("Bitte einen Rüstschein wählen", "picking-message");
@@ -1562,8 +1563,7 @@ class PickingPage extends StockManagementClass {
         document.querySelectorAll(".order-row").forEach(row => {
             row.addEventListener("click", () => {
                 const picking_list = row.dataset.list;
-                const target_list = this.picking_lists.find(list => list.name === picking_list);
-                this.picking_list_link_field.set_value(target_list.name);
+                this.picking_list_link_field.set_value(picking_list);
             });
 		});
     }
@@ -1584,7 +1584,7 @@ class PickingPage extends StockManagementClass {
     get_open_picking_lists(refresh=false) {
         const customer = this.selected_customer ?? "";
         const picking_list = this.selected_picking_list ?? "";
-        console.log(frappe.session.user);
+        
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_picking_lists',
             'args': {
@@ -1616,7 +1616,7 @@ class PickingPage extends StockManagementClass {
                 get_query: () => {
                     const filters = {
                         'docstatus': 1,
-                        'status': "Open"
+                        'picking_status': "Open"
                     }
                     
                     if (this.selected_customer) {
@@ -1671,6 +1671,16 @@ class PickingPage extends StockManagementClass {
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
     }
+    
+    mark_picking_list(picking_list) {
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.mark_picking_list',
+            'args': {
+                'picking_list': picking_list,
+                'user': frappe.session.user
+            }
+        });
+    }
 }
 
 //Picking List - Show Items to pick
@@ -1686,6 +1696,7 @@ class PickingList extends PickingPage {
         if (!this.items) {
             this.get_picking_list_items();
         } else {
+            console.log(this.items);
             this.on_show();
         }
 	}
@@ -1810,6 +1821,7 @@ class PickingList extends PickingPage {
                 },
                 'callback': (response) => {
                     this.items = response.message;
+                    console.log(response.message);
                     this.on_show();
                 }
             });
@@ -2087,10 +2099,11 @@ class PickingListItem extends PickingList {
                     const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
                     if (target) {
                         target.qty += parseInt(new_amount);
+                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target, 0);
                     } else {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
                     }
-                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
                 }
             }
         } else {
@@ -2102,6 +2115,26 @@ class PickingListItem extends PickingList {
     async handle_scan(scan_buffer) {
         let warehouse = scan_buffer + " - SEG";
         this.wh_link_field.set_value(warehouse);
+    }
+    
+    update_picking_doc(picking_list, item_code, new_amount, warehouse_dict, add_line) {
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.update_picking_list',
+            'args': {
+                'picking_list': picking_list,
+                'item_code': item_code,
+                'new_amount': new_amount,
+                'warehouse_dict': warehouse_dict,
+                'add_line': add_line
+            },
+            'callback': (response) => {
+                if ((response.message) && (response.message.success)) {
+                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
+                } else {
+                    this.show_error(response.message.error, "wh-message");
+                }
+            }
+        });
     }
 }
 
