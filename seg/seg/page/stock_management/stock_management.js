@@ -1696,7 +1696,6 @@ class PickingList extends PickingPage {
         if (!this.items) {
             this.get_picking_list_items();
         } else {
-            console.log(this.items);
             this.on_show();
         }
 	}
@@ -1821,7 +1820,6 @@ class PickingList extends PickingPage {
                 },
                 'callback': (response) => {
                     this.items = response.message;
-                    console.log(response.message);
                     this.on_show();
                 }
             });
@@ -2099,7 +2097,7 @@ class PickingListItem extends PickingList {
                     const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
                     if (target) {
                         target.qty += parseInt(new_amount);
-                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target, 0);
+                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 0);
                     } else {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
                         this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);

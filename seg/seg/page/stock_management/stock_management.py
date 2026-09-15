@@ -488,7 +488,7 @@ def get_open_picking_lists(customer, picking_list):
                                     `tabPicking List`.`name`
                                 ORDER BY
                                     `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), {'session_user': frappe.session.user}, as_dict=True)
-    frappe.log_error("user", type(frappe.session.user))
+    
     return {'open_picking_lists': open_picking_lists, 'saved_picking_lists': saved_picking_lists}
 
 #Get all Items for Picking List
@@ -527,8 +527,7 @@ def get_picking_list_items(picking_list, item=False):
                     warehouses = json.loads(item.get('warehouse_dict'))
                 else:
                     warehouses = []
-                frappe.log_error("warehouses", warehouses)
-                frappe.log_error("warehouses", type(warehouses))
+                
                 item_response = {
                             'item_code': item.get('item_code'),
                             'picture': item.get('image') or "",
@@ -778,6 +777,8 @@ def create_delivery_note(picking_list, items):
     #Insert Delivery Note
     try:
         delivery_note.insert()
+        picking_list_doc.picking_status = "Closed"
+        picking_list_doc.save()
         return {'success': 1, 'name': delivery_note.name}
     except Exception as Err:
         frappe.log_error("Stock Management Error", "EIn Fehler beim erstellen eines Lieferscheins ist aufgetreten:<br><br>{0}".format(Err))
@@ -809,7 +810,6 @@ def add_new_barcode(item, barcode):
 
 @frappe.whitelist()
 def delete_barcode(item, barcode):
-    frappe.log_error("item", item)
     deleted = False
     #Get Item
     item_doc = frappe.get_doc("Item", item)
@@ -819,7 +819,7 @@ def delete_barcode(item, barcode):
             item_doc.remove(bc)
             deleted = True
             break
-    frappe.log_error("deleted", deleted)
+    
     if not deleted:
         return {'success': 0, 'error': "Barcode konnte im Artikel nicht gefunden werden."}
     else:
@@ -852,7 +852,7 @@ def update_picking_list(picking_list, item_code, new_amount, warehouse_dict):
             #add picked picked qty
             item.picked_qty += flt(new_amount)
             #update warehouses
-            item.warehouse_dict = json.dumps(warehouse_dict)
+            item.warehouse_dict = warehouse_dict
     
     try:
         picking_list_doc.save()
