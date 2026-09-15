@@ -7,6 +7,7 @@ from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_r
 from erpnext.setup.utils import get_exchange_rate
 import json
 from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
+from erpnext.stock.get_item_details import get_item_details 
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -675,11 +676,13 @@ def create_sales_order(customer, items):
         'customer': customer,
         'transporter': "Abgeholt",
         'picked_up': 1,
-        'delivery_date': today
+        'delivery_date': today,
+        'company': "Schweizerische Einkaufsgesellschaft"
      })
     
     #Add Items
     for item in items:
+        # ~ get_item_details(
         so_doc.append("items", {
                                 'item_code': item.get('item_code'),
                                 'qty': item.get('content').get('qty'),
@@ -687,19 +690,24 @@ def create_sales_order(customer, items):
                                 'delivery_date': today
                             })
     
-
+    so_doc.set_missing_values()
+    so_doc.set_missing_item_details()
+    
     tax_template = frappe.get_doc("Sales Taxes and Charges Template", "MwSt, LSVA und VOC 2024 - SEG")
     so_doc.taxes_and_charges = tax_template.name
     so_doc.set("taxes", [])
-
+    
     for tax in tax_template.taxes:
-        new_tax = { 'charge_type': tax.charge_type,
-                    'account_head': tax.account_head,
-                    'description': tax.description,
-                    'cost_center': tax.cost_center,
-                    'rate': tax.rate }
-        so_doc.append("taxes", new_tax)
-
+        # ~ new_tax = { 
+                    # ~ 'charge_type': tax.charge_type,
+                    # ~ 'account_head': tax.account_head,
+                    # ~ 'description': tax.description,
+                    # ~ 'cost_center': tax.cost_center,
+                    # ~ 'rate': tax.rate
+                    # ~ }
+        
+        so_doc.append("taxes", tax)
+    
     so_doc.calculate_taxes_and_totals()
     
     #Insert Sales Order
