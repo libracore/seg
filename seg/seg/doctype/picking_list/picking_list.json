@@ -14,6 +14,8 @@
   "naming_series",
   "column_break_txxx",
   "status",
+  "picking_status",
+  "user",
   "schedule_date",
   "delivery_note_qty",
   "section_break_bwkz",
@@ -82,7 +84,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Status",
+   "label": "Delivery Status",
    "no_copy": 1,
    "options": "Open\nClosed",
    "reqd": 1
@@ -110,13 +112,25 @@
    "fieldtype": "Int",
    "label": "Delivery Note Qty",
    "read_only": 1
+  },
+  {
+   "fieldname": "picking_status",
+   "fieldtype": "Select",
+   "label": "Picking Status",
+   "options": "Open\nIn Picking\nClosed",
+   "reqd": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Data",
+   "label": "User"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-09-03 20:44:51.181951",
+ "modified": "2026-09-15 08:38:15.717982",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List",

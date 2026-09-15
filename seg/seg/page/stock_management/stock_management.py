@@ -429,7 +429,7 @@ def get_open_picking_lists(customer, picking_list):
     if picking_list:
         picking_list_condition = """AND `tabPicking List`.`name` = '{0}'""".format(picking_list)
     
-    #Get orders
+    #Get open Picking Lists
     open_picking_lists = frappe.db.sql("""
                                 SELECT
                                     `tabPicking List`.`name` AS `name`,
@@ -448,7 +448,7 @@ def get_open_picking_lists(customer, picking_list):
                                 LEFT JOIN
                                     `tabPicking List Item` ON `tabPicking List Item`.`parent` = `tabPicking List`.`name`
                                 WHERE
-                                    `tabPicking List`.`status` = 'Open'
+                                    `tabPicking List`.`picking_status` = 'Open'
                                 AND
                                     `tabPicking List`.`docstatus` = 1
                                 {customer_condition}
@@ -458,7 +458,38 @@ def get_open_picking_lists(customer, picking_list):
                                 ORDER BY
                                     `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), as_dict=True)
     
-    return open_picking_lists
+    #Get Saved Picking Lists
+    saved_picking_lists = frappe.db.sql("""
+                                SELECT
+                                    `tabPicking List`.`name` AS `name`,
+                                    DATE_FORMAT(`tabPicking List`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
+                                    `tabPicking List`.`customer_name` AS `customer_name`,
+                                    `tabPicking List`.`sales_order` AS `sales_order`,
+                                    COUNT(
+                                        CASE
+                                            WHEN `tabPicking List Item`.`picked_qty`
+                                                 < `tabPicking List Item`.`qty`
+                                            THEN 1
+                                        END
+                                    ) AS `open_items`
+                                FROM
+                                    `tabPicking List`
+                                LEFT JOIN
+                                    `tabPicking List Item` ON `tabPicking List Item`.`parent` = `tabPicking List`.`name`
+                                WHERE
+                                    `tabPicking List`.`picking_status` = 'In Picking'
+                                AND
+                                    `tabPicking List`.`user` = %(user)s
+                                AND
+                                    `tabPicking List`.`docstatus` = 1
+                                {customer_condition}
+                                {picking_list_condition}
+                                GROUP BY
+                                    `tabPicking List`.`name`
+                                ORDER BY
+                                    `tabPicking List`.`schedule_date` ASC;""".format(customer_condition=customer_condition, picking_list_condition=picking_list_condition), {'user': user}, as_dict=True)
+    
+    return {'open_picking_lists
 
 #Get all Items for Picking List
 @frappe.whitelist()

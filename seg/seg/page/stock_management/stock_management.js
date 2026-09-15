@@ -1584,7 +1584,7 @@ class PickingPage extends StockManagementClass {
     get_open_picking_lists(refresh=false) {
         const customer = this.selected_customer ?? "";
         const picking_list = this.selected_picking_list ?? "";
-        
+        console.log(frappe.session.user);
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.get_open_picking_lists',
             'args': {
