@@ -1,8 +1,43 @@
 <section class="list-content">
-
     <table class="item-table">
+        {% for picking_list in picking_lists.saved_picking_lists %}
 
-        {% for picking_list in picking_lists %}
+            <tr class="order-row" data-list="{{ picking_list.name }}">
+
+                <td class="order-details">
+
+                    <div class="saved-picking-title">
+                        {{ picking_list.name }}
+                    </div>
+
+                    <div class="saved-picking-supplier">
+                        {{ picking_list.customer_name }}
+                    </div>
+                    
+                    <div class="saved-picking-supplier">
+                        {{ picking_list.open_items }} Positionen
+                    </div>
+                </td>
+
+                <td class="order-dates">
+
+                    <div class="saved-picking-date">
+                        <span class="saved-picking-label">Geplant</span><br>
+                        {{ picking_list.formatted_schedule_date }}
+                    </div>
+
+                    <div class="saved-picking-date">
+                        <span class="saved-picking-label">Auftrag</span><br>
+                        {{ picking_list.sales_order }}
+                    </div>
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        {% for picking_list in picking_lists.open_picking_lists %}
 
             <tr class="order-row" data-list="{{ picking_list.name }}">
 

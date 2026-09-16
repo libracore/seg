@@ -46,7 +46,9 @@
   "do_not_update_variants",
   "copy_to_variant_fields",
   "stock_management_section",
-  "dn_transporter"
+  "dn_transporter",
+  "column_break_ontu",
+  "so_tax_template"
  ],
  "fields": [
   {
@@ -287,11 +289,22 @@
    "label": "Delivery Note Transporter",
    "options": "Supplier",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_ontu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "so_tax_template",
+   "fieldtype": "Link",
+   "label": "Taxes Template for Sales Order",
+   "options": "Sales Taxes and Charges Template",
+   "reqd": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-09-08 15:36:28.081156",
+ "modified": "2026-09-16 08:52:14.171482",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "SEG Settings",

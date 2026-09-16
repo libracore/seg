@@ -1547,10 +1547,11 @@ class PickingPage extends StockManagementClass {
 
             });
             
-            //Open Pruchase Order Tab
+            //Open Picking List Tab
             document.getElementById("picking-list-ok-button").addEventListener("click", () => {
                 let picking_list = this.selected_picking_list ?? "";
                 if (picking_list) {
+                    this.mark_picking_list(picking_list);
                     frappe.stock_management.load_tab(new PickingList('picking_list', "Artikel Kommissionieren", picking_list, this));
                 } else {
                     this.show_error("Bitte einen Rüstschein wählen", "picking-message");
@@ -1562,8 +1563,7 @@ class PickingPage extends StockManagementClass {
         document.querySelectorAll(".order-row").forEach(row => {
             row.addEventListener("click", () => {
                 const picking_list = row.dataset.list;
-                const target_list = this.picking_lists.find(list => list.name === picking_list);
-                this.picking_list_link_field.set_value(target_list.name);
+                this.picking_list_link_field.set_value(picking_list);
             });
 		});
     }
@@ -1616,7 +1616,7 @@ class PickingPage extends StockManagementClass {
                 get_query: () => {
                     const filters = {
                         'docstatus': 1,
-                        'status': "Open"
+                        'picking_status': "Open"
                     }
                     
                     if (this.selected_customer) {
@@ -1670,6 +1670,16 @@ class PickingPage extends StockManagementClass {
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
+    }
+    
+    mark_picking_list(picking_list) {
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.mark_picking_list',
+            'args': {
+                'picking_list': picking_list,
+                'user': frappe.session.user
+            }
+        });
     }
 }
 
@@ -2067,7 +2077,6 @@ class PickingListItem extends PickingList {
     }
     
     add_picked_item(new_amount) {
-        console.log(this.warehouses);
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
         if (target_wh) {
@@ -2088,10 +2097,11 @@ class PickingListItem extends PickingList {
                     const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
                     if (target) {
                         target.qty += parseInt(new_amount);
+                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 0);
                     } else {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
                     }
-                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
                 }
             }
         } else {
@@ -2103,6 +2113,26 @@ class PickingListItem extends PickingList {
     async handle_scan(scan_buffer) {
         let warehouse = scan_buffer + " - SEG";
         this.wh_link_field.set_value(warehouse);
+    }
+    
+    update_picking_doc(picking_list, item_code, new_amount, warehouse_dict, add_line) {
+        frappe.call({
+            'method': 'seg.seg.page.stock_management.stock_management.update_picking_list',
+            'args': {
+                'picking_list': picking_list,
+                'item_code': item_code,
+                'new_amount': new_amount,
+                'warehouse_dict': warehouse_dict,
+                'add_line': add_line
+            },
+            'callback': (response) => {
+                if ((response.message) && (response.message.success)) {
+                    this.show_success("Der Artikel wurde erfolgreich dem Rüstschein hinzugefügt.", "wh-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking_list)});
+                } else {
+                    this.show_error(response.message.error, "wh-message");
+                }
+            }
+        });
     }
 }
 
@@ -2207,7 +2237,7 @@ class CreateSalesOrderPage extends StockManagementClass {
                 this.show_error("Bitte zuerst alle Felder befüllen.", "order-message")
             } else {
                 //Add Item to Items
-                this.update_items(item, warehouse, qty);
+                this.update_items(item, warehouse, parseFloat(qty));
                 document.getElementById("order-quantity-input").value = 1;
                 this.item_link_field.set_value("");
                 this.wh_link_field.set_value("");
@@ -2252,7 +2282,7 @@ class CreateSalesOrderPage extends StockManagementClass {
     
     async update_items(item_code, source_warehouse, qty) {
         //Check if Item is already selected
-        const target_item = this.items.find(item => ((item.item_code === this.item) && (item.content.warehouse === source_warehouse)));
+        const target_item = this.items.find(item => ((item.item_code === item_code) && (item.content.warehouse === source_warehouse)));
         if (target_item) {
             target_item.content['qty'] += qty;
         } else {
@@ -2261,8 +2291,8 @@ class CreateSalesOrderPage extends StockManagementClass {
             item_dict[0].content['warehouse'] = source_warehouse;
             item_dict[0].content['qty'] = qty;
             this.items.push(item_dict[0]);
-            this.display_items();
         }
+        this.display_items();
         this.set_delete_handler()
     }
     
