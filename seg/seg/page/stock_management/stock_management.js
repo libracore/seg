@@ -1402,6 +1402,13 @@ class StockTransferPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
@@ -2342,6 +2349,13 @@ class CreateSalesOrderPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
 				}
@@ -2533,6 +2547,13 @@ class EanManagementPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
