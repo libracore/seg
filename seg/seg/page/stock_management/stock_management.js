@@ -1254,6 +1254,16 @@ class StockTransferPage extends StockManagementClass {
         const stock_transfer_input = document.getElementById('stock-transfer-input');
         const stock_transfer_content = frappe.render_template("stock_transfer_input", {'title': this.label});
         stock_transfer_input.innerHTML = stock_transfer_content;
+        
+        //Show Material Receipt Button
+        const material_receipt_button = document.getElementById('stock-transfer-button');
+        const material_receipt_button_content = frappe.render_template("bottom_button");
+        material_receipt_button.innerHTML = material_receipt_button_content;
+        
+        //Show Material Issue Button
+        const material_issue_button = document.getElementById('stock-transfer-sec-button');
+        const material_issue_content = frappe.render_template("bottom_button_sec");
+        material_issue_button.innerHTML = material_issue_content;
     }
     
     //Add Event Listeners
@@ -1346,6 +1356,10 @@ class StockTransferPage extends StockManagementClass {
         document.getElementById("transfer-ok-button").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("nav-back").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("action-button").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("action-button").textContent = "Material einbuchen";
+        document.getElementById("secondary-action-button").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("secondary-action-button").textContent = "Material ausbuchen";
     }
     
     async display_items_and_warehouses() {
