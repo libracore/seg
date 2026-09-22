@@ -1925,7 +1925,7 @@ class PickingList extends PickingPage {
             },
             'callback': (response) => {
                 if ((response.message) && (response.message.success)) {
-                    this.show_success("Lieferschein " + response.message.name + " wurde erstellt.", "button-message");
+                    this.show_success("Lieferschein " + response.message.name + " wurde erstellt.", "button-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking)});
                 } else {
                     this.show_error("Es ist ein Fehler beim erstellen des Lieferscheins aufgetreten. Ein Fehlerbericht wurde erstellt.", "button-message");
                 }
