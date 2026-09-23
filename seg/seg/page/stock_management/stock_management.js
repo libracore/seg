@@ -1348,6 +1348,47 @@ class StockTransferPage extends StockManagementClass {
             }
 		});
         
+        //Material Receipt
+		document.getElementById("action-button").addEventListener("click", () => {
+            let qty = document.getElementById("transfer-quantity-input").value;
+            if ((!this.item) || (this.from_warehouse) || (!this.to_warehouse)) {
+                this.show_error("Bitte Zielplatz und Artikel angeben.", "transfer-message")
+            } else {
+                //Prepare Items
+                let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': null, 'to_warehouse': this.to_warehouse}]
+                //Create Stock Entry
+                this.create_stock_entry(items, "Material Receipt", "transfer-message");
+                this.item_link_field.set_value("");
+                this.from_wh_link_field.set_value("");
+                this.to_wh_link_field.set_value("");
+            }
+		});
+        
+        //Material Issue
+		document.getElementById("secondary-action-button").addEventListener("click", () => {
+            let qty = document.getElementById("transfer-quantity-input").value;
+            if ((!this.item) || (!this.from_warehouse) || (this.to_warehouse)) {
+                this.show_error("Bitte Ausgangslager und Artikel angeben.", "transfer-message")
+            } else {
+                //Check if Item is on Stock in selected Warehouse
+                const target = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.from_warehouse);
+                if (target) {
+                    if (qty > target.qty) {
+                        this.show_error("Menge nicht an Lagerplatz verfügbar.", "transfer-message");
+                    } else {
+                        //Prepare Items
+                        let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': null}]
+                        //Create Stock Entry
+                        this.create_stock_entry(items, "Material Issue", "transfer-message");
+                        this.item_link_field.set_value("");
+                        this.from_wh_link_field.set_value("");
+                        this.to_wh_link_field.set_value("");
+                    }
+                } else {
+                    this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
+                }
+            }
+		});
     }
     
     //Show Dynamic Content
