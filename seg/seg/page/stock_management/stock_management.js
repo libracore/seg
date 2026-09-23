@@ -1254,6 +1254,16 @@ class StockTransferPage extends StockManagementClass {
         const stock_transfer_input = document.getElementById('stock-transfer-input');
         const stock_transfer_content = frappe.render_template("stock_transfer_input", {'title': this.label});
         stock_transfer_input.innerHTML = stock_transfer_content;
+        
+        //Show Material Receipt Button
+        const material_receipt_button = document.getElementById('stock-transfer-button');
+        const material_receipt_button_content = frappe.render_template("bottom_button");
+        material_receipt_button.innerHTML = material_receipt_button_content;
+        
+        //Show Material Issue Button
+        const material_issue_button = document.getElementById('stock-transfer-sec-button');
+        const material_issue_content = frappe.render_template("bottom_button_sec");
+        material_issue_button.innerHTML = material_issue_content;
     }
     
     //Add Event Listeners
@@ -1338,6 +1348,47 @@ class StockTransferPage extends StockManagementClass {
             }
 		});
         
+        //Material Receipt
+		document.getElementById("action-button").addEventListener("click", () => {
+            let qty = document.getElementById("transfer-quantity-input").value;
+            if ((!this.item) || (this.from_warehouse) || (!this.to_warehouse)) {
+                this.show_error("Bitte Zielplatz und Artikel angeben.", "transfer-message")
+            } else {
+                //Prepare Items
+                let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': null, 'to_warehouse': this.to_warehouse}]
+                //Create Stock Entry
+                this.create_stock_entry(items, "Material Receipt", "transfer-message");
+                this.item_link_field.set_value("");
+                this.from_wh_link_field.set_value("");
+                this.to_wh_link_field.set_value("");
+            }
+		});
+        
+        //Material Issue
+		document.getElementById("secondary-action-button").addEventListener("click", () => {
+            let qty = document.getElementById("transfer-quantity-input").value;
+            if ((!this.item) || (!this.from_warehouse) || (this.to_warehouse)) {
+                this.show_error("Bitte Ausgangslager und Artikel angeben.", "transfer-message")
+            } else {
+                //Check if Item is on Stock in selected Warehouse
+                const target = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.from_warehouse);
+                if (target) {
+                    if (qty > target.qty) {
+                        this.show_error("Menge nicht an Lagerplatz verfügbar.", "transfer-message");
+                    } else {
+                        //Prepare Items
+                        let items = [{'item_code': this.item, 'qty': qty, 'from_warehouse': this.from_warehouse, 'to_warehouse': null}]
+                        //Create Stock Entry
+                        this.create_stock_entry(items, "Material Issue", "transfer-message");
+                        this.item_link_field.set_value("");
+                        this.from_wh_link_field.set_value("");
+                        this.to_wh_link_field.set_value("");
+                    }
+                } else {
+                    this.show_error("Artikel nicht an Lagerplatz verfügbar.", "transfer-message");
+                }
+            }
+		});
     }
     
     //Show Dynamic Content
@@ -1346,6 +1397,10 @@ class StockTransferPage extends StockManagementClass {
         document.getElementById("transfer-ok-button").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("nav-back").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("action-button").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("action-button").textContent = "Material einbuchen";
+        document.getElementById("secondary-action-button").style.backgroundColor = this.colors.stock_transfer;
+        document.getElementById("secondary-action-button").textContent = "Material ausbuchen";
     }
     
     async display_items_and_warehouses() {
@@ -1402,6 +1457,13 @@ class StockTransferPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
@@ -1918,7 +1980,7 @@ class PickingList extends PickingPage {
             },
             'callback': (response) => {
                 if ((response.message) && (response.message.success)) {
-                    this.show_success("Lieferschein " + response.message.name + " wurde erstellt.", "button-message");
+                    this.show_success("Lieferschein " + response.message.name + " wurde erstellt.", "button-message", () => {frappe.stock_management.load_tab(frappe.stock_management.tab_instances.picking)});
                 } else {
                     this.show_error("Es ist ein Fehler beim erstellen des Lieferscheins aufgetreten. Ein Fehlerbericht wurde erstellt.", "button-message");
                 }
@@ -2342,6 +2404,13 @@ class CreateSalesOrderPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
 				}
@@ -2533,6 +2602,13 @@ class EanManagementPage extends StockManagementClass {
                 fieldtype: "Link",
                 options: "Item",
                 fieldname: "item",
+                get_query: () => {
+                    return {
+                        filters: {
+                            has_variants: 0
+                        }
+                    };
+                },
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
