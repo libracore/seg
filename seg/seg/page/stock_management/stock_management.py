@@ -396,6 +396,7 @@ def get_item_information_by_warehouse(warehouse):
 
 @frappe.whitelist()
 def create_stock_entry(items, entry_type):
+    frappe.log_error("items", items)
     items = json.loads(items)
     stock_entry = frappe.new_doc("Stock Entry")
 
@@ -866,3 +867,37 @@ def mark_picking_list(picking_list, user):
     update_status = frappe.db.set_value("Picking List", picking_list, "picking_status", "In Picking")
     update_user = frappe.db.set_value("Picking List", picking_list, "user", user)
 
+@frappe.whitelist()
+def check_item_alternative(item_code, qty):
+    alternative_items = None
+    #Check if item is Purchase Item
+    is_purchase_item = frappe.get_value("Item", item_code, "is_purchase_item")
+    if not is_purchase_item:
+        #If Item is not purchase Item, Check if it has an Alternative
+        alternative_items = frappe.get_all("Item Alternative", filters=[["item_code", "=", item_code]], fields=["alternative_item_code"])
+        if not alternative_items:
+            alternative_items = frappe.get_all("Item Alternative", filters=[["alternative_item_code", "=", item_code], ["two_way", "=", 1]], fields=["item_code"])
+    frappe.log_error("alternative_items", alternative_items)
+    if not alternative_items:
+        return None
+        #Check if any alternative is on stock on any warehouse
+    else:
+        response = None
+        for item in alternative_items:
+            stock_item = frappe.db.sql("""
+                                        SELECT
+                                            `item_code`,
+                                            `warehouse`
+                                        FROM
+                                            `tabBin`
+                                        WHERE
+                                            `actual_qty` >= %(qty)s
+                                        AND
+                                            `item_code` = %(item_code)s
+                                        LIMIT 1;""", {'qty': qty, 'item_code': item.get('item_code') or item.get('alternative_item_code')}, as_dict=True)
+            frappe.log_error("stock_item", stock_item)
+            if len(stock_item) > 0:
+                response = {'item_code': stock_item[0].get('item_code'), 'warehouse': stock_item[0].get('warehouse')}
+                break
+    frappe.log_error("response", response)
+    return response

@@ -2138,7 +2138,7 @@ class PickingListItem extends PickingList {
         this.wh_link_field.refresh();
     }
     
-    add_picked_item(new_amount) {
+    async add_picked_item(new_amount) {
         let success = true;
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
@@ -2149,6 +2149,7 @@ class PickingListItem extends PickingList {
                 //find item
                 const target_item = this.parent_this.items.find(item => item.item_code === this.item);
                 //Prepare updated amount
+                console.log("target", target_item);
                 let updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
@@ -2162,27 +2163,36 @@ class PickingListItem extends PickingList {
         }
         
         if (success) {
-            pdate_picked_items(new_amount, target_item);
+            console.log("success", target_item);
+            this.update_picked_items(new_amount, target_item);
         } else {
-            let item_alternative = check_item_alternative;
-            if (item_alternative) {
-                frappe.confirm(
-                    'Are you sure to leave this page?',
-                    function(){
-                        // on yes
-                        window.close();
-                    },
-                    function(){
-                        // on no
-                        show_alert('Thanks for continue here!')
+            frappe.call({
+                'method': 'seg.seg.page.stock_management.stock_management.check_item_alternative',
+                'args': {
+                    'item_code': this.item,
+                    'qty': new_amount
+                },
+                'callback': (response) => {
+                    if (response.message) {
+                        let item_alternative = response.message;
+                        frappe.confirm(
+                            "Artikelalternative " + item_alternative.item_code + " an Lager " + item_alternative.warehouse + " gefunden, möchtest du die Artikel zuerst umbuchen?",
+                            () => {
+                                // on yes
+                                this.restock_item_alternative(this.item, item_alternative.item_code, new_amount, item_alternative.warehouse, this.warehouse);
+                                window.close();
+                            },
+                            () => {
+                                // on no
+                                return
+                            }
+                        )
+                    } else {
+                        this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
                     }
-                )
-            } else {
-                this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
-            }
+                }
+            });
         }
-        
-        
     }
     
     //Handle Scan Input
@@ -2191,18 +2201,19 @@ class PickingListItem extends PickingList {
         this.wh_link_field.set_value(warehouse);
     }
     
-    update_picked_items(new_amount, target_item)
-                    //add stored qty
-                    target_item.content['stored_qty'] = updated_amount
-                    //add warehouse information
-                    const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
-                    if (target) {
-                        target.qty += parseInt(new_amount);
-                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 0);
-                    } else {
-                        target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
-                        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
-                    }
+    update_picked_items(new_amount, target_item) {
+        //add stored qty
+        target_item.content['stored_qty'] = updated_amount
+        //add warehouse information
+        const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
+        if (target) {
+            target.qty += parseInt(new_amount);
+            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 0);
+        } else {
+            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
+        }
+    }
     
     update_picking_doc(picking_list, item_code, new_amount, warehouse_dict, add_line) {
         frappe.call({
@@ -2222,6 +2233,11 @@ class PickingListItem extends PickingList {
                 }
             }
         });
+    }
+    
+    restock_item_alternative(item, alternative_item,  new_amount, from_wh, to_wh) {
+        this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
+        this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "wh-message");
     }
 }
 
