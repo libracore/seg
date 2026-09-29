@@ -2138,8 +2138,10 @@ class PickingListItem extends PickingList {
         this.wh_link_field.refresh();
     }
     
-    async add_picked_item(new_amount) {
+    add_picked_item(new_amount) {
         let success = true;
+        let target_item;
+        let updated_amount;
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
         if (target_wh) {
@@ -2147,10 +2149,10 @@ class PickingListItem extends PickingList {
                 success = false;
             } else {
                 //find item
-                const target_item = this.parent_this.items.find(item => item.item_code === this.item);
+                target_item = this.parent_this.items.find(item => item.item_code === this.item);
                 //Prepare updated amount
                 console.log("target", target_item);
-                let updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
+                updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
                     success = false;
@@ -2166,6 +2168,7 @@ class PickingListItem extends PickingList {
             console.log("success", target_item);
             this.update_picked_items(new_amount, target_item);
         } else {
+            console.log("call");
             frappe.call({
                 'method': 'seg.seg.page.stock_management.stock_management.check_item_alternative',
                 'args': {
