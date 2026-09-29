@@ -2139,11 +2139,12 @@ class PickingListItem extends PickingList {
     }
     
     add_picked_item(new_amount) {
+        let success = true;
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
         if (target_wh) {
             if (new_amount > target_wh.qty) {
-                this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+                success = false;
             } else {
                 //find item
                 const target_item = this.parent_this.items.find(item => item.item_code === this.item);
@@ -2151,8 +2152,46 @@ class PickingListItem extends PickingList {
                 let updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
-                    this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+                    success = false;
                 } else {
+                    success = true;
+                }
+            }
+        } else {
+            success = false;
+        }
+        
+        if (success) {
+            pdate_picked_items(new_amount, target_item);
+        } else {
+            let item_alternative = check_item_alternative;
+            if (item_alternative) {
+                frappe.confirm(
+                    'Are you sure to leave this page?',
+                    function(){
+                        // on yes
+                        window.close();
+                    },
+                    function(){
+                        // on no
+                        show_alert('Thanks for continue here!')
+                    }
+                )
+            } else {
+                this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+            }
+        }
+        
+        
+    }
+    
+    //Handle Scan Input
+    async handle_scan(scan_buffer) {
+        let warehouse = scan_buffer + " - SEG";
+        this.wh_link_field.set_value(warehouse);
+    }
+    
+    update_picked_items(new_amount, target_item)
                     //add stored qty
                     target_item.content['stored_qty'] = updated_amount
                     //add warehouse information
@@ -2164,18 +2203,6 @@ class PickingListItem extends PickingList {
                         target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
                         this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
                     }
-                }
-            }
-        } else {
-            this.show_error("Artikel nicht an Lagerplatz verfügbar.", "wh-message");
-        }
-    }
-    
-    //Handle Scan Input
-    async handle_scan(scan_buffer) {
-        let warehouse = scan_buffer + " - SEG";
-        this.wh_link_field.set_value(warehouse);
-    }
     
     update_picking_doc(picking_list, item_code, new_amount, warehouse_dict, add_line) {
         frappe.call({
