@@ -85,17 +85,19 @@ class StockManagementClass {
     
     //Display Sucess message
     show_success(message, element, callback = null) {
-        const msg = document.getElementById(element);
-        msg.textContent = message;
-        msg.className = "scan-message success";
-        
-        setTimeout(() => {
-            this.hide_message(element);
-            //Go Back to previous Page
-            if (callback) {
-                callback();
-            }
-        }, 3000);
+        if (element != "None") {
+            const msg = document.getElementById(element);
+            msg.textContent = message;
+            msg.className = "scan-message success";
+            
+            setTimeout(() => {
+                this.hide_message(element);
+                //Go Back to previous Page
+                if (callback) {
+                    callback();
+                }
+            }, 3000);
+        }
     }
     
     //Display Error message
@@ -2151,7 +2153,6 @@ class PickingListItem extends PickingList {
                 //find item
                 target_item = this.parent_this.items.find(item => item.item_code === this.item);
                 //Prepare updated amount
-                console.log("target", target_item);
                 updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
@@ -2165,10 +2166,8 @@ class PickingListItem extends PickingList {
         }
         
         if (success) {
-            console.log("success", target_item);
             this.update_picked_items(new_amount, target_item);
         } else {
-            console.log("call");
             frappe.call({
                 'method': 'seg.seg.page.stock_management.stock_management.check_item_alternative',
                 'args': {
@@ -2206,7 +2205,7 @@ class PickingListItem extends PickingList {
     
     update_picked_items(new_amount, target_item) {
         //add stored qty
-        target_item.content['stored_qty'] = updated_amount
+        target_item.content['stored_qty'] += parseInt(new_amount);
         //add warehouse information
         const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
         if (target) {
