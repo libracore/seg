@@ -201,3 +201,159 @@ function modify_item_rate(frm) {
     });
     cur_frm.set_value("ignore_pricing_rule", 1);
 }
+
+function add_pricing_rule(customer=null) {
+    let updating_fields = false;
+    var d = new frappe.ui.Dialog({
+        'title': __('Preisregel erstellen'),
+        'fields': [
+            {'fieldname': 'customer', 'fieldtype': 'Link', 'label': __('Customer'), 'options': 'Customer', 'reqd': 1, 'default': customer},
+            {'fieldname': 'type', 'fieldtype': 'Select', 'label': __('Typ'), 'options': 'Allgemein\nProduktkategorie\nProduktunterkategorie\nProduktgruppe\nArtikelgruppe\nArtikel', 'reqd': 1, 'default': 'Allgemein','onchange': function() { clear_fields() } },
+            {'fieldname': 'product_category', 'fieldtype': 'Link', 'label': __('Product Category'), 'options': 'Item Group', 'get_query': get_product_categories(), 'depends_on': 'eval:doc.type=="Produktkategorie"'},
+            {'fieldname': 'product_subcategory', 'fieldtype': 'Link', 'label': __('Product Subcategory'), 'options': 'Item Group', 'get_query': get_product_subcategories(), 'depends_on': 'eval:doc.type=="Produktunterkategorie"'},
+            {'fieldname': 'product_group', 'fieldtype': 'Link', 'label': __('Product Group'), 'options': 'Item Group', 'get_query': get_product_groups(), 'depends_on': 'eval:doc.type=="Produktgruppe"'},
+            {'fieldname': 'item_group', 'fieldtype': 'Link', 'label': __('Item Group'), 'options': 'Item Group', 'get_query': get_item_groups(), 'depends_on': 'eval:doc.type=="Artikelgruppe"'},
+            {'fieldname': 'item', 'fieldtype': 'Link', 'label': __('Item'), 'options': 'Item', 'depends_on': 'eval:doc.type=="Artikel"'},
+            {'fieldname': 'discount_percent', 'fieldtype': 'Percent', 'label': __('Rabattprozent'), 'reqd': 1},
+            {'fieldname': 'selling_price', 'fieldtype': 'Currency', 'label': __('Verkaufspreis'), 'depends_on': 'eval:doc.item'},
+            {'fieldname': 'seg_purchase_price', 'fieldtype': 'Currency', 'label': __('SEG EK'), 'read_only': 1, 'depends_on': 'eval:doc.item'},
+            {'fieldname': 'price_list_rate', 'fieldtype': 'Currency', 'label': __('Pricelist Rate'), 'read_only': 1, 'depends_on': 'eval:doc.item'},
+            {'fieldname': 'db', 'fieldtype': 'Currency', 'label': __('DB'), 'read_only': 1, 'depends_on': 'eval:doc.item'}
+        ],
+        
+        'primary_action': function() {
+            d.hide();
+            var values = d.get_values();
+            frappe.call({
+                'method': "seg.seg.report.seg_preisliste.seg_preisliste.create_pricing_rule",
+                'args':{
+                    'customer': values.customer,
+                    'discount_percentage': values.discount_percent,
+                    'product_category': values.product_category,
+                    'product_subcategory': values.product_subcategory,
+                    'product_group': values.product_group,
+                    'item_group': values.item_group,
+                   'item_code': values.item
+                },
+                'callback': function(r)
+                {
+                    //frappe.set_route("Form", "Pricing Rule", r.message)
+                    frappe.show_alert( __("Neue Preisregel erstellt: ") + "<a href=\"/desk#Form/Pricing Rule/" +  r.message + "\">" + r.message + "</a>");
+                    frappe.query_report.refresh();
+                }
+            });
+        },
+        'primary_action_label': __('Erstellen'),
+    
+    });
+    
+    //Set Price List Rate, Selling Price and SEG Purchase Price
+    d.fields_dict.item.df.onchange = function() {
+        set_item_values(d);
+    };
+    
+    //Calculate Discount Percentage/Selling Price and DB
+    d.fields_dict.discount_percent.df.onchange = function() {
+        recalculate_values(d, "discount_percent");
+    };
+    
+    d.fields_dict.selling_price.df.onchange = function() {
+        recalculate_values(d, "selling_price");
+    };
+    
+    d.show();
+    
+    function clear_fields() {
+        d.set_value('product_category', null);
+        d.set_value('product_subcategory', null);
+        d.set_value('product_group', null);
+        d.set_value('item_group', null);
+        d.set_value('item', null);
+    }
+    
+    function set_item_values(d) {
+        let item_code = d.get_value('item');
+        if (item_code) {
+            frappe.call({
+                'method': 'seg.seg.report.seg_preisliste.seg_preisliste.get_items_prices',
+                'args': {
+                    'item_code': item_code
+                },
+                'callback': function(response) {
+                    if (response.message) {
+                        d.set_value("selling_price", response.message.price_list_rate);
+                        d.set_value("price_list_rate", response.message.price_list_rate);
+                        d.set_value("seg_purchase_price", response.message.seg_purchase_price);
+                    } else {
+                        d.set_value("selling_price", null);
+                        d.set_value("price_list_rate", null);
+                        d.set_value("seg_purchase_price", null);
+                    }
+                }
+            });
+        }
+    }
+    
+    function recalculate_values(d, trigger) {
+        if (!updating_fields) {
+            let price_list_rate = d.get_value('price_list_rate');
+            let selling_price = d.get_value('selling_price');
+            updating_fields = true
+            
+            //Calculate Selling Price / Discount Percentage
+            if (trigger == "discount_percent") {
+                let discount_percentage = d.get_value('discount_percent');
+                selling_price = price_list_rate * (1 - discount_percentage / 100);
+                d.set_value("selling_price", selling_price).then(() => {
+                    updating_fields = false
+                });
+            }
+            
+            if (trigger == "selling_price") {
+                let discount_percentage = (1 - selling_price / price_list_rate) * 100;
+                d.set_value("discount_percent", discount_percentage).then(() => {
+                    updating_fields = false
+                });
+            }
+            
+            //Calcualte DB
+            let seg_purchase_price = d.get_value('seg_purchase_price');
+            let db = selling_price - seg_purchase_price;
+            d.set_value("db", db)
+        }
+    }
+}
+
+function get_product_categories() {
+    return {
+        filters: [
+            ['item_group_type', "=", "Product Category"]
+        ]
+    };
+}
+
+function get_product_subcategories() {
+    return {
+        filters: [
+            ['item_group_type', "=", "Product Subcategory"]
+        ]
+    };
+}
+
+function get_product_groups() {
+    return {
+        filters: [
+            ['item_group_type', "=", "Product Group"]
+        ]
+    };
+}
+
+function get_item_groups() {
+    return {
+        filters: [
+            ['item_group_type', "=", "Item Group"]
+        ]
+    };
+}
+
+

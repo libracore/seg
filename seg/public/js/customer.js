@@ -16,6 +16,11 @@ frappe.ui.form.on('Customer',  {
         if (!frm.doc.__islocal) {
             add_nextcloud_button(frm);
         }
+        
+        //Create Pricing Rule Dialog
+        frm.add_custom_button(__('Preisregel erstellen'),  function(){
+            add_pricing_rule(frm.doc.name);
+        });
     },
     mahnsperre: function(frm) {
         check_mahnsperre_on_invoices(frm);

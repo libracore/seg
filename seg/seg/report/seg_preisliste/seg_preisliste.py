@@ -158,3 +158,24 @@ def create_pricing_rule(customer, discount_percentage, product_category=None, pr
 
     validate_pricing_rule(pr.name)
     return pr.name
+
+@frappe.whitelist()
+def get_items_prices(item_code):
+    #Get Price List Rate
+    price = frappe.get_all(
+        "Item Price",
+        filters={
+            "item_code": item_code,
+            "price_list": "Standard-Vertrieb",
+            "selling": 1
+        },
+        fields=["price_list_rate"],
+        limit=1
+    )
+
+    price_list_rate = price[0].price_list_rate if price else 0
+    
+    #Get SEG EK
+    seg_purchase_price = frappe.get_value("Item", item_code, "seg_purchase_price")
+    
+    return {'price_list_rate': price_list_rate, 'seg_purchase_price': seg_purchase_price}
