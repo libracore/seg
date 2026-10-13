@@ -110,6 +110,24 @@ frappe.ui.form.on('Quotation Price List Items', {
     discount(frm, cdt, cdn) {
         let row = frappe.get_doc(cdt, cdn);
         recalculate_prices(row, "discount");
+    },
+    item_code_copy: function(frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        navigator.clipboard.writeText(row.item_code).then(() => {
+            frappe.show_alert("Kopiert: " + row.item_code);
+        });
+    },
+    item_group_copy: function(frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        navigator.clipboard.writeText(row.item_group).then(() => {
+            frappe.show_alert("Kopiert: " + row.item_group);
+        });
+    },
+    discount_copy: function(frm, cdt, cdn) {
+        let row = frappe.get_doc(cdt, cdn);
+        navigator.clipboard.writeText(row.discount).then(() => {
+            frappe.show_alert("Kopiert: " + row.discount);
+        });
     }
 });
 
@@ -179,7 +197,7 @@ function set_items(frm) {
 
 function recalculate_prices(row, trigger) {
     if (!updating_fields) {
-        //Calculate Item Price
+        //Calculate Discount
         updating_fields = true
         if (trigger == "item_price") {
             let discount = 100 - (row.item_price * 100 / row.price_list_rate)
@@ -191,6 +209,7 @@ function recalculate_prices(row, trigger) {
             }
         }
         
+        //Calculate Item Price
         if (trigger == "discount") {
             let item_price = row.price_list_rate - (row.price_list_rate * row.discount / 100)
             frappe.model.set_value(row.doctype, row.name, "item_price", item_price).then(() => {
@@ -200,6 +219,10 @@ function recalculate_prices(row, trigger) {
                 calculate_kg_and_l(row);
             }
         }
+        
+        //Calcualate DB
+        let db = ((row.item_price - row.seg_purchase_price) / row.item_price) * 100;
+        frappe.model.set_value(row.doctype, row.name, "db", db)
     }
 }
 

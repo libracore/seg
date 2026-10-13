@@ -281,7 +281,7 @@ function add_pricing_rule(customer=null) {
             {'fieldname': 'selling_price', 'fieldtype': 'Currency', 'label': __('Verkaufspreis'), 'depends_on': 'eval:doc.item'},
             {'fieldname': 'seg_purchase_price', 'fieldtype': 'Currency', 'label': __('SEG EK'), 'read_only': 1, 'depends_on': 'eval:doc.item'},
             {'fieldname': 'price_list_rate', 'fieldtype': 'Currency', 'label': __('Pricelist Rate'), 'read_only': 1, 'depends_on': 'eval:doc.item'},
-            {'fieldname': 'db', 'fieldtype': 'Currency', 'label': __('DB'), 'read_only': 1, 'depends_on': 'eval:doc.item'}
+            {'fieldname': 'db', 'fieldtype': 'Percent', 'label': __('DB'), 'read_only': 1, 'depends_on': 'eval:doc.item'}
         ],
         
         'primary_action': function() {
@@ -381,7 +381,7 @@ function add_pricing_rule(customer=null) {
             
             //Calcualte DB
             let seg_purchase_price = d.get_value('seg_purchase_price');
-            let db = selling_price - seg_purchase_price;
+            let db = ((selling_price - seg_purchase_price) / selling_price) * 100;
             d.set_value("db", db)
         }
     }

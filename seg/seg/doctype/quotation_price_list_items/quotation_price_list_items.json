@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2025-03-11 10:52:59.186249",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -6,6 +7,9 @@
  "field_order": [
   "item_code",
   "item_name",
+  "item_group",
+  "item_code_copy",
+  "item_group_copy",
   "column_break_3",
   "min_order_qty",
   "packaging_type",
@@ -19,7 +23,10 @@
   "item_price_kg",
   "column_break_10",
   "kg_price",
-  "discount"
+  "discount",
+  "seg_purchase_price",
+  "db",
+  "discount_copy"
  ],
  "fields": [
   {
@@ -119,17 +126,58 @@
    "fieldtype": "Data",
    "label": "Variant FR",
    "read_only": 1
+  },
+  {
+   "fetch_from": "item_code.item_group",
+   "fieldname": "item_group",
+   "fieldtype": "Link",
+   "label": "Item Group",
+   "options": "Item Group",
+   "read_only": 1
+  },
+  {
+   "fieldname": "item_code_copy",
+   "fieldtype": "Button",
+   "label": "Copy Item Code"
+  },
+  {
+   "fieldname": "item_group_copy",
+   "fieldtype": "Button",
+   "label": "Copy Item Group"
+  },
+  {
+   "fetch_from": "item_code.seg_purchase_price",
+   "fieldname": "seg_purchase_price",
+   "fieldtype": "Currency",
+   "label": "SEG EK",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "db",
+   "fieldtype": "Percent",
+   "label": "DB",
+   "precision": "2",
+   "read_only": 1
+  },
+  {
+   "fieldname": "discount_copy",
+   "fieldtype": "Button",
+   "label": "Copy Discount"
   }
  ],
  "istable": 1,
- "modified": "2025-10-07 09:38:19.439798",
+ "links": [],
+ "modified": "2026-10-13 11:41:10.650621",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Quotation Price List Items",
  "owner": "Administrator",
  "permissions": [],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
+ "states": [],
  "track_changes": 1
 }
