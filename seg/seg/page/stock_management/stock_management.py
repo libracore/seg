@@ -415,7 +415,7 @@ def create_stock_entry(items, entry_type):
         stock_entry.submit()
         return {'stock_entry': stock_entry.name, 'success': 1}
     except Exception as Err:
-        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0} - {1}".format(Err, stock_entry.name))
         return {'stock_entry': stock_entry.name, 'success': 1, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
 
 

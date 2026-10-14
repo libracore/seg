@@ -1,4 +1,4 @@
-// Copyright (c) 2025, libracore AG and contributors
+// Copyright (c) 2026, libracore AG and contributors
 // For license information, please see license.txt
 
 var flag = 0;

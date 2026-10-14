@@ -66,8 +66,7 @@
    "fieldname": "picked_qty",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Picked Quantity",
-   "read_only": 1
+   "label": "Picked Quantity"
   },
   {
    "allow_on_submit": 1,
@@ -99,7 +98,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-15 12:22:41.219915",
+ "modified": "2026-10-14 16:19:09.457800",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List Item",

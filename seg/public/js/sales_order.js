@@ -1,3 +1,14 @@
+// Copyright (c) 2026, libracore AG and contributors
+// For license information, please see license.txt
+
+//extend Dashboard
+cur_frm.dashboard.add_transactions([
+	{
+		'label': 'Stock Management',
+		'items': ['Picking List']
+	}
+]);
+
 frappe.ui.form.on('Sales Order',  {
     refresh: function(frm) {
         if (frm.doc.customer) {

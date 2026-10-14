@@ -200,6 +200,7 @@ class StockManagementClass {
     }
     
     create_stock_entry(items, entry_type, element, callback = null) {
+        console.log(items);
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.create_stock_entry',
             'args': {
@@ -2237,9 +2238,9 @@ class PickingListItem extends PickingList {
         });
     }
     
-    restock_item_alternative(item, alternative_item,  new_amount, from_wh, to_wh) {
-        this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
-        this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "wh-message");
+    async restock_item_alternative(item, alternative_item,  new_amount, from_wh, to_wh) {
+        await this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
+        await this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "wh-message");
     }
 }
 
@@ -2503,8 +2504,9 @@ class CreateSalesOrderPage extends StockManagementClass {
                     'callback': (response) => {
                         if (response.message.success) {
                             this.show_success("Auftrag " + response.message.name + " wurde erfolgreich erstellt.", "button-message");
-                            this.items;
+                            this.items = [];
                             this.customer_link_field.set_value("");
+                            this.display_items()
                         } else {
                             this.show_error("Es ist ein Fehler aufgetrete, es wurde ein Fehlerbericht erstellt.", "button-message");
                         }
