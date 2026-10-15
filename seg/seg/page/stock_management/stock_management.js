@@ -199,26 +199,24 @@ class StockManagementClass {
         });
     }
     
-    create_stock_entry(items, entry_type, element, callback = null) {
-        console.log(items);
-        frappe.call({
-            'method': 'seg.seg.page.stock_management.stock_management.create_stock_entry',
-            'args': {
-                'items': items,
-                'entry_type': entry_type
-            },
-            'callback': (response) => {
-                if (response.message) {
-                    if (response.message.success) {
-                        this.show_success("Artikel wurde erfolgreich umgelagert.", element, callback);
-                    } else {
-                        this.show_error(response.message.error, element);
-                    }
-                } else {
-                    this.show_error("Beim einlagern ist ein Fehler aufgetreten.", element);
-                }
+    async create_stock_entry(items, entry_type, element, callback = null) {
+        const response = await frappe.call({
+            method: 'seg.seg.page.stock_management.stock_management.create_stock_entry',
+            args: {
+                items: items,
+                entry_type: entry_type
             }
         });
+
+        if (response.message?.success) {
+            this.show_success("Artikel wurde erfolgreich umgelagert.", element, callback);
+            return true;
+        }
+
+        const error = response.message?.error || "Beim Einlagern ist ein Fehler aufgetreten.";
+        this.show_error(error, element);
+
+        return false;
     }
 }
 
@@ -2013,6 +2011,7 @@ class PickingListItem extends PickingList {
         this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
+        console.log("ITEMS", this.parent_this.items);
 	}
     
     //Add Event Listeners
@@ -2143,7 +2142,7 @@ class PickingListItem extends PickingList {
     
     add_picked_item(new_amount) {
         let success = true;
-        let target_item;
+        let target_item = this.parent_this.items.find(item => item.item_code === this.item);
         let updated_amount;
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
@@ -2152,9 +2151,16 @@ class PickingListItem extends PickingList {
                 success = false;
             } else {
                 //find item
-                target_item = this.parent_this.items.find(item => item.item_code === this.item);
+                //~ target_item = this.parent_this.items.find(item => item.item_code === this.item);
                 //Prepare updated amount
-                updated_amount = target_item.content['stored_qty'] + parseInt(new_amount);
+                //Get already picked amount from selected Warehouse
+                let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+                if (taget_wh_qty) {
+                    updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
+                } else {
+                    updated_amount = parseInt(new_amount)
+                }
+                console.log(updated_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
                     success = false;
@@ -2165,7 +2171,7 @@ class PickingListItem extends PickingList {
         } else {
             success = false;
         }
-        
+        console.log(target_item, "before success check");
         if (success) {
             this.update_picked_items(new_amount, target_item);
         } else {
@@ -2182,7 +2188,8 @@ class PickingListItem extends PickingList {
                             "Artikelalternative " + item_alternative.item_code + " an Lager " + item_alternative.warehouse + " gefunden, möchtest du die Artikel zuerst umbuchen?",
                             () => {
                                 // on yes
-                                this.restock_item_alternative(this.item, item_alternative.item_code, new_amount, item_alternative.warehouse, this.warehouse);
+                                console.log(target_item, "frappe call");
+                                this.restock_item_alternative(this.item, item_alternative.item_code, new_amount, item_alternative.warehouse, this.warehouse, target_item);
                                 window.close();
                             },
                             () => {
@@ -2205,6 +2212,7 @@ class PickingListItem extends PickingList {
     }
     
     update_picked_items(new_amount, target_item) {
+        console.log(target_item, "update_picked_items");
         //add stored qty
         target_item.content['stored_qty'] += parseInt(new_amount);
         //add warehouse information
@@ -2238,9 +2246,14 @@ class PickingListItem extends PickingList {
         });
     }
     
-    async restock_item_alternative(item, alternative_item,  new_amount, from_wh, to_wh) {
-        await this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
-        await this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "wh-message");
+    async restock_item_alternative(item, alternative_item, new_amount, from_wh, to_wh, target_item) {
+        const success = await this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
+        if (success) {
+            const success_2 = this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "None");
+            if (success_2) {
+                this.update_picked_items(new_amount, target_item);
+            }
+        }
     }
 }
 
