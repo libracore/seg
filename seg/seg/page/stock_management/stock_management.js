@@ -1828,7 +1828,12 @@ class PickingList extends PickingPage {
         document.querySelectorAll(".item-row").forEach(row => {
             row.addEventListener("click", () => {
                 const item_code = row.dataset.item;
-                const target_item = this.items.find(item => item.item_code === item_code);
+                const pl_detail = row.dataset.pl_detail;
+                console.log(this.items);
+                console.log(pl_detail);
+                console.log(this.items[0].content.pl_detail);
+                const target_item = this.items.find(item => item.item_code === item_code && item.content.pl_detail == pl_detail);
+                console.log(target_item);
                 this.item_link_field.set_value(item_code);
                 document.getElementById("quantity-input").value = target_item.content.qty - target_item.content.stored_qty;
             });
@@ -2000,6 +2005,7 @@ class PickingListItem extends PickingList {
         this.parent_this = parent_this;
         this.grandparent_this = grandparent_this;
         this.warehouses;
+        this.multiple_items = false;
 	}
 
 	init() {
@@ -2011,7 +2017,6 @@ class PickingListItem extends PickingList {
         this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
-        console.log("ITEMS", this.parent_this.items);
 	}
     
     //Add Event Listeners
@@ -2052,6 +2057,42 @@ class PickingListItem extends PickingList {
         
         //Add picked items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
+            //Check if multiple Items are avaliable and show selection
+            if (this.item_dict.length > 1) {
+                
+                const options = this.item_dict.map((item, index) => ({
+                    label: `${item.content.description}`,
+                    value: String(index)
+                }));
+
+                const d = new frappe.ui.Dialog({
+                    title: __("Eintrag auswählen"),
+                    fields: [
+                        {
+                            fieldname: "selected_item",
+                            fieldtype: "Select",
+                            label: __("Artikel / Lager"),
+                            options: options.map(option => ({
+                                label: option.label,
+                                value: option.value
+                            })),
+                            reqd: 1
+                        }
+                    ],
+                    primary_action_label: __("Auswählen"),
+                    primary_action(values) {
+                        const selected_item = items[Number(values.selected_item)];
+                        const target_value = selected_item.target_value;
+
+                        console.log(target_value);
+
+                        d.hide();
+                    }
+                });
+
+                d.show();
+            }
+            
             document.activeElement.blur();
             if (this.warehouse) {
                 const quantity = document.getElementById("wh-quantity-input").value;
@@ -2142,6 +2183,7 @@ class PickingListItem extends PickingList {
     
     add_picked_item(new_amount) {
         let success = true;
+        
         let target_item = this.parent_this.items.find(item => item.item_code === this.item);
         let updated_amount;
         //Check if Item is on Stock in selected Warehouse
@@ -2160,7 +2202,6 @@ class PickingListItem extends PickingList {
                 } else {
                     updated_amount = parseInt(new_amount)
                 }
-                console.log(updated_amount);
                 //Check if updated amount is avaliable on Warehouse
                 if (updated_amount > target_wh.qty) {
                     success = false;
@@ -2171,7 +2212,6 @@ class PickingListItem extends PickingList {
         } else {
             success = false;
         }
-        console.log(target_item, "before success check");
         if (success) {
             this.update_picked_items(new_amount, target_item);
         } else {
@@ -2212,29 +2252,29 @@ class PickingListItem extends PickingList {
     }
     
     update_picked_items(new_amount, target_item) {
-        console.log(target_item, "update_picked_items");
+        console.log("START", target_item.content.pl_detail);
         //add stored qty
         target_item.content['stored_qty'] += parseInt(new_amount);
         //add warehouse information
         const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
         if (target) {
             target.qty += parseInt(new_amount);
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 0);
+            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
         } else {
             target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.warehouses, 1);
+            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
         }
     }
     
-    update_picking_doc(picking_list, item_code, new_amount, warehouse_dict, add_line) {
+    update_picking_doc(picking_list, item_code, new_amount, pl_detail, warehouse_dict) {
         frappe.call({
             'method': 'seg.seg.page.stock_management.stock_management.update_picking_list',
             'args': {
                 'picking_list': picking_list,
                 'item_code': item_code,
                 'new_amount': new_amount,
-                'warehouse_dict': warehouse_dict,
-                'add_line': add_line
+                'pl_detail': pl_detail,
+                'warehouse_dict': warehouse_dict
             },
             'callback': (response) => {
                 if ((response.message) && (response.message.success)) {

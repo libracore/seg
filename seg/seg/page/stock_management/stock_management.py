@@ -507,6 +507,7 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`item_code` AS `item_code`,
                                 `tabPicking List Item`.`item_name` AS `item_name`,
                                 `tabPicking List Item`.`qty` AS `qty`,
+                                `tabPicking List Item`.`description` AS `description`,
                                 `tabItem`.`image` AS `image`,
                                 `tabPicking List Item`.`so_detail` AS `so_detail`,
                                 `tabPicking List Item`.`picked_qty` AS `picked_qty`,
@@ -540,7 +541,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'stored_qty': item.get('picked_qty'),
                                 'warehouses': warehouses,
                                 'pl_detail': item.get('pl_detail'),
-                                'so_detail': item.get('so_detail')
+                                'so_detail': item.get('so_detail'),
+                                'description': item.get('description')
                             }}
                 
                 response.append(item_response)
@@ -844,13 +846,13 @@ def get_barcodes(item):
     return {'amount': len(barcodes), 'barcodes': barcodes}
 
 @frappe.whitelist()
-def update_picking_list(picking_list, item_code, new_amount, warehouse_dict):
+def update_picking_list(picking_list, item_code, new_amount, pl_detail, warehouse_dict):
     #Get Picking List Doc
     picking_list_doc = frappe.get_doc("Picking List", picking_list)
     
     for item in picking_list_doc.get('items'):
-        if item.get('item_code') == item_code:
-            #add picked picked qty
+        if item.get('item_code') == item_code and item.get('name') == pl_detail:
+            #add picked qty
             item.picked_qty += flt(new_amount)
             #update warehouses
             item.warehouse_dict = warehouse_dict
@@ -877,7 +879,7 @@ def check_item_alternative(item_code, qty):
         alternative_items = frappe.get_all("Item Alternative", filters=[["item_code", "=", item_code]], fields=["alternative_item_code"])
         if not alternative_items:
             alternative_items = frappe.get_all("Item Alternative", filters=[["alternative_item_code", "=", item_code], ["two_way", "=", 1]], fields=["item_code"])
-    frappe.log_error("alternative_items", alternative_items)
+    
     if not alternative_items:
         return None
         #Check if any alternative is on stock on any warehouse
@@ -895,9 +897,9 @@ def check_item_alternative(item_code, qty):
                                         AND
                                             `item_code` = %(item_code)s
                                         LIMIT 1;""", {'qty': qty, 'item_code': item.get('item_code') or item.get('alternative_item_code')}, as_dict=True)
-            frappe.log_error("stock_item", stock_item)
+            
             if len(stock_item) > 0:
                 response = {'item_code': stock_item[0].get('item_code'), 'warehouse': stock_item[0].get('warehouse')}
                 break
-    frappe.log_error("response", response)
+    
     return response

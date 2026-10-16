@@ -120,7 +120,8 @@ def create_picking_list(doc):
                 'item_code': item.get('item_code'),
                 'qty': picking_list_qty,
                 'uom': item.get('uom'),
-                'so_detail': item.get('name')
+                'so_detail': item.get('name'),
+                'description': item.get('description')
             })
         
     try:
