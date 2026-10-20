@@ -692,8 +692,10 @@ def create_sales_order(customer, items):
                                 'delivery_date': today
                             })
     
+    so_doc.set_missing_lead_customer_details()
+    if not so_doc.selling_price_list:
+        so_doc.selling_price_list = frappe.db.get_single_value("Selling Settings", "selling_price_list")
     so_doc.set_missing_values()
-    so_doc.set_missing_item_details()
     
     template = frappe.get_value("SEG Settings", "SEG Settings", "so_tax_template")
     tax_template = frappe.get_doc("Sales Taxes and Charges Template", template)
