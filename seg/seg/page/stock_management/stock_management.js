@@ -1829,11 +1829,7 @@ class PickingList extends PickingPage {
             row.addEventListener("click", () => {
                 const item_code = row.dataset.item;
                 const pl_detail = row.dataset.pl_detail;
-                console.log(this.items);
-                console.log(pl_detail);
-                console.log(this.items[0].content.pl_detail);
                 const target_item = this.items.find(item => item.item_code === item_code && item.content.pl_detail == pl_detail);
-                console.log(target_item);
                 this.item_link_field.set_value(item_code);
                 document.getElementById("quantity-input").value = target_item.content.qty - target_item.content.stored_qty;
             });
@@ -2057,46 +2053,44 @@ class PickingListItem extends PickingList {
         
         //Add picked items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            //Check if multiple Items are avaliable and show selection
-            if (this.item_dict.length > 1) {
-                
-                const options = this.item_dict.map((item, index) => ({
-                    label: `${item.content.description}`,
-                    value: String(index)
-                }));
-
-                const d = new frappe.ui.Dialog({
-                    title: __("Eintrag auswählen"),
-                    fields: [
-                        {
-                            fieldname: "selected_item",
-                            fieldtype: "Select",
-                            label: __("Artikel / Lager"),
-                            options: options.map(option => ({
-                                label: option.label,
-                                value: option.value
-                            })),
-                            reqd: 1
-                        }
-                    ],
-                    primary_action_label: __("Auswählen"),
-                    primary_action(values) {
-                        const selected_item = items[Number(values.selected_item)];
-                        const target_value = selected_item.target_value;
-
-                        console.log(target_value);
-
-                        d.hide();
-                    }
-                });
-
-                d.show();
-            }
-            
-            document.activeElement.blur();
             if (this.warehouse) {
-                const quantity = document.getElementById("wh-quantity-input").value;
-                this.add_picked_item(quantity);
+                //Check if multiple Items are avaliable and show selection
+                if (this.item_dict.length > 1) {
+                    
+                    const options = this.item_dict.map((item, index) => ({
+                        label: `${item.content.description}`,
+                        value: String(index)
+                    }));
+
+                    const d = new frappe.ui.Dialog({
+                        title: __("Eintrag auswählen"),
+                        fields: [
+                            {
+                                fieldname: "selected_item",
+                                fieldtype: "Select",
+                                label: __("Artikel / Lager"),
+                                options: options.map(option => ({
+                                    label: option.label,
+                                    value: option.value
+                                })),
+                                reqd: 1
+                            }
+                        ],
+                        primary_action_label: __("Auswählen"),
+                        primary_action: (values) => {
+                            document.activeElement.blur();
+                            const quantity = document.getElementById("wh-quantity-input").value;
+                            this.add_picked_item(quantity, this.item_dict[values.selected_item].content.pl_detail);
+                            d.hide();
+                        }
+                    });
+
+                    d.show();
+                } else {
+                    document.activeElement.blur();
+                    const quantity = document.getElementById("wh-quantity-input").value;
+                    this.add_picked_item(quantity);
+                }
             } else {
                 this.show_error("Bitte Lagerplatz wählen.", "wh-message");
             }
@@ -2181,10 +2175,14 @@ class PickingListItem extends PickingList {
         this.wh_link_field.refresh();
     }
     
-    add_picked_item(new_amount) {
+    add_picked_item(new_amount, pl_detail=null) {
+        let target_item;
         let success = true;
-        
-        let target_item = this.parent_this.items.find(item => item.item_code === this.item);
+        if (pl_detail) {
+            target_item = this.parent_this.items.find(item => item.item_code === this.item && item.content.pl_detail == pl_detail);
+        } else {
+            target_item = this.parent_this.items.find(item => item.item_code === this.item);
+        }
         let updated_amount;
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
@@ -2192,8 +2190,6 @@ class PickingListItem extends PickingList {
             if (new_amount > target_wh.qty) {
                 success = false;
             } else {
-                //find item
-                //~ target_item = this.parent_this.items.find(item => item.item_code === this.item);
                 //Prepare updated amount
                 //Get already picked amount from selected Warehouse
                 let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
@@ -2228,7 +2224,6 @@ class PickingListItem extends PickingList {
                             "Artikelalternative " + item_alternative.item_code + " an Lager " + item_alternative.warehouse + " gefunden, möchtest du die Artikel zuerst umbuchen?",
                             () => {
                                 // on yes
-                                console.log(target_item, "frappe call");
                                 this.restock_item_alternative(this.item, item_alternative.item_code, new_amount, item_alternative.warehouse, this.warehouse, target_item);
                                 window.close();
                             },
@@ -2252,7 +2247,6 @@ class PickingListItem extends PickingList {
     }
     
     update_picked_items(new_amount, target_item) {
-        console.log("START", target_item.content.pl_detail);
         //add stored qty
         target_item.content['stored_qty'] += parseInt(new_amount);
         //add warehouse information

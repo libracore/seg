@@ -396,7 +396,6 @@ def get_item_information_by_warehouse(warehouse):
 
 @frappe.whitelist()
 def create_stock_entry(items, entry_type):
-    frappe.log_error("items", items)
     items = json.loads(items)
     stock_entry = frappe.new_doc("Stock Entry")
 
@@ -742,6 +741,7 @@ def create_delivery_note(picking_list, items):
             item.get('content').get('so_detail'),
             [
                 "price_list_rate",
+                "description",
                 "base_price_list_rate",
                 "margin_type",
                 "margin_rate_or_amount",
@@ -761,6 +761,7 @@ def create_delivery_note(picking_list, items):
             delivery_note.append("items", {
                                     'item_code': item.get('item_code'),
                                     'qty': item_with_wh.get('qty'),
+                                    'description': item_doc.get('description'),
                                     'warehouse': item_with_wh.get('warehouse'),
                                     'pl_detail': item.get('content').get('pl_detail'),
                                     'so_detail': item.get('content').get('so_detail'),
