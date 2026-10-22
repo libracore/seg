@@ -10,6 +10,7 @@
   "item_name",
   "qty",
   "uom",
+  "description",
   "so_detail",
   "picked_qty",
   "delivered_qty",
@@ -66,8 +67,7 @@
    "fieldname": "picked_qty",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Picked Quantity",
-   "read_only": 1
+   "label": "Picked Quantity"
   },
   {
    "allow_on_submit": 1,
@@ -90,16 +90,21 @@
   {
    "allow_on_submit": 1,
    "fieldname": "warehouse_dict",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Warehouse Dict",
    "read_only": 1
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Text Editor",
+   "label": "Description"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-15 12:22:41.219915",
+ "modified": "2026-10-16 16:10:38.352526",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List Item",
