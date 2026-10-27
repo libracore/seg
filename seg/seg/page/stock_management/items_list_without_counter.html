@@ -17,6 +17,11 @@
                     <div class="item-location">
                         {{ item.item_code }}
                     </div>
+                    {% if item.content.additional_text %}
+                        <div class="item-additional-text">
+                            {{ item.content.additional_text }}
+                        </div>
+                    {% endif %}
                     
                     {% if item.content.warehouse %}
                         <div class="item-location">

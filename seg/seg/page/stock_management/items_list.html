@@ -21,7 +21,11 @@
                     <div id="{{ item.item_code }}_amount" class="item-progress progress-open">
                         {{ item.content.stored_qty }}/{{ item.content.qty }}
                     </div>
-
+                    {% if item.content.additional_text %}
+                        <div class="item-additional-text">
+                            {{ item.content.additional_text }}
+                        </div>
+                    {% endif %}
                 </td>
 
             </tr>

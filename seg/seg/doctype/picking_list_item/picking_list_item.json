@@ -11,6 +11,7 @@
   "qty",
   "uom",
   "description",
+  "additional_text",
   "so_detail",
   "picked_qty",
   "delivered_qty",
@@ -98,13 +99,18 @@
    "fieldname": "description",
    "fieldtype": "Text Editor",
    "label": "Description"
+  },
+  {
+   "fieldname": "additional_text",
+   "fieldtype": "Data",
+   "label": "Additional Text"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-16 16:10:38.352526",
+ "modified": "2026-10-27 19:29:02.290990",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List Item",

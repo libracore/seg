@@ -507,6 +507,7 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`item_name` AS `item_name`,
                                 `tabPicking List Item`.`qty` AS `qty`,
                                 `tabPicking List Item`.`description` AS `description`,
+                                `tabPicking List Item`.`additional_text` AS `additional_text`,
                                 `tabItem`.`image` AS `image`,
                                 `tabPicking List Item`.`so_detail` AS `so_detail`,
                                 `tabPicking List Item`.`picked_qty` AS `picked_qty`,
@@ -541,7 +542,8 @@ def get_picking_list_items(picking_list, item=False):
                                 'warehouses': warehouses,
                                 'pl_detail': item.get('pl_detail'),
                                 'so_detail': item.get('so_detail'),
-                                'description': item.get('description')
+                                'description': item.get('description'),
+                                'additional_text': item.get('additional_text')
                             }}
                 
                 response.append(item_response)
@@ -742,6 +744,7 @@ def create_delivery_note(picking_list, items):
             [
                 "price_list_rate",
                 "description",
+                "color",
                 "base_price_list_rate",
                 "margin_type",
                 "margin_rate_or_amount",
@@ -777,7 +780,8 @@ def create_delivery_note(picking_list, items):
                                     'base_rate_with_margin': item_doc.get('base_rate_with_margin'),
                                     'rate': item_doc.get('rate'),
                                     'base_rate': item_doc.get('base_rate'),
-                                    'picked_up': delivery_note.get('picked_up')
+                                    'picked_up': delivery_note.get('picked_up'),
+                                    'color': item_doc.get('color')
                                 })
     
     #Insert Delivery Note

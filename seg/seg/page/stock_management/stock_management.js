@@ -2058,7 +2058,7 @@ class PickingListItem extends PickingList {
                 if (this.item_dict.length > 1) {
                     
                     const options = this.item_dict.map((item, index) => ({
-                        label: `${item.content.description}`,
+                        label: `${item.content.additional_text}`,
                         value: String(index)
                     }));
 

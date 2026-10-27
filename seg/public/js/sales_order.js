@@ -133,9 +133,6 @@ frappe.ui.form.on('Sales Order',  {
             cur_frm.set_value("ignore_pricing_rule", 0);
         }
         set_sample_rates(frm);
-    },
-    discount_percentage: function(frm) {
-        console.log("ok");
     }
 });
 

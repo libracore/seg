@@ -498,6 +498,14 @@
     line-height: 1.2;
 }
 
+.item-additional-text {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 10px;
+    line-height: 1.2;
+    font-weight: bold;
+}
+
 .item-progress {
     float: right;
     display: inline-block;

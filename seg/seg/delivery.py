@@ -121,7 +121,8 @@ def create_picking_list(doc):
                 'qty': picking_list_qty,
                 'uom': item.get('uom'),
                 'so_detail': item.get('name'),
-                'description': item.get('description')
+                'description': item.get('description'),
+                'additional_text': item.get('color')
             })
         
     try:
