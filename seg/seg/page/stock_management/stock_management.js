@@ -1399,9 +1399,9 @@ class StockTransferPage extends StockManagementClass {
         document.getElementById("nav-back").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("mobile-navbar").style.backgroundColor = this.colors.stock_transfer;
         document.getElementById("action-button").style.backgroundColor = this.colors.stock_transfer;
-        document.getElementById("action-button").textContent = "Material einbuchen";
+        document.getElementById("action-button").textContent = "Option: Material einbuchen";
         document.getElementById("secondary-action-button").style.backgroundColor = this.colors.stock_transfer;
-        document.getElementById("secondary-action-button").textContent = "Material ausbuchen";
+        document.getElementById("secondary-action-button").textContent = "Option: Material ausbuchen";
     }
     
     async display_items_and_warehouses() {
@@ -2280,14 +2280,24 @@ class PickingListItem extends PickingList {
         });
     }
     
-    async restock_item_alternative(item, alternative_item, new_amount, from_wh, to_wh, target_item) {
-        const success = await this.create_stock_entry([{'item_code': alternative_item, 'qty': new_amount, 'from_warehouse': from_wh, 'to_warehouse': null}], "Material Issue", "None");
-        if (success) {
-            const success_2 = this.create_stock_entry([{'item_code': item, 'qty': new_amount, 'from_warehouse': null, 'to_warehouse': to_wh}], "Material Receipt", "None");
-            if (success_2) {
-                this.update_picked_items(new_amount, target_item);
+    restock_item_alternative(item, alternative_item, new_amount, from_wh, to_wh, target_item) {
+        frappe.call({
+            method: 'seg.seg.page.stock_management.stock_management.restock_item_alternative',
+            args: {
+                'alternative_item': alternative_item,
+                'item_code': item,
+                'qty': new_amount,
+                'from_warehouse': from_wh,
+                'to_warehouse': to_wh
+            },
+            'callback': (response) => {
+                if ((response.message) && (response.message.success)) {
+                    this.update_picked_items(new_amount, target_item);
+                } else {
+                    this.show_error("Menge nicht an Lagerplatz verfügbar.", "wh-message");
+                }
             }
-        }
+        });
     }
 }
 

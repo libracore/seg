@@ -7,7 +7,7 @@ from erpnext.buying.doctype.purchase_order.purchase_order import make_purchase_r
 from erpnext.setup.utils import get_exchange_rate
 import json
 from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
-from erpnext.stock.get_item_details import get_item_details 
+from erpnext.stock.get_item_details import get_item_details
 
 @frappe.whitelist()
 def get_entry_warehouse_items():
@@ -411,11 +411,24 @@ def create_stock_entry(items, entry_type):
     
     try:
         stock_entry.insert()
+        #Get Valuation Rate from Main Warehouse, if Basic Rate is 0
+        if entry_type == "Material Receipt":
+            to_save = False
+            for item in stock_entry.items:
+                if not item.get('basic_rate') > 0:
+                    to_save = True
+                    basic_rate = frappe.db.get_value("Bin", {"item_code": item.get('item_code'), "warehouse": "Lagerräume - SEG"}, "valuation_rate")
+                    if basic_rate and basic_rate > 0:
+                        item.basic_rate = basic_rate
+                    else:
+                        item.basic_rate = 0.01
+            if to_save:
+                stock_entry.save()
         stock_entry.submit()
         return {'stock_entry': stock_entry.name, 'success': 1}
     except Exception as Err:
         frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0} - {1}".format(Err, stock_entry.name))
-        return {'stock_entry': stock_entry.name, 'success': 1, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
+        return {'success': 0, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
 
 
 #Get Open Picking Lists
@@ -910,3 +923,46 @@ def check_item_alternative(item_code, qty):
                 break
     
     return response
+
+@frappe.whitelist()
+def restock_item_alternative(alternative_item, item_code, qty, from_warehouse, to_warehouse):
+    #Create Material Issue
+    issue_entry = frappe.new_doc("Stock Entry")
+
+    issue_entry.stock_entry_type = "Material Issue"
+    
+    issue_entry.append("items", {
+        'item_code': alternative_item,
+        'qty': qty,
+        's_warehouse': from_warehouse
+    })
+    
+    try:
+        issue_entry.insert()
+        issue_entry.submit()
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        return {'success': 0, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
+    
+    #Create Material Issue
+    receipt_entry = frappe.new_doc("Stock Entry")
+
+    receipt_entry.stock_entry_type = "Material Receipt"
+    
+    #Use Price from Material Issue
+    basic_rate = issue_entry.items[0].basic_rate
+    
+    receipt_entry.append("items", {
+        'item_code': item_code,
+        'qty': qty,
+        't_warehouse': to_warehouse,
+        'basic_rate': basic_rate
+    })
+    
+    try:
+        receipt_entry.insert()
+        receipt_entry.submit()
+        return {'success': 1}
+    except Exception as Err:
+        frappe.log_error("Stock Entry Issue", "Error in Stock Entry from Stock Management App: {0}".format(Err))
+        return {'success': 0, 'error': "Es ist ein Fehler beim erstellen der Lagerbuchung aufgetreten, Material wurde nicht umgebucht. Es wurde ein Fehlerbericht erstellt."}
