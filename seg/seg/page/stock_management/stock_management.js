@@ -2187,22 +2187,38 @@ class PickingListItem extends PickingList {
         //Check if Item is on Stock in selected Warehouse
         const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
         if (target_wh) {
+            //Check if Amount is availabale on Warehouse
             if (new_amount > target_wh.qty) {
                 success = false;
             } else {
-                //Prepare updated amount
-                //Get already picked amount from selected Warehouse
-                let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
-                if (taget_wh_qty) {
-                    updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
-                } else {
-                    updated_amount = parseInt(new_amount)
+                //Check if Stock Amount is used from another position
+                let total_qty = parseInt(new_amount);
+                if (this.item_dict.length > 0) {
+                    for (let i = 0; i < this.item_dict.length; i++) {
+                        for (let j = 0; j < this.item_dict[i].content.warehouses.length; j++) {
+                            if (this.item_dict[i].content.warehouses[j].warehouse == this.warehouse) {
+                                total_qty += this.item_dict[i].content.warehouses[j].qty;
+                            }
+                        }
+                    }
                 }
-                //Check if updated amount is avaliable on Warehouse
-                if (updated_amount > target_wh.qty) {
+                if (total_qty > target_wh.qty) {
                     success = false;
                 } else {
-                    success = true;
+                    //Prepare updated amount
+                    //Get already picked amount from selected Warehouse
+                    let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+                    if (taget_wh_qty) {
+                        updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
+                    } else {
+                        updated_amount = parseInt(new_amount)
+                    }
+                    //Check if updated amount is avaliable on Warehouse
+                    if (updated_amount > target_wh.qty) {
+                        success = false;
+                    } else {
+                        success = true;
+                    }
                 }
             }
         } else {
