@@ -1730,6 +1730,7 @@ class PickingPage extends StockManagementClass {
     }
     
     display_picking_lists() {
+        console.log(this.picking_lists)
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;

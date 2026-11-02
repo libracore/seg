@@ -17,6 +17,10 @@
                     <div class="saved-picking-supplier">
                         {{ picking_list.open_items }} Positionen
                     </div>
+                    
+                    <div class="saved-picking-supplier">
+                        {{ picking_list.transporter }} {% if picking_list.has_custom_labels %} - Hat eigene Etiketten{% endif %}
+                    </div>
                 </td>
 
                 <td class="order-dates">
@@ -53,6 +57,10 @@
                     
                     <div class="order-supplier">
                         {{ picking_list.open_items }} Positionen
+                    </div>
+                    
+                    <div class="order-supplier">
+                        {{ picking_list.transporter }} {% if picking_list.has_custom_labels %} - Hat eigene Etiketten{% endif %}
                     </div>
                 </td>
 

@@ -11,6 +11,8 @@
   "sales_order",
   "customer",
   "customer_name",
+  "transporter",
+  "has_custom_labels",
   "naming_series",
   "column_break_txxx",
   "status",
@@ -127,13 +129,25 @@
    "fieldtype": "Data",
    "label": "User",
    "read_only": 1
+  },
+  {
+   "fieldname": "transporter",
+   "fieldtype": "Link",
+   "label": "Transporter",
+   "options": "Supplier"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_custom_labels",
+   "fieldtype": "Check",
+   "label": " Has Custom Labels"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-10-14 16:21:07.010926",
+ "modified": "2026-11-02 11:29:20.209311",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List",

@@ -112,6 +112,8 @@ def create_picking_list(doc):
     picking_list = frappe.new_doc("Picking List")
 
     picking_list.sales_order = so_doc['name']
+    picking_list.has_custom_labels = frappe.get_value("Customer", so_doc.get('customer'), "has_custom_labels")
+    picking_list.transporter = so_doc.get('transporter')
     
     for item in so_doc.get('items'):
         picking_list_qty = item.get('qty') - item.get('picking_list_qty')
@@ -122,7 +124,8 @@ def create_picking_list(doc):
                 'uom': item.get('uom'),
                 'so_detail': item.get('name'),
                 'description': item.get('description'),
-                'additional_text': item.get('color')
+                'additional_text': item.get('color'),
+                'is_stock_item': frappe.get_value("Item", item.get('item_code'), "is_stock_item")
             })
         
     try:

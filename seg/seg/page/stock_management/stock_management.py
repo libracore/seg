@@ -450,6 +450,8 @@ def get_open_picking_lists(customer, picking_list):
                                     DATE_FORMAT(`tabPicking List`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
                                     `tabPicking List`.`customer_name` AS `customer_name`,
                                     `tabPicking List`.`sales_order` AS `sales_order`,
+                                    `tabPicking List`.`transporter` AS `transporter`,
+                                    `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
@@ -479,6 +481,8 @@ def get_open_picking_lists(customer, picking_list):
                                     DATE_FORMAT(`tabPicking List`.`schedule_date`, '%%d.%%m.%%Y') AS `formatted_schedule_date`,
                                     `tabPicking List`.`customer_name` AS `customer_name`,
                                     `tabPicking List`.`sales_order` AS `sales_order`,
+                                    `tabPicking List`.`transporter` AS `transporter`,
+                                    `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
@@ -524,7 +528,8 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabItem`.`image` AS `image`,
                                 `tabPicking List Item`.`so_detail` AS `so_detail`,
                                 `tabPicking List Item`.`picked_qty` AS `picked_qty`,
-                                `tabPicking List Item`.`warehouse_dict` AS `warehouse_dict`
+                                `tabPicking List Item`.`warehouse_dict` AS `warehouse_dict`,
+                                `tabPicking List Item`.`is_stock_item` AS `is_stock_item`
                             FROM
                                 `tabPicking List Item`
                             LEFT JOIN
@@ -739,6 +744,7 @@ def create_delivery_note(picking_list, items):
     delivery_note = make_delivery_note(source_name=picking_list_doc.get('sales_order'))
     
     #Set Mandatory Transporter
+    delivery_note.transporter = picking_list_doc.get('transporter')
     if not delivery_note.get('transporter'):
         delivery_note.transporter = frappe.get_value("SEG Settings", "SEG Settings", "dn_transporter")
     
