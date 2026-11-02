@@ -1730,7 +1730,6 @@ class PickingPage extends StockManagementClass {
     }
     
     display_picking_lists() {
-        console.log(this.picking_lists)
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
@@ -1754,6 +1753,7 @@ class PickingList extends PickingPage {
         this.picking_list = picking_list;
         this.parent_this = parent_this;
         this.items;
+        this.picking_list_info;
 	}
 
 	init() {
@@ -1853,8 +1853,13 @@ class PickingList extends PickingPage {
         
         //Show Item Input
         const item_input = document.getElementById('picking-list-input');
-        const item_input_content = frappe.render_template("item_input", {'title': this.label});
+        const item_input_content = frappe.render_template("item_input");
         item_input.innerHTML = item_input_content;
+        
+        //Show Info
+        const picking_list_info = document.getElementById('picking-list-info');
+        const picking_list_info_content = frappe.render_template("picking_list_info", {'info': this.picking_list_info});
+        picking_list_info.innerHTML = picking_list_info_content;
         
         //Show Item Table
         const list_section = document.getElementById('picking-list-list');
@@ -1863,7 +1868,7 @@ class PickingList extends PickingPage {
         
         //Show Bottom Button
         const bottom_button = document.getElementById('picking-list-button');
-        const bottom_button_content = frappe.render_template("bottom_button", {'items': this.items});
+        const bottom_button_content = frappe.render_template("bottom_button");
         bottom_button.innerHTML = bottom_button_content;
     }
     
@@ -1884,8 +1889,9 @@ class PickingList extends PickingPage {
                     'picking_list': this.picking_list
                 },
                 'callback': (response) => {
-                    console.log("this.items", this.items);
-                    this.items = response.message;
+                    this.items = response.message.items;
+                    this.picking_list_info = response.message.info;
+                    console.log("PL Items", this.items);
                     this.on_show();
                 }
             });
@@ -1913,6 +1919,7 @@ class PickingList extends PickingPage {
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
+                    console.log("this.item", this.item);
 				}
             },
             only_input: true
@@ -2111,6 +2118,7 @@ class PickingListItem extends PickingList {
         item_input.innerHTML = item_input_content;
         
         //Show Single Item Table
+        console.log("item_dict", this.item_dict)
         const list_section = document.getElementById('picking-list-item-list');
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
@@ -2134,7 +2142,7 @@ class PickingListItem extends PickingList {
                 'item': this.item
             },
             'callback': (response) => {
-                this.item_dict = response.message;
+                this.item_dict = response.message.items;
                 this.on_show();
             }
         });

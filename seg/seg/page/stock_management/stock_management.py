@@ -512,6 +512,9 @@ def get_open_picking_lists(customer, picking_list):
 #Get all Items for Picking List
 @frappe.whitelist()
 def get_picking_list_items(picking_list, item=False):
+    #Prepare Picking List Info
+    info = frappe.get_value("Picking List", picking_list, ["transporter", "has_custom_labels"], as_dict=True)
+    
     #Prepare Item condition
     item_condition = """"""
     if item:
@@ -538,7 +541,7 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`parent` = %(pl)s
                             {item_condition};""".format(item_condition=item_condition), {'pl': picking_list}, as_dict=True)
     
-        #Prepare response
+    #Prepare response
     if len(items) > 0:
         response = []
         for item in items:
@@ -561,14 +564,14 @@ def get_picking_list_items(picking_list, item=False):
                                 'pl_detail': item.get('pl_detail'),
                                 'so_detail': item.get('so_detail'),
                                 'description': item.get('description'),
-                                'additional_text': item.get('additional_text')
+                                'additional_text': item.get('additional_text'),
+                                'is_stock_item': item.get('is_stock_item')
                             }}
                 
                 response.append(item_response)
     else:
         response = None
-        return response
-    return response
+    return {'items': response, 'info': info}
 
 #Create Pruchase Receipt for single Item to directly store it
 @frappe.whitelist()
