@@ -1884,6 +1884,7 @@ class PickingList extends PickingPage {
                     'picking_list': this.picking_list
                 },
                 'callback': (response) => {
+                    console.log("this.items", this.items);
                     this.items = response.message;
                     this.on_show();
                 }

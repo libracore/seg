@@ -1,0 +1,11 @@
+<div class="picking-list-info-row">
+    <div class="picking-list-info-item">
+        <span class="picking-list-info-label">Transporter</span>
+        <span class="picking-list-info-value">{{ transporter or "-" }}</span>
+    </div>
+
+    <div class="picking-list-info-item picking-list-info-labels">
+        <span class="picking-list-info-label">Eigene Etiketten</span>
+        <span class="picking-list-info-value">{{ "Ja" if own_labels else "Nein" }}</span>
+    </div>
+</div>
