@@ -80,6 +80,16 @@ doctype_list_js = {
 # automatically create page for each record of this doctype
 # website_generators = ["Web Page"]
 
+# Jinja
+# ----------
+
+jinja = {
+  "methods": [
+    "seg.seg.page.stock_management.stock_management.get_item_locations"
+  ]
+}
+
+
 # Installation
 # ------------
 

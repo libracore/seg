@@ -2101,7 +2101,12 @@ class PickingListItem extends PickingList {
                     this.add_picked_item(quantity);
                 }
             } else {
-                this.show_error("Bitte Lagerplatz wählen.", "wh-message");
+                if (!this.item_dict[0].content.is_stock_item) {
+                    const quantity = document.getElementById("wh-quantity-input").value;
+                    this.add_picked_item(quantity);
+                } else {
+                    this.show_error("Bitte Lagerplatz wählen.", "wh-message");
+                }
             }
 		});
     }
@@ -2118,7 +2123,6 @@ class PickingListItem extends PickingList {
         item_input.innerHTML = item_input_content;
         
         //Show Single Item Table
-        console.log("item_dict", this.item_dict)
         const list_section = document.getElementById('picking-list-item-list');
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
@@ -2194,45 +2198,47 @@ class PickingListItem extends PickingList {
             target_item = this.parent_this.items.find(item => item.item_code === this.item);
         }
         let updated_amount;
-        //Check if Item is on Stock in selected Warehouse
-        const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
-        if (target_wh) {
-            //Check if Amount is availabale on Warehouse
-            if (new_amount > target_wh.qty) {
-                success = false;
-            } else {
-                //Check if Stock Amount is used from another position
-                let total_qty = parseInt(new_amount);
-                if (this.item_dict.length > 0) {
-                    for (let i = 0; i < this.item_dict.length; i++) {
-                        for (let j = 0; j < this.item_dict[i].content.warehouses.length; j++) {
-                            if (this.item_dict[i].content.warehouses[j].warehouse == this.warehouse) {
-                                total_qty += this.item_dict[i].content.warehouses[j].qty;
+        if (this.warehouse) {
+            //Check if Item is on Stock in selected Warehouse
+            const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+            if (target_wh) {
+                //Check if Amount is availabale on Warehouse
+                if (new_amount > target_wh.qty) {
+                    success = false;
+                } else {
+                    //Check if Stock Amount is used from another position
+                    let total_qty = parseInt(new_amount);
+                    if (this.item_dict.length > 0) {
+                        for (let i = 0; i < this.item_dict.length; i++) {
+                            for (let j = 0; j < this.item_dict[i].content.warehouses.length; j++) {
+                                if (this.item_dict[i].content.warehouses[j].warehouse == this.warehouse) {
+                                    total_qty += this.item_dict[i].content.warehouses[j].qty;
+                                }
                             }
                         }
                     }
-                }
-                if (total_qty > target_wh.qty) {
-                    success = false;
-                } else {
-                    //Prepare updated amount
-                    //Get already picked amount from selected Warehouse
-                    let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
-                    if (taget_wh_qty) {
-                        updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
-                    } else {
-                        updated_amount = parseInt(new_amount)
-                    }
-                    //Check if updated amount is avaliable on Warehouse
-                    if (updated_amount > target_wh.qty) {
+                    if (total_qty > target_wh.qty) {
                         success = false;
                     } else {
-                        success = true;
+                        //Prepare updated amount
+                        //Get already picked amount from selected Warehouse
+                        let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+                        if (taget_wh_qty) {
+                            updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
+                        } else {
+                            updated_amount = parseInt(new_amount)
+                        }
+                        //Check if updated amount is avaliable on Warehouse
+                        if (updated_amount > target_wh.qty) {
+                            success = false;
+                        } else {
+                            success = true;
+                        }
                     }
                 }
+            } else {
+                success = false;
             }
-        } else {
-            success = false;
         }
         if (success) {
             this.update_picked_items(new_amount, target_item);
@@ -2275,15 +2281,18 @@ class PickingListItem extends PickingList {
     update_picked_items(new_amount, target_item) {
         //add stored qty
         target_item.content['stored_qty'] += parseInt(new_amount);
-        //add warehouse information
-        const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
-        if (target) {
-            target.qty += parseInt(new_amount);
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
-        } else {
-            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+        if (this.warehouse) {
+            //add warehouse information
+            const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
+            if (target) {
+                target.qty += parseInt(new_amount);
+                //~ this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+            } else {
+                target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+                //~ this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+            }
         }
+        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
     }
     
     update_picking_doc(picking_list, item_code, new_amount, pl_detail, warehouse_dict) {

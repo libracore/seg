@@ -1413,3 +1413,11 @@ Standardmäßig unsichtbar:
 
     color: #E57373;
 }
+
+/* --------------------------------
+   Saved Picking List
+-------------------------------- */
+
+.item-row-highlight {
+    background-color: #f5f7f8;
+}
