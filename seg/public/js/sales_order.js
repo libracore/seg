@@ -133,9 +133,6 @@ frappe.ui.form.on('Sales Order',  {
             cur_frm.set_value("ignore_pricing_rule", 0);
         }
         set_sample_rates(frm);
-    },
-    onload: function(frm) {
-        frappe.model.set_value("Sales Order Item", "3og0reiu6i", "warehouse_qty", 1.5);
     }
 });
 
