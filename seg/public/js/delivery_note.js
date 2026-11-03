@@ -112,7 +112,8 @@ frappe.ui.form.on('Delivery Note', {
             getTotalWeight();
         }
         
-        check_alternative_items(frm);
+        //Alternative Item proces does not match with new Warehouse, will be discussed with Roger
+        //~ check_alternative_items(frm);
         //Update WIR Amount
         update_wir(frm);
     },

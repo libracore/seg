@@ -2077,10 +2077,9 @@ class PickingListItem extends PickingList {
         
         //Add picked items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            if (this.warehouse) {
+            if ((this.warehouse) || (!this.item_dict[0].content.is_stock_item)) {
                 //Check if multiple Items are avaliable and show selection
                 if (this.item_dict.length > 1) {
-                    
                     const options = this.item_dict.map((item, index) => ({
                         label: `${item.content.additional_text}`,
                         value: String(index)
@@ -2116,12 +2115,7 @@ class PickingListItem extends PickingList {
                     this.add_picked_item(quantity);
                 }
             } else {
-                if (!this.item_dict[0].content.is_stock_item) {
-                    const quantity = document.getElementById("wh-quantity-input").value;
-                    this.add_picked_item(quantity);
-                } else {
-                    this.show_error("Bitte Lagerplatz wählen.", "wh-message");
-                }
+                this.show_error("Bitte Lagerplatz wählen.", "wh-message");
             }
 		});
     }
