@@ -1560,7 +1560,7 @@ class PickingPage extends StockManagementClass {
 	init() {
         this.selected_customer = "";
         this.selected_picking_list = "";
-		this.get_open_picking_lists()
+		this.get_open_picking_lists();
 	}
 
 	on_show() {
@@ -1733,6 +1733,23 @@ class PickingPage extends StockManagementClass {
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
+        if (this.selected_picking_list) {
+            let pl_info = false;
+            //Display Custom Label Info
+            if (this.picking_lists.open_picking_lists.length > 0) {
+                pl_info = this.picking_lists.open_picking_lists[0].custom_labels_text;
+            } else if (this.picking_lists.open_picking_lists.length > 0) {
+                pl_info = this.picking_lists.saved_picking_lists[0].custom_labels_text;
+            }
+            if (pl_info) {
+                const info_section = document.getElementById('picking-info');
+                const info_section_content = frappe.render_template("picking_info", {'info': pl_info});
+                info_section.innerHTML = info_section_content;
+            }
+        } else {
+            const info_section = document.getElementById('picking-info');
+            info_section.innerHTML = "";
+        }
     }
     
     mark_picking_list(picking_list) {
@@ -1891,7 +1908,6 @@ class PickingList extends PickingPage {
                 'callback': (response) => {
                     this.items = response.message.items;
                     this.picking_list_info = response.message.info;
-                    console.log("PL Items", this.items);
                     this.on_show();
                 }
             });
@@ -1919,7 +1935,6 @@ class PickingList extends PickingPage {
 				change: () => {
                     document.activeElement.blur();
                     this.item = this.item_link_field.get_value();
-                    console.log("this.item", this.item);
 				}
             },
             only_input: true

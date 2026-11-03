@@ -54,8 +54,7 @@ def get_item_locations(item_code):
                 wh_info += ", {0}({1})".format(wh.get('warehouse'), cint(wh.get('actual_qty')))
     else:
         wh_info = None
-    frappe.log_error("wh_info", wh_info)
-    frappe.log_error("typewh_info", type(wh_info))
+    
     return wh_info
 
 @frappe.whitelist()
@@ -453,6 +452,7 @@ def get_open_picking_lists(customer, picking_list):
                                     `tabPicking List`.`sales_order` AS `sales_order`,
                                     `tabPicking List`.`transporter` AS `transporter`,
                                     `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
+                                    `tabPicking List`.`custom_labels_text` AS `custom_labels_text`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
@@ -484,6 +484,7 @@ def get_open_picking_lists(customer, picking_list):
                                     `tabPicking List`.`sales_order` AS `sales_order`,
                                     `tabPicking List`.`transporter` AS `transporter`,
                                     `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
+                                    `tabPicking List`.`custom_labels_text` AS `custom_labels_text`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
