@@ -1226,6 +1226,77 @@ Standardmäßig unsichtbar:
 }
 
 /* --------------------------------
+   Picking List Info
+-------------------------------- */
+
+.picking-list-info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #f5f7f8;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.picking-list-info-item {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.picking-list-info-labels {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.picking-list-info-label {
+    font-size: 11px;
+    color: #78909c;
+    font-weight: 500;
+}
+
+.picking-list-info-value {
+    font-size: 14px;
+    color: #37474f;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --------------------------------
+   Picking Info
+-------------------------------- */
+
+.picking-info-box {
+    background: #f5f7f8;
+    border-left: 3px solid #90a4ae;
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 8px 12px;
+}
+
+.picking-info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #78909c;
+    margin-bottom: 4px;
+}
+
+.picking-info-text {
+    font-size: 13px;
+    line-height: 1.4;
+    color: #37474f;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+
+/* --------------------------------
    Barcode List
 -------------------------------- */
 
@@ -1368,4 +1439,12 @@ Standardmäßig unsichtbar:
     font-weight: 600;
 
     color: #E57373;
+}
+
+/* --------------------------------
+   Saved Picking List
+-------------------------------- */
+
+.item-row-highlight {
+    background-color: #f5f7f8;
 }

@@ -3,6 +3,13 @@
 
 frappe.ui.form.on("Picking List", {
     refresh(frm) {
-        //Some Exciting libracore code here
+        //Filter Transporter Field
+        frm.set_query('transporter', function() {
+            return {
+                filters: {
+                    'is_transporter': 1
+                }
+            }
+        });
     }
 });

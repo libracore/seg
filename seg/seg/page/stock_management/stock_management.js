@@ -1560,7 +1560,7 @@ class PickingPage extends StockManagementClass {
 	init() {
         this.selected_customer = "";
         this.selected_picking_list = "";
-		this.get_open_picking_lists()
+		this.get_open_picking_lists();
 	}
 
 	on_show() {
@@ -1733,6 +1733,23 @@ class PickingPage extends StockManagementClass {
         const list_section = document.getElementById('picking-list');
         const list_section_content = frappe.render_template("picking_list_list", {'picking_lists': this.picking_lists});
         list_section.innerHTML = list_section_content;
+        if (this.selected_picking_list) {
+            let pl_info = false;
+            //Display Custom Label Info
+            if (this.picking_lists.open_picking_lists.length > 0) {
+                pl_info = this.picking_lists.open_picking_lists[0].custom_labels_text;
+            } else if (this.picking_lists.open_picking_lists.length > 0) {
+                pl_info = this.picking_lists.saved_picking_lists[0].custom_labels_text;
+            }
+            if (pl_info) {
+                const info_section = document.getElementById('picking-info');
+                const info_section_content = frappe.render_template("picking_info", {'info': pl_info});
+                info_section.innerHTML = info_section_content;
+            }
+        } else {
+            const info_section = document.getElementById('picking-info');
+            info_section.innerHTML = "";
+        }
     }
     
     mark_picking_list(picking_list) {
@@ -1753,6 +1770,7 @@ class PickingList extends PickingPage {
         this.picking_list = picking_list;
         this.parent_this = parent_this;
         this.items;
+        this.picking_list_info;
 	}
 
 	init() {
@@ -1852,8 +1870,13 @@ class PickingList extends PickingPage {
         
         //Show Item Input
         const item_input = document.getElementById('picking-list-input');
-        const item_input_content = frappe.render_template("item_input", {'title': this.label});
+        const item_input_content = frappe.render_template("item_input");
         item_input.innerHTML = item_input_content;
+        
+        //Show Info
+        const picking_list_info = document.getElementById('picking-list-info');
+        const picking_list_info_content = frappe.render_template("picking_list_info", {'info': this.picking_list_info});
+        picking_list_info.innerHTML = picking_list_info_content;
         
         //Show Item Table
         const list_section = document.getElementById('picking-list-list');
@@ -1862,7 +1885,7 @@ class PickingList extends PickingPage {
         
         //Show Bottom Button
         const bottom_button = document.getElementById('picking-list-button');
-        const bottom_button_content = frappe.render_template("bottom_button", {'items': this.items});
+        const bottom_button_content = frappe.render_template("bottom_button");
         bottom_button.innerHTML = bottom_button_content;
     }
     
@@ -1883,7 +1906,8 @@ class PickingList extends PickingPage {
                     'picking_list': this.picking_list
                 },
                 'callback': (response) => {
-                    this.items = response.message;
+                    this.items = response.message.items;
+                    this.picking_list_info = response.message.info;
                     this.on_show();
                 }
             });
@@ -2053,10 +2077,9 @@ class PickingListItem extends PickingList {
         
         //Add picked items
 		document.getElementById("wh-ok-button").addEventListener("click", () => {
-            if (this.warehouse) {
+            if ((this.warehouse) || (!this.item_dict[0].content.is_stock_item)) {
                 //Check if multiple Items are avaliable and show selection
                 if (this.item_dict.length > 1) {
-                    
                     const options = this.item_dict.map((item, index) => ({
                         label: `${item.content.additional_text}`,
                         value: String(index)
@@ -2132,7 +2155,7 @@ class PickingListItem extends PickingList {
                 'item': this.item
             },
             'callback': (response) => {
-                this.item_dict = response.message;
+                this.item_dict = response.message.items;
                 this.on_show();
             }
         });
@@ -2184,45 +2207,47 @@ class PickingListItem extends PickingList {
             target_item = this.parent_this.items.find(item => item.item_code === this.item);
         }
         let updated_amount;
-        //Check if Item is on Stock in selected Warehouse
-        const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
-        if (target_wh) {
-            //Check if Amount is availabale on Warehouse
-            if (new_amount > target_wh.qty) {
-                success = false;
-            } else {
-                //Check if Stock Amount is used from another position
-                let total_qty = parseInt(new_amount);
-                if (this.item_dict.length > 0) {
-                    for (let i = 0; i < this.item_dict.length; i++) {
-                        for (let j = 0; j < this.item_dict[i].content.warehouses.length; j++) {
-                            if (this.item_dict[i].content.warehouses[j].warehouse == this.warehouse) {
-                                total_qty += this.item_dict[i].content.warehouses[j].qty;
+        if (this.warehouse) {
+            //Check if Item is on Stock in selected Warehouse
+            const target_wh = this.warehouses.item_warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+            if (target_wh) {
+                //Check if Amount is availabale on Warehouse
+                if (new_amount > target_wh.qty) {
+                    success = false;
+                } else {
+                    //Check if Stock Amount is used from another position
+                    let total_qty = parseInt(new_amount);
+                    if (this.item_dict.length > 0) {
+                        for (let i = 0; i < this.item_dict.length; i++) {
+                            for (let j = 0; j < this.item_dict[i].content.warehouses.length; j++) {
+                                if (this.item_dict[i].content.warehouses[j].warehouse == this.warehouse) {
+                                    total_qty += this.item_dict[i].content.warehouses[j].qty;
+                                }
                             }
                         }
                     }
-                }
-                if (total_qty > target_wh.qty) {
-                    success = false;
-                } else {
-                    //Prepare updated amount
-                    //Get already picked amount from selected Warehouse
-                    let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
-                    if (taget_wh_qty) {
-                        updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
-                    } else {
-                        updated_amount = parseInt(new_amount)
-                    }
-                    //Check if updated amount is avaliable on Warehouse
-                    if (updated_amount > target_wh.qty) {
+                    if (total_qty > target_wh.qty) {
                         success = false;
                     } else {
-                        success = true;
+                        //Prepare updated amount
+                        //Get already picked amount from selected Warehouse
+                        let taget_wh_qty = target_item.content.warehouses.find(warehouse => warehouse.warehouse === this.warehouse);
+                        if (taget_wh_qty) {
+                            updated_amount = taget_wh_qty['qty'] + parseInt(new_amount);
+                        } else {
+                            updated_amount = parseInt(new_amount)
+                        }
+                        //Check if updated amount is avaliable on Warehouse
+                        if (updated_amount > target_wh.qty) {
+                            success = false;
+                        } else {
+                            success = true;
+                        }
                     }
                 }
+            } else {
+                success = false;
             }
-        } else {
-            success = false;
         }
         if (success) {
             this.update_picked_items(new_amount, target_item);
@@ -2265,15 +2290,18 @@ class PickingListItem extends PickingList {
     update_picked_items(new_amount, target_item) {
         //add stored qty
         target_item.content['stored_qty'] += parseInt(new_amount);
-        //add warehouse information
-        const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
-        if (target) {
-            target.qty += parseInt(new_amount);
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
-        } else {
-            target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
-            this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+        if (this.warehouse) {
+            //add warehouse information
+            const target = target_item.content.warehouses.find(wh => wh.warehouse === this.warehouse);
+            if (target) {
+                target.qty += parseInt(new_amount);
+                //~ this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+            } else {
+                target_item.content.warehouses.push({'warehouse': this.warehouse, 'qty': parseInt(new_amount)});
+                //~ this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
+            }
         }
+        this.update_picking_doc(this.parent_this.picking_list, this.item, new_amount, target_item.content.pl_detail, target_item.content.warehouses);
     }
     
     update_picking_doc(picking_list, item_code, new_amount, pl_detail, warehouse_dict) {

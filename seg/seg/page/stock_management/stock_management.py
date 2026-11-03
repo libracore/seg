@@ -450,6 +450,9 @@ def get_open_picking_lists(customer, picking_list):
                                     DATE_FORMAT(`tabPicking List`.`schedule_date`, '%d.%m.%Y') AS `formatted_schedule_date`,
                                     `tabPicking List`.`customer_name` AS `customer_name`,
                                     `tabPicking List`.`sales_order` AS `sales_order`,
+                                    `tabPicking List`.`transporter` AS `transporter`,
+                                    `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
+                                    `tabPicking List`.`custom_labels_text` AS `custom_labels_text`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
@@ -479,6 +482,9 @@ def get_open_picking_lists(customer, picking_list):
                                     DATE_FORMAT(`tabPicking List`.`schedule_date`, '%%d.%%m.%%Y') AS `formatted_schedule_date`,
                                     `tabPicking List`.`customer_name` AS `customer_name`,
                                     `tabPicking List`.`sales_order` AS `sales_order`,
+                                    `tabPicking List`.`transporter` AS `transporter`,
+                                    `tabPicking List`.`has_custom_labels` AS `has_custom_labels`,
+                                    `tabPicking List`.`custom_labels_text` AS `custom_labels_text`,
                                     COUNT(
                                         CASE
                                             WHEN `tabPicking List Item`.`picked_qty`
@@ -508,6 +514,9 @@ def get_open_picking_lists(customer, picking_list):
 #Get all Items for Picking List
 @frappe.whitelist()
 def get_picking_list_items(picking_list, item=False):
+    #Prepare Picking List Info
+    info = frappe.get_value("Picking List", picking_list, ["transporter", "has_custom_labels"], as_dict=True)
+    
     #Prepare Item condition
     item_condition = """"""
     if item:
@@ -524,7 +533,8 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabItem`.`image` AS `image`,
                                 `tabPicking List Item`.`so_detail` AS `so_detail`,
                                 `tabPicking List Item`.`picked_qty` AS `picked_qty`,
-                                `tabPicking List Item`.`warehouse_dict` AS `warehouse_dict`
+                                `tabPicking List Item`.`warehouse_dict` AS `warehouse_dict`,
+                                `tabPicking List Item`.`is_stock_item` AS `is_stock_item`
                             FROM
                                 `tabPicking List Item`
                             LEFT JOIN
@@ -533,7 +543,7 @@ def get_picking_list_items(picking_list, item=False):
                                 `tabPicking List Item`.`parent` = %(pl)s
                             {item_condition};""".format(item_condition=item_condition), {'pl': picking_list}, as_dict=True)
     
-        #Prepare response
+    #Prepare response
     if len(items) > 0:
         response = []
         for item in items:
@@ -556,14 +566,14 @@ def get_picking_list_items(picking_list, item=False):
                                 'pl_detail': item.get('pl_detail'),
                                 'so_detail': item.get('so_detail'),
                                 'description': item.get('description'),
-                                'additional_text': item.get('additional_text')
+                                'additional_text': item.get('additional_text'),
+                                'is_stock_item': item.get('is_stock_item')
                             }}
                 
                 response.append(item_response)
     else:
         response = None
-        return response
-    return response
+    return {'items': response, 'info': info}
 
 #Create Pruchase Receipt for single Item to directly store it
 @frappe.whitelist()
@@ -739,6 +749,7 @@ def create_delivery_note(picking_list, items):
     delivery_note = make_delivery_note(source_name=picking_list_doc.get('sales_order'))
     
     #Set Mandatory Transporter
+    delivery_note.transporter = picking_list_doc.get('transporter')
     if not delivery_note.get('transporter'):
         delivery_note.transporter = frappe.get_value("SEG Settings", "SEG Settings", "dn_transporter")
     
@@ -773,12 +784,36 @@ def create_delivery_note(picking_list, items):
         )
         
         #Add Delivery Note Item
-        for item_with_wh in item.get('content').get('warehouses'):
+        if item.get('content').get('is_stock_item'):
+            for item_with_wh in item.get('content').get('warehouses'):
+                delivery_note.append("items", {
+                                        'item_code': item.get('item_code'),
+                                        'qty': item_with_wh.get('qty'),
+                                        'description': item_doc.get('description'),
+                                        'warehouse': item_with_wh.get('warehouse'),
+                                        'pl_detail': item.get('content').get('pl_detail'),
+                                        'so_detail': item.get('content').get('so_detail'),
+                                        'against_sales_order': picking_list_doc.get('sales_order'),
+                                        'price_list_rate': item_doc.get('price_list_rate'),
+                                        'base_price_list_rate': item_doc.get('base_price_list_rate'),
+                                        'margin_type': item_doc.get('margin_type'),
+                                        'margin_rate_or_amount': item_doc.get('margin_rate_or_amount'),
+                                        'rate_with_margin': item_doc.get('rate_with_margin'),
+                                        'discount_percentage': item_doc.get('discount_percentage'),
+                                        'discount_amount': item_doc.get('discount_amount'),
+                                        'distributed_discount_amount': item_doc.get('distributed_discount_amount'),
+                                        'base_rate_with_margin': item_doc.get('base_rate_with_margin'),
+                                        'rate': item_doc.get('rate'),
+                                        'base_rate': item_doc.get('base_rate'),
+                                        'picked_up': delivery_note.get('picked_up'),
+                                        'color': item_doc.get('color')
+                                    })
+        else:
             delivery_note.append("items", {
                                     'item_code': item.get('item_code'),
-                                    'qty': item_with_wh.get('qty'),
+                                    'qty': item.get('content').get('stored_qty'),
                                     'description': item_doc.get('description'),
-                                    'warehouse': item_with_wh.get('warehouse'),
+                                    # ~ 'warehouse': item_with_wh.get('warehouse'),
                                     'pl_detail': item.get('content').get('pl_detail'),
                                     'so_detail': item.get('content').get('so_detail'),
                                     'against_sales_order': picking_list_doc.get('sales_order'),

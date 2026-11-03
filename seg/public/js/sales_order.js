@@ -28,7 +28,7 @@ frappe.ui.form.on('Sales Order',  {
         }
         
         if ((frm.doc.sales_team) && (frm.doc.sales_team.length === 0) && (frm.doc.customer)) {
-            // fetch sales team from customer
+            //fetch sales team from customer
             frappe.call({
                 "method": "frappe.client.get",
                 "args": {
@@ -59,7 +59,7 @@ frappe.ui.form.on('Sales Order',  {
 			}
 		});
         
-        // custom mail dialog
+        //custom mail dialog
         cur_frm.page.add_action_icon("es-line-email", function() {
             custom_mail_dialog(frm);
         }, "", "Email");

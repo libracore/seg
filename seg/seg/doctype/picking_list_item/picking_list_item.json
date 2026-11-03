@@ -16,6 +16,7 @@
   "picked_qty",
   "delivered_qty",
   "fully_picked",
+  "is_stock_item",
   "warehouse_dict"
  ],
  "fields": [
@@ -104,13 +105,20 @@
    "fieldname": "additional_text",
    "fieldtype": "Data",
    "label": "Additional Text"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_stock_item",
+   "fieldtype": "Check",
+   "label": "Is Stock Item",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-27 19:29:02.290990",
+ "modified": "2026-11-02 11:52:45.237209",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Picking List Item",
