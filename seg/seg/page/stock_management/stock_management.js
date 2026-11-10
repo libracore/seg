@@ -1544,6 +1544,14 @@ class StockTransferPage extends StockManagementClass {
         const list_section = document.getElementById('stock-transfer-list');
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
+        
+        //Add Event Handler Fill Item Field with List Item
+        document.querySelectorAll(".item-row").forEach(row => {
+            row.addEventListener("click", () => {
+                const item_element = row.dataset.item;
+                this.item_link_field.set_value(item_element);
+            });
+		});
     }
     
 }
