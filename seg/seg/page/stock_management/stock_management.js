@@ -573,9 +573,9 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
     
     show_specific_dynamic_content() {
         document.getElementById("ok-button").style.backgroundColor = this.colors.purchase_receipt;
-        document.getElementById("action-button").textContent = "Einlagerung mit standart Frachtkosten";
+        document.getElementById("action-button").textContent = "Alle Positionen einlagern";
         document.getElementById("action-button").style.backgroundColor = this.colors.purchase_receipt;
-        document.getElementById("secondary-action-button").textContent = "Einlagerung mit manuellen Frachtkosten";
+        document.getElementById("secondary-action-button").textContent = "Alle Positionen mit manuellen Frachtkosten einlagern";
         document.getElementById("secondary-action-button").style.backgroundColor = this.colors.purchase_receipt_sec;
         document.getElementById("nav-title").textContent = this.order;
         this.show_dynamic_content()
@@ -1786,6 +1786,7 @@ class PickingList extends PickingPage {
         this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
+        console.log("items", this.items);
 	}
     
     //Add Event Listeners
