@@ -144,7 +144,7 @@ def update_picking_list(self, event):
         picking_list = frappe.get_doc("Picking List", self.get('picking_list'))
     else:
         return
-     #Update Item Qty
+    #Update Item Qty
     completed = True
     for item in self.get('items'):
         for pl_item in picking_list.get('items'):

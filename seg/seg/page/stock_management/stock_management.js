@@ -573,9 +573,9 @@ class PurchaseReceiptOrder extends PurchaseReceiptPage {
     
     show_specific_dynamic_content() {
         document.getElementById("ok-button").style.backgroundColor = this.colors.purchase_receipt;
-        document.getElementById("action-button").textContent = "Einlagerung mit standart Frachtkosten";
+        document.getElementById("action-button").textContent = "Alle Positionen einlagern";
         document.getElementById("action-button").style.backgroundColor = this.colors.purchase_receipt;
-        document.getElementById("secondary-action-button").textContent = "Einlagerung mit manuellen Frachtkosten";
+        document.getElementById("secondary-action-button").textContent = "Alle Positionen mit manuellen Frachtkosten einlagern";
         document.getElementById("secondary-action-button").style.backgroundColor = this.colors.purchase_receipt_sec;
         document.getElementById("nav-title").textContent = this.order;
         this.show_dynamic_content()
@@ -1544,6 +1544,14 @@ class StockTransferPage extends StockManagementClass {
         const list_section = document.getElementById('stock-transfer-list');
         const list_section_content = frappe.render_template("items_list_without_counter", {'items': this.item_dict});
         list_section.innerHTML = list_section_content;
+        
+        //Add Event Handler Fill Item Field with List Item
+        document.querySelectorAll(".item-row").forEach(row => {
+            row.addEventListener("click", () => {
+                const item_element = row.dataset.item;
+                this.item_link_field.set_value(item_element);
+            });
+		});
     }
     
 }
@@ -1786,6 +1794,7 @@ class PickingList extends PickingPage {
         this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
+        console.log("items", this.items);
 	}
     
     //Add Event Listeners
