@@ -825,6 +825,10 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
         payment_method = "Rechnung"
     else:
         payment_method = get_payment_method(transaction_id)
+    
+    #Get default Pick up information
+    pick_up = frappe.get_value("Customer", customers[0]['customer'], "always_pick_up")
+    
     try:
         # create sales order
         sales_order = frappe.get_doc({
@@ -837,6 +841,7 @@ def place_order(shipping_address=None, items=None, commission=None, discount=0, 
             'apply_discount_on': 'Net Total',
             'additional_discount_percentage': float(discount),
             'delivery_date': date.today(),
+            'picked_up': pick_up,
             'avis_person': avis_person,
             'avis_phone': avis_phone,
             'order_person': order_person,
