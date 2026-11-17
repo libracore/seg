@@ -145,7 +145,6 @@ class StockManagementClass {
                     resolve(response.message);
                 }
             });
-
         });
     }
     
@@ -1794,7 +1793,6 @@ class PickingList extends PickingPage {
         this.show_specific_dynamic_content();
         this.add_event_listeners();
         this.create_link_fields();
-        console.log("items", this.items);
 	}
     
     //Add Event Listeners
@@ -2360,6 +2358,7 @@ class CreateSalesOrderPage extends StockManagementClass {
 		super(key, label);
         this.items = [];
         this.customer;
+        this.item_warehouses;
 	}
 
 	init() {
@@ -2569,6 +2568,7 @@ class CreateSalesOrderPage extends StockManagementClass {
                 },
 				change: () => {
                     document.activeElement.blur();
+                    this.save_item_warehouses(this.item_link_field.get_value());
 				}
             },
             only_input: true
@@ -2642,6 +2642,22 @@ class CreateSalesOrderPage extends StockManagementClass {
                 }
             });
 		});
+    }
+    
+    save_item_warehouses(item) {
+        if (item) {
+            frappe.call({
+                method: 'seg.seg.page.stock_management.stock_management.get_warehouse_overview',
+                args: {
+                    'item': item
+                },
+                callback: function(response) {
+                    resolve(response.message);
+                }
+            });
+        } else {
+            this.item_warehouses = [];
+        }
     }
 }
 
