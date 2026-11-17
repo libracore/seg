@@ -1030,6 +1030,14 @@ def create_user(api_key, email, password, company_name, first_name,
         except Exception as err:
             return {'status': err}
         
+        new_customer.append("portal_users", {
+                                                'reference_doctype': "Customer",
+                                                'user': email
+                                            })
+        
+        new_customer.save(ignore_permissions=True)
+        frappe.db.commit()
+        
         #send Information to SEG, that a new user has been registered
         send_info_mail(company_name, first_name, last_name)
         return {'status': 'success'}
