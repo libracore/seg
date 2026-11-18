@@ -2579,7 +2579,6 @@ class CreateSalesOrderPage extends StockManagementClass {
         
         //From Warehouse
         const wh_container = document.getElementById("order-warehouse-input");
-
         this.wh_link_field = frappe.ui.form.make_control({
             parent: wh_container,
             df: {
@@ -2587,8 +2586,10 @@ class CreateSalesOrderPage extends StockManagementClass {
                 options: "Warehouse",
                 fieldname: "from_warehouse",
                 get_query: () => ({
+                    
                     filters: {
-                        is_group: 0
+                        is_group: 0,
+                        name: ["in", this.item_warehouses || []]
                     }
                 }),
 				change: () => {
@@ -2647,12 +2648,14 @@ class CreateSalesOrderPage extends StockManagementClass {
     save_item_warehouses(item) {
         if (item) {
             frappe.call({
-                method: 'seg.seg.page.stock_management.stock_management.get_warehouse_overview',
+                method: 'seg.seg.page.stock_management.stock_management.get_filter_warehouses',
                 args: {
                     'item': item
                 },
-                callback: function(response) {
-                    resolve(response.message);
+                callback: (response) => {
+                    if (response.message) {
+                        this.item_warehouses = response.message;
+                    }
                 }
             });
         } else {

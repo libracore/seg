@@ -158,6 +158,12 @@ def get_free_warehouse():
     
     return empty_wh
 
+@frappe.whitelist()
+def get_filter_warehouses(item):
+    warehouses = get_item_warehouse(item)
+    warehouse_list = [row.warehouse for row in warehouses]
+    return warehouse_list
+
 #Create Stock Entries from "Eingangslager"
 @frappe.whitelist()
 def create_enter_stock_entry(item, target_warehouse, qty):
