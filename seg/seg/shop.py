@@ -54,7 +54,11 @@ def get_prices(item_code=None, user=None, language="de"):
             if len(customers) > 0:
                 customer = customers[0]
             else:
-                customer  = "None"
+                public_prices_user = frappe.get_value("Webshop Settings", "Webshop Settings", "prices_user")
+                if user == public_prices_user:
+                    customer = frappe.get_value("Webshop Settings", "Webshop Settings", "prices_customer")
+                else:
+                    customer  = "None"
         else:
             customer = "None"
         # find recursive item groups
@@ -108,7 +112,7 @@ def get_prices(item_code=None, user=None, language="de"):
         return {'error': err}
         
 @frappe.whitelist(allow_guest=True)
-def get_public_prices(item_code=None, user=None, language="de"):
+def get_public_prices(item_code=None, language="de"):
     #Get Dummy User for Public prices
     prices_user = frappe.get_value("Webshop Settings", "Webshop Settings", "prices_user")
     return get_prices(item_code, prices_user, language)

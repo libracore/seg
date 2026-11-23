@@ -10,7 +10,10 @@
   "column_main",
   "api_key",
   "section_break_piig",
-  "prices_user"
+  "prices_user",
+  "column_break_lmdo",
+  "prices_customer",
+  "prices_customer_name"
  ],
  "fields": [
   {
@@ -46,11 +49,30 @@
    "label": "Dummy User",
    "options": "User",
    "reqd": 1
+  },
+  {
+   "fieldname": "column_break_lmdo",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "for Webshop Prices",
+   "fieldname": "prices_customer",
+   "fieldtype": "Link",
+   "label": "Dummy Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "prices_customer.customer_name",
+   "fieldname": "prices_customer_name",
+   "fieldtype": "Data",
+   "label": "Dummy Customer Name",
+   "read_only": 1
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-11-23 13:14:20.666154",
+ "modified": "2026-11-23 15:38:40.295928",
  "modified_by": "Administrator",
  "module": "SEG",
  "name": "Webshop Settings",
