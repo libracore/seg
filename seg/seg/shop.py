@@ -108,10 +108,10 @@ def get_prices(item_code=None, user=None, language="de"):
         return {'error': err}
         
 @frappe.whitelist(allow_guest=True)
-def get_public_prices(item_code=None):
-    if not item_code:
-        return {'error': "Parameter Error: item_code"}
-    return get_prices(item_code, None)
+def get_public_prices(item_code=None, user=None, language="de"):
+    #Get Dummy User for Public prices
+    prices_user = frappe.get_value("Webshop Settings", "Webshop Settings", "prices_user")
+    return get_prices(item_code, prices_user, language)
 
 # deprecated, will be dropped in future versions; refer to shop module
 @frappe.whitelist(allow_guest=True)
