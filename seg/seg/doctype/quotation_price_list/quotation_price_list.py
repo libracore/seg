@@ -32,6 +32,7 @@ class QuotationPriceList(Document):
                                                 `tabItem`.`variant_of`,
                                                 `tabItem`.`verpackungseinheit`,
                                                 `tabItem`.`stock_uom`,
+                                                `tabItem`.`seg_purchase_price`,
                                                 GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value` SEPARATOR ', ') AS `attribute_value`,
                                                 GROUP_CONCAT(`tabItem Variant Attribute`.`attribute_value_fr` SEPARATOR ', ') AS `attribute_value_fr`
                                             FROM
@@ -48,7 +49,7 @@ class QuotationPriceList(Document):
                                                 `tabItem`.`item_code`, `tabItem`.`item_code`""".format(template=template.get('item_code')), as_dict=True)
                 #if it is a single item, just add this item
                 else:
-                    items = [{'item_code': template.get('item_code'), 'variant_of': template.get('item_code'), 'verpackungseinheit': frappe.get_value("Item", template.get('item_code'), "verpackungseinheit"), 'stock_uom': frappe.get_value("Item", template.get('item_code'), "stock_uom")}]
+                    items = [{'item_code': template.get('item_code'), 'variant_of': template.get('item_code'), 'verpackungseinheit': frappe.get_value("Item", template.get('item_code'), "verpackungseinheit"), 'stock_uom': frappe.get_value("Item", template.get('item_code'), "stock_uom"), 'seg_purchase_price': frappe.get_value("Item", template.get('item_code'), "seg_purchase_price")}]
             #get price for each item, add item and releated price to new items
             if len(items) > 0:
                 for item in items:
@@ -58,7 +59,7 @@ class QuotationPriceList(Document):
                             item_price = price.get('discounted_rate')
                             price_list_rate = price.get('price_list_rate')
                             discount = price.get('discount_percentage')
-                    new_items.append({'item_code': item.get('item_code'), 'item_name': item.get('item_name'), 'variant_of': item.get('variant_of'), 'min_order_qty': item.get('verpackungseinheit'), 'packaging_type': item.get('stock_uom'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr')})
+                    new_items.append({'item_code': item.get('item_code'), 'item_name': item.get('item_name'), 'variant_of': item.get('variant_of'), 'min_order_qty': item.get('verpackungseinheit'), 'packaging_type': item.get('stock_uom'), 'item_price': item_price, 'price_list_rate': price_list_rate, 'kg_price': template.get('calculate_kg_and_l'), 'discount': discount, 'variant': item.get('attribute_value'), 'variant_fr': item.get('attribute_value_fr'), 'seg_purchase_price': item.get('seg_purchase_price')})
                 
                 #add template to imported templates and set flag for JS
                 imported_templates.append(template.get('name'))
@@ -74,6 +75,9 @@ class QuotationPriceList(Document):
                     item_price_l = kg_l_prices.get('liter_price')
                     item_price_kg = kg_l_prices.get('kg_price')
                 
+                #Calculate DB
+                db = ((new_item.get('item_price') - new_item.get('seg_purchase_price')) / new_item.get('item_price')) * 100
+                
                 self.append("items", {
                                         'price_list_rate': new_item.get('price_list_rate'),
                                         'item_code': new_item.get('item_code'),
@@ -87,7 +91,9 @@ class QuotationPriceList(Document):
                                         'variant': new_item.get('variant'),
                                         'variant_fr': new_item.get('variant_fr'),
                                         'item_price_l': item_price_l,
-                                        'item_price_kg': item_price_kg
+                                        'item_price_kg': item_price_kg,
+                                        'seg_purchase_price': new_item.get('seg_purchase_price'),
+                                        'db': db
                                     })
             
             for template in self.templates:
